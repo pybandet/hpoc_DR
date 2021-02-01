@@ -11,7 +11,7 @@ begin
 # - Calm || Bootcamp || Citrix || Summit
 # - PC #.#
 WORKSHOPS=(\
-"XReady Era Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
+"XReady Era Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.11) = Development" \
 "Basic / API Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
 "Private Cloud Bootcamp (AOS AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
 "Leap Add-On Bootcamp (AOS AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
