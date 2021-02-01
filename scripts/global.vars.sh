@@ -2,11 +2,11 @@
 
 # shellcheck disable=SC2034
 RELEASE='release.json'
-PC_DEV_VERSION='pc.2020.9'
+PC_DEV_VERSION='pc.2020.11'
 PC_CURRENT_VERSION='pc.2020.9'
 PC_STABLE_VERSION='5.17.0.3'
-FILES_VERSION='3.7.1'
-FILE_ANALYTICS_VERSION='2.2.0'
+FILES_VERSION='3.8.0'
+FILE_ANALYTICS_VERSION='3.0.0'
 NTNX_INIT_PASSWORD='nutanix/4u'
 PRISM_ADMIN='admin'
 SSH_PUBKEY="${HOME}/.ssh/id_rsa.pub"
@@ -51,7 +51,7 @@ USERS=(\
 ###################################################
 
 ERA_Blueprint='EraServerDeployment.json'
-ERAServerImage='ERA-Server-build-2.0.0.qcow2'
+ERAServerImage='ERA-Server-build-2.1.0.qcow2'
 ERAServerName='EraServer'
 ERA_USER="admin"
 #ERA_PASSWORD="nutanix/4u"
@@ -297,16 +297,16 @@ AUTH_ADMIN_GROUP='SSP Admins'
 case "${OCTET[0]}.${OCTET[1]}" in
 
   10.55 ) # HPOC us-east = DUR
-    PC_DEV_METAURL='http://10.55.251.38/workshop_staging/pcdeploy-pc.2020.9.json'
-    PC_DEV_URL='http://10.55.251.38/workshop_staging/pc.2020.9.tar'
+    PC_DEV_METAURL='http://10.55.251.38/workshop_staging/pcdeploy-pc.2020.11.json'
+    PC_DEV_URL='http://10.55.251.38/workshop_staging/pc.2020.11.tar'
     PC_CURRENT_METAURL='http://10.55.251.38/workshop_staging/pcdeploy-pc.2020.9.json'
     PC_CURRENT_URL='http://10.55.251.38/workshop_staging/pc.2020.9.tar'
     PC_STABLE_METAURL='http://10.55.251.38/workshop_staging/pcdeploy-5.17.0.3.json'
     PC_STABLE_URL='http://10.55.251.38/workshop_staging/euphrates-5.17.0.3-stable-prism_central.tar'
-    FILES_METAURL='http://10.55.251.38/workshop_staging/nutanix-afs-el7.3-release-afs-3.7.1-stable-metadata.json'
-    FILES_URL='http://10.55.251.38/workshop_staging/nutanix-afs-el7.3-release-afs-3.7.1-stable.qcow2'
-    FILE_ANALYTICS_METAURL='http://10.55.251.38/workshop_staging/nutanix-file_analytics-el7.7-release-2.2.0-metadata.json'
-    FILE_ANALYTICS_URL='http://10.55.251.38/workshop_staging/nutanix-file_analytics-el7.7-release-2.2.0.qcow2'
+    FILES_METAURL='http://10.55.251.38/workshop_staging/nutanix-afs-el7.3-release-afs-3.8.0-stable-metadata.json'
+    FILES_URL='http://10.55.251.38/workshop_staging/nutanix-afs-el7.3-release-afs-3.8.0-stable.qcow2'
+    FILE_ANALYTICS_METAURL='http://10.55.251.38/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0-metadata.json'
+    FILE_ANALYTICS_URL='http://10.55.251.38/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0.qcow2'
     JQ_REPOS=(\
          'http://10.55.251.38/workshop_staging/jq-linux64.dms' \
          'https://s3.amazonaws.com/get-ahv-images/jq-linux64.dms' \
@@ -336,16 +336,16 @@ case "${OCTET[0]}.${OCTET[1]}" in
 	  OBJECTS_OFFLINE_REPO='http://10.55.251.38/workshop_staging/objects'
     ;;
   10.42 ) # HPOC us-west = PHX
-    PC_DEV_METAURL='http://10.42.194.11/workshop_staging/pcdeploy-pc.2020.9.json'
-    PC_DEV_URL='http://10.42.194.11/workshop_staging/pc.2020.9.tar'
+    PC_DEV_METAURL='http://10.42.194.11/workshop_staging/pcdeploy-pc.2020.11.json'
+    PC_DEV_URL='http://10.42.194.11/workshop_staging/pc.2020.11.tar'
     PC_CURRENT_METAURL='http://10.42.194.11/workshop_staging/pcdeploy-pc.2020.9.json'
     PC_CURRENT_URL='http://10.42.194.11/workshop_staging/pc.2020.9.tar'
     PC_STABLE_METAURL='http://10.42.194.11/workshop_staging/pcdeploy-5.17.0.3.json'
     PC_STABLE_URL='http://10.42.194.11/workshop_staging/euphrates-5.17.0.3-stable-prism_central.tar'
-    FILES_METAURL='http://10.42.194.11/workshop_staging/nutanix-afs-el7.3-release-afs-3.7.1-stable-metadata.json'
-    FILES_URL='http://10.42.194.11/workshop_staging/nutanix-afs-el7.3-release-afs-3.7.1-stable.qcow2'
-    FILE_ANALYTICS_METAURL='http://10.42.194.11/workshop_staging/nutanix-file_analytics-el7.7-release-2.2.0-metadata.json'
-    FILE_ANALYTICS_URL='http://10.42.194.11/workshop_staging/nutanix-file_analytics-el7.7-release-2.2.0.qcow2'
+    FILES_METAURL='http://10.42.194.11/workshop_staging/nutanix-afs-el7.3-release-afs-3.8.0-stable-metadata.json'
+    FILES_URL='http://10.42.194.11/workshop_staging/nutanix-afs-el7.3-release-afs-3.8.0-stable.qcow2'
+    FILE_ANALYTICS_METAURL='http://10.42.194.11/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0-metadata.json'
+    FILE_ANALYTICS_URL='http://10.42.194.11/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0.qcow2'
     JQ_REPOS=(\
          'http://10.42.194.11/workshop_staging/jq-linux64.dms' \
          'https://s3.amazonaws.com/get-ahv-images/jq-linux64.dms' \
@@ -375,16 +375,16 @@ case "${OCTET[0]}.${OCTET[1]}" in
     OBJECTS_OFFLINE_REPO='http://10.42.194.11/workshop_staging/objects'
     ;;
   10.38 ) # HPOC us-west = PHX 1-Node Clusters
-    PC_DEV_METAURL='http://10.42.194.11/workshop_staging/pcdeploy-pc.2020.9.json'
-    PC_DEV_URL='http://10.42.194.11/workshop_staging/pc.2020.9.tar'
+    PC_DEV_METAURL='http://10.42.194.11/workshop_staging/pcdeploy-pc.2020.11.json'
+    PC_DEV_URL='http://10.42.194.11/workshop_staging/pc.2020.11.tar'
     PC_CURRENT_METAURL='http://10.42.194.11/workshop_staging/pcdeploy-pc.2020.9.json'
     PC_CURRENT_URL='http://10.42.194.11/workshop_staging/pc.2020.9.tar'
     PC_STABLE_METAURL='http://10.42.194.11/workshop_staging/pcdeploy-5.17.0.3.json'
     PC_STABLE_URL='http://10.42.194.11/workshop_staging/euphrates-5.17.0.3-stable-prism_central.tar'
-    FILES_METAURL='http://10.42.194.11/workshop_staging/nutanix-afs-el7.3-release-afs-3.7.1-stable-metadata.json'
-    FILES_URL='http://10.42.194.11/workshop_staging/nutanix-afs-el7.3-release-afs-3.7.1-stable.qcow2'
-    FILE_ANALYTICS_METAURL='http://10.42.194.11/workshop_staging/nutanix-file_analytics-el7.7-release-2.2.0-metadata.json'
-    FILE_ANALYTICS_URL='http://10.42.194.11/workshop_staging/nutanix-file_analytics-el7.7-release-2.2.0.qcow2'
+    FILES_METAURL='http://10.42.194.11/workshop_staging/nutanix-afs-el7.3-release-afs-3.8.0-stable-metadata.json'
+    FILES_URL='http://10.42.194.11/workshop_staging/nutanix-afs-el7.3-release-afs-3.8.0-stable.qcow2'
+    FILE_ANALYTICS_METAURL='http://10.42.194.11/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0-metadata.json'
+    FILE_ANALYTICS_URL='http://10.42.194.11/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0.qcow2'
     JQ_REPOS=(\
            'http://10.42.194.11/workshop_staging/jq-linux64.dms' \
            'https://s3.amazonaws.com/get-ahv-images/jq-linux64.dms' \
@@ -419,16 +419,16 @@ case "${OCTET[0]}.${OCTET[1]}" in
     fi
       ;;
   10.136 ) # HPOC us-west = BLR
-    PC_DEV_METAURL='http://10.136.239.13/workshop_staging/pcdeploy-pc.2020.9.json'
-    PC_DEV_URL='http://10.136.239.13/workshop_staging/pc.2020.9.tar'
+    PC_DEV_METAURL='http://10.136.239.13/workshop_staging/pcdeploy-pc.2020.11.json'
+    PC_DEV_URL='http://10.136.239.13/workshop_staging/pc.2020.11.tar'
     PC_CURRENT_METAURL='http://10.136.239.13/workshop_staging/pcdeploy-pc.2020.9.json'
     PC_CURRENT_URL='http://10.136.239.13/workshop_staging/pc.2020.9.tar'
     PC_STABLE_METAURL='http://10.136.239.13/workshop_staging/pcdeploy-5.17.0.3.json'
     PC_STABLE_URL='http://10.136.239.13/workshop_staging/euphrates-5.17.0.3-stable-prism_central.tar'
-    FILES_METAURL='http://10.136.239.13/workshop_staging/nutanix-afs-el7.3-release-afs-3.7.1-stable-metadata.json'
-    FILES_URL='http://10.136.239.13/workshop_staging/nutanix-afs-el7.3-release-afs-3.7.1-stable.qcow2'
-    FILE_ANALYTICS_METAURL='http://10.136.239.13/workshop_staging/nutanix-file_analytics-el7.7-release-2.2.0-metadata.json'
-    FILE_ANALYTICS_URL='http://10.136.239.13/workshop_staging/nutanix-file_analytics-el7.7-release-2.2.0.qcow2'
+    FILES_METAURL='http://10.136.239.13/workshop_staging/nutanix-afs-el7.3-release-afs-3.8.0-stable-metadata.json'
+    FILES_URL='http://10.136.239.13/workshop_staging/nutanix-afs-el7.3-release-afs-3.8.0-stable.qcow2'
+    FILE_ANALYTICS_METAURL='http://10.136.239.13/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0-metadata.json'
+    FILE_ANALYTICS_URL='http://10.136.239.13/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0.qcow2'
     JQ_REPOS=(\
          'http://10.136.239.13/workshop_staging/jq-linux64.dms' \
          'https://s3.amazonaws.com/get-ahv-images/jq-linux64.dms' \
@@ -456,37 +456,6 @@ case "${OCTET[0]}.${OCTET[1]}" in
     ERA_PRIMARY_DNS='10.136.239.10'
     ERA_SECONDARY_DNS='10.136.239.11'
     OBJECTS_OFFLINE_REPO='http://10.136.239.13/workshop_staging/objects'
-    ;;
-  10.132 ) # https://sewiki.nutanix.com/index.php/SH-COLO-IP-ADDR
-    JQ_REPOS=(\
-         'https://s3.amazonaws.com/get-ahv-images/jq-linux64.dms' \
-         #'https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64' \
-   )
-    QCOW2_REPOS=(\
-       'https://s3.amazonaws.com/get-ahv-images/jq-linux64.dms' \
-    )
-    AUTODC_REPOS=(\
-     'https://s3.amazonaws.com/get-ahv-images/AutoDC2.qcow2' \
-   )
-
-   DNS_SERVERS='10.132.71.40'
-   NW1_SUBNET="${IPV4_PREFIX%.*}.128.4/17"
-   NW1_DHCP_START="${IPV4_PREFIX}.100"
-   NW1_DHCP_END="${IPV4_PREFIX}.250"
-   # PC deploy file local override, TODO:30 make an PC_URL array and eliminate
-   PC_CURRENT_URL=http://10.132.128.50/E%3A/share/Nutanix/PrismCentral/pc-${PC_VERSION}-deploy.tar
-   PC_CURRENT_METAURL=http://10.132.128.50/E%3A/share/Nutanix/PrismCentral/pc-${PC_VERSION}-deploy-metadata.json
-   PC_STABLE_METAURL=${PC_CURRENT_METAURL}
-
-   QCOW2_IMAGES=(\
-      Centos7-Base.qcow2 \
-      Centos7-Update.qcow2 \
-      Windows2012R2.qcow2 \
-      panlm-img-52.qcow2 \
-      kx_k8s_01.qcow2 \
-      kx_k8s_02.qcow2 \
-      kx_k8s_03.qcow2 \
-    )
     ;;
 esac
 
