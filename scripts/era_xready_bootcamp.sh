@@ -19,6 +19,9 @@ case ${1} in
     . lib.pe.sh
 
     export AUTH_SERVER='AutoAD'
+    export USERS=(\
+       User01 \
+    )
     # Networking needs for Era Bootcamp
 	  #export NW2_NAME='EraManaged'
     export NW2_DHCP_START="${IPV4_PREFIX}.132"
