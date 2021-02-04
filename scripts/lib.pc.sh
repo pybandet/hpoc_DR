@@ -863,7 +863,7 @@ function pc_ui() {
   _json=$(cat <<EOF
 {"type":"custom_login_screen","key":"color_in","value":"#ADD100"} \
 {"type":"custom_login_screen","key":"color_out","value":"#11A3D7"} \
-{"type":"custom_login_screen","key":"product_title","value":"${CLUSTER_NAME},PC-${PC_VERSION}"} \
+{"type":"custom_login_screen","key":"product_title","value":"${Banner_Text}"} \
 {"type":"custom_login_screen","key":"title","value":"Nutanix.HandsOnWorkshops.com,@${AUTH_FQDN}"} \
 {"type":"WELCOME_BANNER","username":"system_data","key":"welcome_banner_status","value":true} \
 {"type":"WELCOME_BANNER","username":"system_data","key":"welcome_banner_content","value":"${PRISM_ADMIN}:${PE_PASSWORD}"} \
@@ -1713,6 +1713,169 @@ log "Created User ${_user} with ID |${_user_id}|"
 done
 
 log "Era Config Complete"
+
+#set +x
+
+}
+
+#########################################################################################################################################
+# Routine to configure Era part2
+#########################################################################################################################################
+
+function configure_era_part2() {
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+
+#set -x
+
+log "Starting Era Config Part2"
+
+log "PE Cluster IP |${PE_HOST}|"
+log "EraServer IP |${ERA_HOST}|"
+
+# Get Era Cluster ID
+log "Getting Era Cluster ID"
+
+  _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Era Cluster ID: |${_era_cluster_id}|"
+
+# Get User01-MSSQLSource VM IP
+log "Getting MSSQLSource VM IP"
+
+VM_NAME="User01-MSSQLSource"
+
+  _mssqlsource_vm_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms/list' | jq --arg VM "${VM_NAME}" '.entities[]|select (.spec.name==$VM)| .spec.resources.nic_list[] | .ip_endpoint_list[] | .ip' | tr -d \")
+
+log "MSSQLSource VM IP: |${_mssqlsource_vm_ip}|"
+
+# Register User01-MSSQLSource Database VM
+
+log "Registering User01-MSSQLSource"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "actionArguments": [
+    {
+      "name": "same_as_admin",
+      "value": true
+    },
+    {
+      "name": "sql_login_used",
+      "value": false
+    },
+    {
+      "name": "sysadmin_username_win",
+      "value": "Administrator"
+    },
+    {
+      "name": "sysadmin_password_win",
+      "value": "Nutanix/4u"
+    },
+    {
+      "name": "instance_name",
+      "value": "MSSQLSERVER"
+    }
+  ],
+  "vmIp": "${_mssqlsource_vm_ip}",
+  "nxClusterUuid": "${_era_cluster_id}",
+  "databaseType": "sqlserver_database",
+  "forcedInstall": true,
+  "workingDirectory": "c:\\",
+  "username": "Administrator",
+  "password": "Nutanix/4u",
+  "eraDeployBase": "c:\\"
+}
+EOF
+)
+
+  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+
+  if [ -z "$_operationId" ]; then
+       log "Registering User01-MSSQLSource has encountered an error..."
+  else
+       log "Registering User01-MSSQLSource started.."
+       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
+       # Run the progess checker
+       loop_era
+  fi
+
+log "User01-MSSQLSource has been Registered"
+
+# Get DB Server ID
+
+
+
+
+# Create USERXX Software profiles
+log "Creating Software Profiles Now"
+
+for _user in "${USERS[@]}" ; do
+
+log "Creating ${_user} Software Profile Now"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "engineType": "sqlserver_database",
+  "type": "Software",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "SOURCE_DBSERVER_ID",
+      "value": "2cbaf601-0250-4157-9b4b-711779a8a373",
+      "secure": false,
+      "description": "ID of the database server that should be used as a reference to create the software profile"
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_NAME",
+      "value": "${_user}_MSSQL_2016 (1.0)",
+      "secure": false,
+      "description": "Name of the base profile version."
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_DESCRIPTION",
+      "value": "",
+      "secure": false,
+      "description": "Description of the base profile version."
+    },
+    {
+      "name": "OS_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Notes or description for the Operating System."
+    },
+    {
+      "name": "DB_SOFTWARE_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Description of the SQL Server database software."
+    }
+  ],
+  "availableClusterIds": [
+    "${_era_cluster_id}
+  ],
+  "name": "${_user}_MSSQL_2016"
+}
+EOF
+)
+
+  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+
+  if [ -z "$_operationId" ]; then
+       log "Registering User01-MSSQLSource has encountered an error..."
+  else
+       log "Registering User01-MSSQLSource started.."
+       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
+       # Run the progess checker
+       loop_era
+  fi
+
+log "${_user} Software Profile Now Complete"
+
+done
+
+
+log "Era Config part2 Complete"
 
 #set +x
 

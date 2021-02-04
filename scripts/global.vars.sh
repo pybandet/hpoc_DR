@@ -26,6 +26,10 @@ Beam_Blueprint=''
 Karbon_Blueprint='KarbonClusterDeployment.json'
 CICDInfra_Blueprint='CICD_Infra.json'
 
+# Banner on Login screen
+
+Banner_Text="Bootcamp Testing"
+
 # Curl and SSH settings
 CURL_OPTS='--insecure --silent --show-error' # --verbose'
 CURL_POST_OPTS="${CURL_OPTS} --max-time 5 --header Content-Type:application/json --header Accept:application/json --output /dev/null"
