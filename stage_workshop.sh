@@ -11,8 +11,8 @@ begin
 # - Calm || Bootcamp || Citrix || Summit
 # - PC #.#
 WORKSHOPS=(\
-"GTS2021 Cluster1 (AOS 5.18.x/AHV PC 2020.11) = Development" \
-"GTS2021 Cluster2 (AOS 5.18.x/AHV PC 2020.11) = Development" \
+"GTS2021 Cluster1 - HPOC (AOS 5.18.x/AHV PC 2020.11) = Development" \
+"GTS2021 Cluster2 - AWS (AOS 5.18.x/AHV PC 2020.11) = Development" \
 "XReady Era Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.11) = Development" \
 "Basic / API Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
 "Private Cloud Bootcamp (AOS AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
@@ -65,12 +65,12 @@ function stage_clusters() {
 
   # Map workshop to staging script(s) and libraries,
   # _pe_launch will be executed on PE
-  if (( $(echo ${_workshop} | grep -i "^GTS2021 Cluster1" | wc ${WC_ARG}) > 0 )); then
+  if (( $(echo ${_workshop} | grep -i "^GTS2021 Cluster1 - HPOC" | wc ${WC_ARG}) > 0 )); then
     _libraries+='lib.pe.sh lib.pc.sh'
     _pe_launch='ts2021_cluster1.sh'
     _pc_launch=${_pe_launch}
   fi
-  if (( $(echo ${_workshop} | grep -i "^GTS2021 Cluster2" | wc ${WC_ARG}) > 0 )); then
+  if (( $(echo ${_workshop} | grep -i "^TS2021 Cluster2 - AWS" | wc ${WC_ARG}) > 0 )); then
     _libraries+='lib.pe.sh lib.pc.sh'
     _pe_launch='ts2021_cluster2.sh'
     _pc_launch=${_pe_launch}
