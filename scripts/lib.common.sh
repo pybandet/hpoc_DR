@@ -136,10 +136,10 @@ function dependencies {
           jq | ${_jq_pkg} )
             if [[ -d ${HOME}/bin ]]; then
               pushd bin || true
-              rm -f jq ${_jq_pkg}
+              /usr/bin/rm -f jq ${_jq_pkg}
               popd || true
             else
-              rm -f jq ${_jq_pkg}
+              /usr/bin/rm -f jq ${_jq_pkg}
             fi
           ;;
         esac
@@ -210,7 +210,7 @@ function download() {
     elif (( ${_output} == 33 )); then
       log "Web server doesn't support HTTP range command, purging and falling back."
       _http_range_enabled=''
-      rm -f ${1##*/}
+      /usr/bin/rm -f ${1##*/}
     else
       log "${_loop}/${_attempts}: curl=${_output} ${1##*/} sleep ${_sleep}..."
       sleep ${_sleep}
@@ -661,7 +661,7 @@ function ntnx_download() {
 
     _error=2
     log "Error ${_error}: md5sum ${_checksum} doesn't match on: ${_source_url##*/} removing and exit!"
-    rm -f ${_source_url##*/}
+    /usr/bin/rm -f ${_source_url##*/}
     exit ${_error}
   else
     log "Success: ${_ncli_softwaretype} bits downloaded and passed MD5 checksum!"
