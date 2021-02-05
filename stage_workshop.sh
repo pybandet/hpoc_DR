@@ -11,9 +11,9 @@ begin
 # - Calm || Bootcamp || Citrix || Summit
 # - PC #.#
 WORKSHOPS=(\
-"GTS2021 Cluster1 - HPOC (AOS 5.18.x/AHV PC 2020.11) = Development" \
-"GTS2021 Cluster2 - AWS (AOS 5.18.x/AHV PC 2020.11) = Development" \
-"XReady Era Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.11) = Development" \
+"GTS2021 Cluster1 - HPOC (AOS 5.18.x/AHV PC 2021.1) = Development" \
+"GTS2021 Cluster2 - AWS (AOS 5.18.x/AHV PC 2021.1) = Development" \
+"XReady Era Bootcamp (AOS 5.18.x/AHV PC 2021.1) = Development" \
 "Basic / API Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
 "Private Cloud Bootcamp (AOS AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
 "Leap Add-On Bootcamp (AOS AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
@@ -55,11 +55,11 @@ function stage_clusters() {
   # Map to latest and greatest of each point release
   # Metadata URLs MUST be specified in lib.common.sh function: ntnx_download
   # TODO: make WORKSHOPS and map a JSON configuration file?
-  if (( $(echo ${_workshop} | grep -i "PC 2020.11" | wc ${WC_ARG}) > 0 )); then
+  if (( $(echo ${_workshop} | grep -i "PC 2021.1" | wc ${WC_ARG}) > 0 )); then
     export PC_VERSION="${PC_DEV_VERSION}"
-  elif (( $(echo ${_workshop} | grep -i "PC 2020.9" | wc ${WC_ARG}) > 0 )); then
+  elif (( $(echo ${_workshop} | grep -i "PC 2020.11" | wc ${WC_ARG}) > 0 )); then
     export PC_VERSION="${PC_CURRENT_VERSION}"
-  elif (( $(echo ${_workshop} | grep -i "PC 5.17.0.3" | wc ${WC_ARG}) > 0 )); then
+  elif (( $(echo ${_workshop} | grep -i "PC 2020.9" | wc ${WC_ARG}) > 0 )); then
     export PC_VERSION="${PC_STABLE_VERSION}"
   fi
 
