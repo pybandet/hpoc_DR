@@ -1086,7 +1086,7 @@ fi
 ### Deploy PrismProServer ###
 
 log "Create ${ERAServerName} VM based on ${ERAServerImage} image"
-acli "vm.create ${ERAServerName} num_vcpus=1 num_cores_per_vcpu=4 memory=4G"
+acli "vm.create ${ERAServerName} num_vcpus=1 num_cores_per_vcpu=4 memory=16G"
 acli "vm.disk_create ${ERAServerName} clone_from_image=${ERAServerImage}"
 acli "vm.nic_create ${ERAServerName} network=${NW1_NAME} ip=${ERA_HOST}"
 
@@ -1116,7 +1116,7 @@ function deploy_mssql() {
   SourceVM="${_user}_${MSSQL_SourceVM}"
 
   echo "## ${SourceVM} Creation_INPROGRESS ##"
-  acli "vm.create ${SourceVM} memory=2046M num_cores_per_vcpu=1 num_vcpus=2"
+  acli "vm.create ${SourceVM} memory=8192M num_cores_per_vcpu=1 num_vcpus=4"
   acli "vm.disk_create ${SourceVM} clone_from_image=${MSSQL_SourceVM_Image1}"
   acli "vm.disk_create ${SourceVM} clone_from_image=${MSSQL_SourceVM_Image2}"
   acli "vm.nic_create ${SourceVM} network=${NW1_NAME}"
@@ -1125,6 +1125,39 @@ function deploy_mssql() {
   echo "## ${SourceVM} Creation_COMPLETE ##"
 
   done
+
+}
+
+#########################################################################################################################################
+# Routine to Create Era Bootcamp PreProvisioned MSSQL Server 2019
+#########################################################################################################################################
+
+function deploy_mssql_2019() {
+
+  if (( $(source /etc/profile.d/nutanix_env.sh && acli image.list | grep ${MSSQL19_SourceVM_Image1} | wc --lines) == 0 )); then
+    log "Import ${MSSQL19_SourceVM_Image1} image from ${QCOW2_REPOS}..."
+
+    acli image.create ${MSSQL19_SourceVM_Image1} image_type=kDiskImage wait=true container=${STORAGE_ERA} source_url="${QCOW2_REPOS}GTS21-MSSQL/${MSSQL19_SourceVM_Image1}.qcow2"
+    acli image.create ${MSSQL19_SourceVM_Image2} image_type=kDiskImage wait=true container=${STORAGE_ERA} source_url="${QCOW2_REPOS}GTS21-MSSQL/${MSSQL19_SourceVM_Image2}.qcow2"
+  else
+    log "Image found, assuming ready. Skipping ${MSSQL_SourceVM} import."
+  fi
+
+  #for _user in "${USERS[@]}" ; do
+
+  #SourceVM="${_user}_${MSSQL19_SourceVM}"
+  SourceVM="${MSSQL19_SourceVM}"
+
+  echo "## ${SourceVM} Creation_INPROGRESS ##"
+  acli "vm.create ${SourceVM} memory=8192M num_cores_per_vcpu=1 num_vcpus=4"
+  acli "vm.disk_create ${SourceVM} clone_from_image=${MSSQL19_SourceVM_Image1}"
+  acli "vm.disk_create ${SourceVM} clone_from_image=${MSSQL19_SourceVM_Image2}"
+  acli "vm.nic_create ${SourceVM} network=${NW1_NAME}"
+  echo "## ${SourceVM} - Powering On ##"
+  acli "vm.on ${SourceVM}"
+  echo "## ${SourceVM} Creation_COMPLETE ##"
+
+  #done
 
 }
 

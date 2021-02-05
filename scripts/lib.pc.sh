@@ -1719,15 +1719,15 @@ log "Era Config Complete"
 }
 
 #########################################################################################################################################
-# Routine to configure Era part2
+# Routine to configure era cluster 1
 #########################################################################################################################################
 
-function configure_era_part2() {
+function configure_era_cluster_1() {
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 #set -x
 
-log "Starting Era Config Part2"
+log "Starting Era Config Cluster 1"
 
 log "PE Cluster IP |${PE_HOST}|"
 log "EraServer IP |${ERA_HOST}|"
@@ -1739,10 +1739,46 @@ log "Getting Era Cluster ID"
 
 log "Era Cluster ID: |${_era_cluster_id}|"
 
+##  Create the LAB_COMPUTE Compute Profile inside Era ##
+log "Create the LAB_COMPUTE Compute Profile"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "type": "Compute",
+  "topology": "ALL",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "CPUS",
+      "value": "4",
+      "description": "Number of CPUs in the VM"
+    },
+    {
+      "name": "CORE_PER_CPU",
+      "value": "1",
+      "description": "Number of cores per CPU in the VM"
+    },
+    {
+      "name": "MEMORY_SIZE",
+      "value": 8,
+      "description": "Total memory (GiB) for the VM"
+    }
+  ],
+  "name": "LAB_COMPUTE"
+}
+EOF
+)
+
+  _lab_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Created LAB_COMPUTE Compute Profile with ID |${_lab_small_compute_profile_id}|"
+
+
 # Get User01-MSSQLSource VM IP
 log "Getting MSSQLSource VM IP"
 
-VM_NAME="User01-MSSQLSource"
+VM_NAME="MSSQLSource"
 
   _mssqlsource_vm_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms/list' | jq --arg VM "${VM_NAME}" '.entities[]|select (.spec.name==$VM)| .spec.resources.nic_list[] | .ip_endpoint_list[] | .ip' | tr -d \")
 
@@ -1750,7 +1786,232 @@ log "MSSQLSource VM IP: |${_mssqlsource_vm_ip}|"
 
 # Register User01-MSSQLSource Database VM
 
-log "Registering User01-MSSQLSource"
+log "Registering MSSQLSource"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "actionArguments": [
+    {
+      "name": "same_as_admin",
+      "value": true
+    },
+    {
+      "name": "sql_login_used",
+      "value": false
+    },
+    {
+      "name": "sysadmin_username_win",
+      "value": "Administrator"
+    },
+    {
+      "name": "sysadmin_password_win",
+      "value": "Nutanix/4u"
+    },
+    {
+      "name": "instance_name",
+      "value": "MSSQLSERVER"
+    }
+  ],
+  "vmIp": "${_mssqlsource_vm_ip}",
+  "nxClusterUuid": "${_era_cluster_id}",
+  "databaseType": "sqlserver_database",
+  "forcedInstall": true,
+  "workingDirectory": "c:\\",
+  "username": "Administrator",
+  "password": "Nutanix/4u",
+  "eraDeployBase": "c:\\"
+}
+EOF
+)
+
+  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+
+  if [ -z "$_operationId" ]; then
+       log "Registering MSSQLSource has encountered an error..."
+  else
+       log "Registering MSSQLSource started.."
+       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
+       # Run the progess checker
+       loop_era
+  fi
+
+log "MSSQLSource has been Registered"
+
+# Get DB Server ID
+log "Getting Era Cluster ID"
+
+  _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Era Cluster ID: |${_era_cluster_id}|"
+
+# Create MSSQL19 Software profiles
+log "Creating Software Profiles Now"
+
+for _user in "${USERS[@]}" ; do
+
+log "Creating ${_user} Software Profile Now"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "engineType": "sqlserver_database",
+  "type": "Software",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "SOURCE_DBSERVER_ID",
+      "value": "2cbaf601-0250-4157-9b4b-711779a8a373",
+      "secure": false,
+      "description": "ID of the database server that should be used as a reference to create the software profile"
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_NAME",
+      "value": "MSSQL_19_${_user} (1.0)",
+      "secure": false,
+      "description": "Name of the base profile version."
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_DESCRIPTION",
+      "value": "",
+      "secure": false,
+      "description": "Description of the base profile version."
+    },
+    {
+      "name": "OS_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Notes or description for the Operating System."
+    },
+    {
+      "name": "DB_SOFTWARE_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Description of the SQL Server database software."
+    }
+  ],
+  "availableClusterIds": [
+    "${_era_cluster_id}
+  ],
+  "name": "MSSQL_19_${_user}"
+}
+EOF
+)
+
+  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+
+  if [ -z "$_operationId" ]; then
+       log "Ceating MSSQL_19_${_user} has encountered an error..."
+  else
+       log "Ceating MSSQL_19_${_user} started.."
+       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
+       # Run the progess checker
+       loop_era
+  fi
+
+log "Ceating MSSQL_19_${_user} Now Complete"
+
+done
+
+
+log "Era Config Cluster 1 Complete"
+
+#set +x
+
+}
+
+#########################################################################################################################################
+# Routine to configure era cluster 2
+#########################################################################################################################################
+
+function configure_era_cluster_2() {
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+
+#set -x
+
+log "Starting Era Config Cluster 2"
+
+log "PE Cluster IP |${PE_HOST}|"
+log "EraServer IP |${ERA_HOST}|"
+
+# Get Era Cluster ID
+log "Getting Era Cluster ID"
+
+  _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Era Cluster ID: |${_era_cluster_id}|"
+
+##  Create the LAB_COMPUTE Compute Profile inside Era ##
+log "Enable Era Multi-Cluster"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "agentVMPrefix": "EraAgent",
+  "vlanName": "${NW3_NAME}"
+}
+EOF
+)
+
+  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+
+  if [ -z "$_operationId" ]; then
+       log "Enable Era Multi-Cluster has encountered an error..."
+  else
+       log "Enable Era Multi-Cluster started.."
+       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
+       # Run the progess checker
+       loop_era
+  fi
+
+log "Era Multi-Cluster Enabled"
+
+##  Create the LAB_COMPUTE Compute Profile inside Era ##
+log "Create the LAB_COMPUTE Compute Profile"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "type": "Compute",
+  "topology": "ALL",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "CPUS",
+      "value": "4",
+      "description": "Number of CPUs in the VM"
+    },
+    {
+      "name": "CORE_PER_CPU",
+      "value": "1",
+      "description": "Number of cores per CPU in the VM"
+    },
+    {
+      "name": "MEMORY_SIZE",
+      "value": 8,
+      "description": "Total memory (GiB) for the VM"
+    }
+  ],
+  "name": "LAB_COMPUTE"
+}
+EOF
+)
+
+  _lab_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Created LAB_COMPUTE Compute Profile with ID |${_lab_compute_profile_id}|"
+
+
+# Get User01-MSSQLSource VM IP
+log "Getting MSSQLSource VM IP"
+
+VM_NAME="MSSQLSource"
+
+  _mssqlsource_vm_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms/list' | jq --arg VM "${VM_NAME}" '.entities[]|select (.spec.name==$VM)| .spec.resources.nic_list[] | .ip_endpoint_list[] | .ip' | tr -d \")
+
+log "MSSQLSource VM IP: |${_mssqlsource_vm_ip}|"
+
+# Register User01-MSSQLSource Database VM
+
+log "Registering MSSQLSource"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
@@ -1799,14 +2060,16 @@ EOF
        loop_era
   fi
 
-log "User01-MSSQLSource has been Registered"
+log "MSSQLSource has been Registered"
 
 # Get DB Server ID
+log "Getting DB Server ID"
 
+  _db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers" --data '{"filter": "name==MSSQLSource"}' | jq -r '.id' | tr -d \")
 
+log "DB Server ID: |${_db_server_id}|"
 
-
-# Create USERXX Software profiles
+# Create MSSQL19 Software profiles
 log "Creating Software Profiles Now"
 
 for _user in "${USERS[@]}" ; do
@@ -1828,7 +2091,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     },
     {
       "name": "BASE_PROFILE_VERSION_NAME",
-      "value": "${_user}_MSSQL_2016 (1.0)",
+      "value": "MSSQL_19_${_user} (1.0)",
       "secure": false,
       "description": "Name of the base profile version."
     },
@@ -1854,7 +2117,7 @@ HTTP_JSON_BODY=$(cat <<EOF
   "availableClusterIds": [
     "${_era_cluster_id}
   ],
-  "name": "${_user}_MSSQL_2016"
+  "name": "MSSQL_19_${_user}"
 }
 EOF
 )
@@ -1862,20 +2125,82 @@ EOF
   _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
 
   if [ -z "$_operationId" ]; then
-       log "Registering User01-MSSQLSource has encountered an error..."
+       log "Ceating MSSQL_19_${_user} has encountered an error..."
   else
-       log "Registering User01-MSSQLSource started.."
+       log "Ceating MSSQL_19_${_user} started.."
        set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
        # Run the progess checker
        loop_era
   fi
 
-log "${_user} Software Profile Now Complete"
+log "Ceating MSSQL_19_${_user} Now Complete"
 
 done
 
+# Create MSSQL_19_SYNCED Software profiles
+log "Creating MSSQL_19_SYNCED Software Profiles Now"
 
-log "Era Config part2 Complete"
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "engineType": "sqlserver_database",
+  "type": "Software",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "SOURCE_DBSERVER_ID",
+      "value": "2cbaf601-0250-4157-9b4b-711779a8a373",
+      "secure": false,
+      "description": "ID of the database server that should be used as a reference to create the software profile"
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_NAME",
+      "value": "MSSQL_19_SYNCED (1.0)",
+      "secure": false,
+      "description": "Name of the base profile version."
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_DESCRIPTION",
+      "value": "",
+      "secure": false,
+      "description": "Description of the base profile version."
+    },
+    {
+      "name": "OS_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Notes or description for the Operating System."
+    },
+    {
+      "name": "DB_SOFTWARE_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Description of the SQL Server database software."
+    }
+  ],
+  "availableClusterIds": [
+    "${_era_cluster_id}
+  ],
+  "name": "MSSQL_19_SYNCED"
+}
+EOF
+)
+
+  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+
+  if [ -z "$_operationId" ]; then
+       log "Ceating MSSQL_19_${_user} has encountered an error..."
+  else
+       log "Ceating MSSQL_19_${_user} started.."
+       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
+       # Run the progess checker
+       loop_era
+  fi
+
+log "Ceating MSSQL_19_${_user} Now Complete"
+
+
+log "Era Config Cluster 2 Complete"
 
 #set +x
 

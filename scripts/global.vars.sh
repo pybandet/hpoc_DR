@@ -17,7 +17,7 @@ STORAGE_ERA='Era'
 ATTEMPTS=40
 SLEEP=60
 PrismOpsServer='PrismOpsLabUtilityServer'
-SeedPC='seedPC.zip'
+SeedPC='seedPC202011.zip'
 BasicUnattend='basic_unattend.xml'
 CALM_RSA_KEY_FILE='calm_rsa_key.env'
 
@@ -48,6 +48,7 @@ USERS=(\
    User04 \
    User05 \
    User06 \
+   User07 \
 )
 
 ####################################################
@@ -67,6 +68,10 @@ ERA_Container_RF="2"
 MSSQL_SourceVM="MSSQLSourceVM"
 MSSQL_SourceVM_Image1="MSSQL_1"
 MSSQL_SourceVM_Image2="MSSQL_2"
+
+MSSQL19_SourceVM="MSSQLSourceVM"
+MSSQL19_SourceVM_Image1="MSSQL19-Profile-Disk1"
+MSSQL19_SourceVM_Image2="MSSQL19-Profile-Disk2"
 
 Oracle_12c_SourceVM="Oracle12cSource"
 Oracle_12c_SourceVM_BootImage="12c_bootdisk"
@@ -271,7 +276,7 @@ case "${OCTET[3]}" in
 
     NW3_NAME='EraManaged'
     NW3_NETMASK='255.255.255.128'
-    NW3_START="${IPV4_PREFIX}.220"
+    NW3_START="${IPV4_PREFIX}.211"
     NW3_END="${IPV4_PREFIX}.253"
     ;;
 
