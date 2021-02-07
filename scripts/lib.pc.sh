@@ -1725,18 +1725,12 @@ log "Era Config Complete"
 function configure_era_cluster_1() {
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
-#set -x
+set -x
 
 log "Starting Era Config Cluster 1"
 
 log "PE Cluster IP |${PE_HOST}|"
 log "EraServer IP |${ERA_HOST}|"
-
-# Get Era Cluster ID
-log "Getting Era Cluster ID"
-
-  _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
 log "Era Cluster ID: |${_era_cluster_id}|"
 
 ##  Create the LAB_COMPUTE Compute Profile inside Era ##
@@ -1772,13 +1766,13 @@ EOF
 
   _lab_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-log "Created LAB_COMPUTE Compute Profile with ID |${_lab_small_compute_profile_id}|"
+log "Created LAB_COMPUTE Compute Profile with ID |${_lab_compute_profile_id}|"
 
 
 # Get User01-MSSQLSource VM IP
 log "Getting MSSQLSource VM IP"
 
-VM_NAME="MSSQLSource"
+VM_NAME="${MSSQL19_SourceVM}"
 
   _mssqlsource_vm_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms/list' | jq --arg VM "${VM_NAME}" '.entities[]|select (.spec.name==$VM)| .spec.resources.nic_list[] | .ip_endpoint_list[] | .ip' | tr -d \")
 
@@ -1915,7 +1909,7 @@ done
 
 log "Era Config Cluster 1 Complete"
 
-#set +x
+set +x
 
 }
 
