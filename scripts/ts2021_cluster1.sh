@@ -36,15 +36,15 @@ case ${1} in
     && era_network_configure \
     && authentication_source \
     && pe_auth \
-  #  && prism_pro_server_deploy \
-  #  && files_install \
-  #  && sleep 30 \
-  #  && create_file_server "${NW1_NAME}" "${NW1_NAME}" \
-  #  && sleep 30 \
-  #  && file_analytics_install \
-  #  && sleep 30 \
-  #  && create_file_analytics_server \
-  #  && sleep 30 \
+    && prism_pro_server_deploy \
+    && files_install \
+    && sleep 30 \
+    && create_file_server "${NW1_NAME}" "${NW1_NAME}" \
+    && sleep 30 \
+    && file_analytics_install \
+    && sleep 30 \
+    && create_file_analytics_server \
+    && sleep 30 \
     && deploy_era \
     && deploy_mssql_2019
 
