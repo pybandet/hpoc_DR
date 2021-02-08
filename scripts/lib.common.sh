@@ -1062,7 +1062,7 @@ function loop_era(){
   local _attempts=45
   local _loops=0
   local _sleep=60
-  local _url_progress="https://${ERA_HOST}/era/v0.9/dbservers/register"
+  local _url_progress="https://${ERA_HOST}/era/v0.9/operations"
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
   echo ${_operationId}

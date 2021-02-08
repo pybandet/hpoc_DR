@@ -1840,11 +1840,11 @@ EOF
 log "MSSQLSource has been Registered"
 
 # Get DB Server ID
-log "Getting Era Cluster ID"
+log "Getting DB Server ID"
 
-  _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-log "Era Cluster ID: |${_era_cluster_id}|"
+log "Era DB Server ID ID: |${_era_db_server_id}|"
 
 # Create MSSQL19 Software profiles
 log "Creating Software Profiles Now"
@@ -1862,7 +1862,7 @@ HTTP_JSON_BODY=$(cat <<EOF
   "properties": [
     {
       "name": "SOURCE_DBSERVER_ID",
-      "value": "2cbaf601-0250-4157-9b4b-711779a8a373",
+      "value": "${_era_db_server_id}|",
       "secure": false,
       "description": "ID of the database server that should be used as a reference to create the software profile"
     },
@@ -2223,7 +2223,7 @@ function pc_project() {
   local _nw_uuid
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
-set -x
+#set -x
 
 # Get the Network UUIDs
 log "-------------------------------------"
@@ -2311,7 +2311,7 @@ EOF
 
   log "_ssp_connect=|${_ssp_connect}|"
 
-set +x
+#set +x
 
 }
 
