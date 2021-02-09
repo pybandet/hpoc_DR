@@ -1719,7 +1719,7 @@ log "Era Config Complete"
 #########################################################################################################################################
 
 function configure_era_cluster_1() {
-  local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local CURL_HTTP_OPTS=" --max-time 25 --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 set -x
 
@@ -1821,22 +1821,22 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}")
 
-  if [ -z "$_operationId" ]; then
-       log "Registering MSSQLSource has encountered an error..."
-  else
-       log "Registering MSSQLSource started.."
-       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
-       # Run the progess checker
-       loop_era
-  fi
+# Call the wait function
+waitloop "$op_answer" 20
 
 log "MSSQLSource has been Registered"
 
 # Get DB Server ID
 log "Getting DB Server ID"
 
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "filter": "name==MSSQLSource"
+}
+EOF
+)
   _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
 log "Era DB Server ID ID: |${_era_db_server_id}|"
@@ -1894,16 +1894,10 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}")
 
-  if [ -z "$_operationId" ]; then
-       log "Ceating MSSQL_19_${_user} has encountered an error..."
-  else
-       log "Ceating MSSQL_19_${_user} started.."
-       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
-       # Run the progess checker
-       loop_era
-  fi
+# Call the wait function
+waitloop "$op_answer" 20
 
 log "Ceating MSSQL_19_${_user} Now Complete"
 
@@ -1921,7 +1915,7 @@ set +x
 #########################################################################################################################################
 
 function configure_era_cluster_2() {
-  local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local CURL_HTTP_OPTS=" --max-time 25 --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 #set -x
 
@@ -1942,7 +1936,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
 
   if [ -z "$_operationId" ]; then
        log "Enable Era Multi-Cluster has encountered an error..."
@@ -2047,25 +2041,25 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
 
-  if [ -z "$_operationId" ]; then
-       log "Registering MSSQLSource has encountered an error..."
-  else
-       log "Registering UMSSQLSource started.."
-       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
-       # Run the progess checker
-       loop_era
-  fi
+# Call the wait function
+waitloop "$op_answer" 20
 
 log "MSSQLSource has been Registered"
 
 # Get DB Server ID
 log "Getting DB Server ID"
 
-  _db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers" --data '{"filter": "name==MSSQLSource"}' | jq -r '.id' | tr -d \")
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "filter": "name==MSSQLSource"
+}
+EOF
+)
+  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-log "DB Server ID: |${_db_server_id}|"
+log "Era DB Server ID ID: |${_era_db_server_id}|"
 
 # Create MSSQL19 Software profiles
 log "Creating Software Profiles Now"
@@ -2083,7 +2077,7 @@ HTTP_JSON_BODY=$(cat <<EOF
   "properties": [
     {
       "name": "SOURCE_DBSERVER_ID",
-      "value": "${_db_server_id}",
+      "value": "${_era_db_server_id}",
       "secure": false,
       "description": "ID of the database server that should be used as a reference to create the software profile"
     },
@@ -2120,16 +2114,10 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}")
 
-  if [ -z "$_operationId" ]; then
-       log "Ceating MSSQL_19_${_user} has encountered an error..."
-  else
-       log "Ceating MSSQL_19_${_user} started.."
-       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
-       # Run the progess checker
-       loop_era
-  fi
+# Call the wait function
+waitloop "$op_answer" 20
 
 log "Ceating MSSQL_19_${_user} Now Complete"
 
@@ -2147,7 +2135,7 @@ HTTP_JSON_BODY=$(cat <<EOF
   "properties": [
     {
       "name": "SOURCE_DBSERVER_ID",
-      "value": "${_db_server_id}",
+      "value": "${_era_db_server_id}",
       "secure": false,
       "description": "ID of the database server that should be used as a reference to create the software profile"
     },
@@ -2184,16 +2172,10 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}")
 
-  if [ -z "$_operationId" ]; then
-       log "Ceating MSSQL_19_SYNCED has encountered an error..."
-  else
-       log "Ceating MSSQL_19_SYNCED started.."
-       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
-       # Run the progess checker
-       loop_era
-  fi
+# Call the wait function
+waitloop "$op_answer" 20
 
 log "Ceating MSSQL_19_SYNCED Now Complete"
 

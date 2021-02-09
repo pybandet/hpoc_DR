@@ -1084,3 +1084,49 @@ function loop_era(){
     fi
   done
 }
+
+###########################################################################################################
+# Routine to be run/loop till yes we are ok.
+###########################################################################################################
+
+function waitloop {
+  op_answer="$1"
+  loop=$2
+  # Get the op_id from the task
+  op_id=$(echo $op_answer | jq '.operationId' | tr -d \")
+
+
+  # Checking on error. if we have received an error, show it and exit 1
+  if [[ -z $op_id ]]
+  then
+      echo "We have received an error message. The reply from the Era system has been "$op_answer" .."
+      exit 1
+  else
+    counter=1
+    # Checking routine to see that the registration in Era worked
+    while [[ $counter -le $loop ]]
+    do
+        ops_status=$(curl -k --silent https://${era_ip}/era/v0.9/operations/${op_id} -H 'Content-Type: application/json' --user @@{era_admin}@@:@@{era_passwd}@@ | jq '.["percentageComplete"]' | tr -d \")
+        if [[ $ops_status == "100" ]]
+        then
+            ops_status=$(curl -k --silent https://${era_ip}/era/v0.9/operations/${op_id} -H 'Content-Type: application/json' --user @@{era_admin}@@:@@{era_passwd}@@ | jq '.status' | tr -d \")
+            if [[ $ops_status == "5" ]]
+            then
+               echo "Database and Database server have been registreed in Era..."
+               break
+            else
+               echo "Database and Database server registration not correct. Please look at the Era GUI to find the reason..."
+               exit 1
+            fi
+        else
+            echo "Operation still in progress, it is at $ops_status %... Sleep for 30 seconds before retrying.. ($counter/$loop)"
+            sleep 30
+        fi
+        counter=$((counter+1))
+    done
+    if [[ $counter -ge $loop ]]
+    then
+      echo "We have tried for "$(expr $loop / 2)" minutes to register the MariaDB server and Database, but were not successful. Please look at the Era GUI to see if anything has happened..."
+    fi
+fi
+}
