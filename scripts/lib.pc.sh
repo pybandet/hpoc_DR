@@ -2286,8 +2286,8 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  echo "Creating Calm Project Create Now"
-  echo $HTTP_JSON_BODY
+log "Creating Calm Project Create Now"
+log $HTTP_JSON_BODY
 
   _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST  --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/projects' | jq -r '.status.execution_context.task_uuid' | tr -d \")
 
@@ -2305,7 +2305,7 @@ EOF
        loop
   fi
 
-  log "_ssp_connect=|${_ssp_connect}|"
+log "Calm Project Created"
 
 #set +x
 

@@ -322,7 +322,6 @@ case "${OCTET[0]}.${OCTET[1]}" in
     FILE_ANALYTICS_URL='http://10.55.251.38/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0.qcow2'
     JQ_REPOS=(\
          'http://10.55.251.38/workshop_staging/jq-linux64.dms' \
-         'https://s3.amazonaws.com/get-ahv-images/jq-linux64.dms' \
          #'https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64' \
    )
     SSHPASS_REPOS=(\
@@ -331,15 +330,12 @@ case "${OCTET[0]}.${OCTET[1]}" in
     )
     QCOW2_REPOS=(\
        'http://10.55.251.38/workshop_staging/' \
-       'https://s3.amazonaws.com/get-ahv-images/' \
     )
     AUTODC_REPOS=(\
      'http://10.55.251.38/workshop_staging/AutoDC2.qcow2' \
-     'https://s3.amazonaws.com/get-ahv-images/AutoDC2.qcow2' \
     )
     AUTOAD_REPOS=(\
     'http://10.55.251.38/workshop_staging/AutoAD.qcow2' \
-    'https://s3.amazonaws.com/get-ahv-images/AutoAD.qcow2' \
     )
     PC_DATA='http://10.55.251.38/workshop_staging/seedPC.zip'
     BLUEPRINT_URL='http://10.55.251.38/workshop_staging/CalmBlueprints/'
@@ -361,7 +357,6 @@ case "${OCTET[0]}.${OCTET[1]}" in
     FILE_ANALYTICS_URL='http://10.42.194.11/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0.qcow2'
     JQ_REPOS=(\
          'http://10.42.194.11/workshop_staging/jq-linux64.dms' \
-         'https://s3.amazonaws.com/get-ahv-images/jq-linux64.dms' \
          #'https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64' \
    )
     SSHPASS_REPOS=(\
@@ -370,15 +365,12 @@ case "${OCTET[0]}.${OCTET[1]}" in
     )
     QCOW2_REPOS=(\
        'http://10.42.194.11/workshop_staging/' \
-       'https://s3.amazonaws.com/get-ahv-images/' \
     )
     AUTODC_REPOS=(\
      'http://10.42.194.11/workshop_staging/AutoDC2.qcow2' \
-     'https://s3.amazonaws.com/get-ahv-images/AutoDC2.qcow2' \
     )
     AUTOAD_REPOS=(\
      'http://10.42.194.11/workshop_staging/AutoAD.qcow2' \
-     'https://s3.amazonaws.com/get-ahv-images/AutoAD.qcow2' \
     )
     PC_DATA='http://10.42.194.11/workshop_staging/seedPC.zip'
     BLUEPRINT_URL='http://10.42.194.11/workshop_staging/CalmBlueprints/'
@@ -400,7 +392,6 @@ case "${OCTET[0]}.${OCTET[1]}" in
     FILE_ANALYTICS_URL='http://10.42.194.11/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0.qcow2'
     JQ_REPOS=(\
            'http://10.42.194.11/workshop_staging/jq-linux64.dms' \
-           'https://s3.amazonaws.com/get-ahv-images/jq-linux64.dms' \
            #'https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64' \
      )
     SSHPASS_REPOS=(\
@@ -409,15 +400,12 @@ case "${OCTET[0]}.${OCTET[1]}" in
       )
     QCOW2_REPOS=(\
          'http://10.42.194.11/workshop_staging/' \
-         'https://s3.amazonaws.com/get-ahv-images/' \
     )
     AUTODC_REPOS=(\
        'http://10.42.194.11/workshop_staging/AutoDC2.qcow2' \
-       'https://s3.amazonaws.com/get-ahv-images/AutoDC2.qcow2' \
     )
     AUTOAD_REPOS=(\
      'http://10.42.194.11/workshop_staging/AutoAD.qcow2' \
-     'https://s3.amazonaws.com/get-ahv-images/AutoAD.qcow2' \
     )
     PC_DATA='http://10.42.194.11/workshop_staging/seedPC.zip'
     BLUEPRINT_URL='http://10.42.194.11/workshop_staging/CalmBlueprints/'
@@ -444,7 +432,6 @@ case "${OCTET[0]}.${OCTET[1]}" in
     FILE_ANALYTICS_URL='http://10.136.239.13/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0.qcow2'
     JQ_REPOS=(\
          'http://10.136.239.13/workshop_staging/jq-linux64.dms' \
-         'https://s3.amazonaws.com/get-ahv-images/jq-linux64.dms' \
          #'https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64' \
    )
     SSHPASS_REPOS=(\
@@ -453,15 +440,12 @@ case "${OCTET[0]}.${OCTET[1]}" in
     )
     QCOW2_REPOS=(\
        'http://10.136.239.13/workshop_staging/' \
-       'https://s3.amazonaws.com/get-ahv-images/' \
     )
     AUTODC_REPOS=(\
      'http://10.136.239.13/workshop_staging/AutoDC2.qcow2' \
-     'https://s3.amazonaws.com/get-ahv-images/AutoDC2.qcow2' \
     )
     AUTOAD_REPOS=(\
      'http://10.136.239.13/workshop_staging/AutoAD.qcow2' \
-     'https://s3.amazonaws.com/get-ahv-images/AutoAD.qcow2' \
     )
     PC_DATA='http://10.136.239.13/workshop_staging/seedPC.zip'
     BLUEPRINT_URL='http:/10.136.239.13/workshop_staging/CalmBlueprints/'
