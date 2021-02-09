@@ -1887,7 +1887,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     }
   ],
   "availableClusterIds": [
-    "${_era_cluster_id}
+    "${_era_cluster_id}"
   ],
   "name": "MSSQL_19_${_user}"
 }
@@ -2113,7 +2113,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     }
   ],
   "availableClusterIds": [
-    "${_era_cluster_id}
+    "${_era_cluster_id}"
   ],
   "name": "MSSQL_19_${_user}"
 }
@@ -2147,7 +2147,7 @@ HTTP_JSON_BODY=$(cat <<EOF
   "properties": [
     {
       "name": "SOURCE_DBSERVER_ID",
-      "value": "2cbaf601-0250-4157-9b4b-711779a8a373",
+      "value": "${_db_server_id}",
       "secure": false,
       "description": "ID of the database server that should be used as a reference to create the software profile"
     },
@@ -2177,7 +2177,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     }
   ],
   "availableClusterIds": [
-    "${_era_cluster_id}
+    "${_era_cluster_id}"
   ],
   "name": "MSSQL_19_SYNCED"
 }
@@ -2187,15 +2187,15 @@ EOF
   _operationId=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
 
   if [ -z "$_operationId" ]; then
-       log "Ceating MSSQL_19_${_user} has encountered an error..."
+       log "Ceating MSSQL_19_SYNCED has encountered an error..."
   else
-       log "Ceating MSSQL_19_${_user} started.."
+       log "Ceating MSSQL_19_SYNCED started.."
        set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
        # Run the progess checker
        loop_era
   fi
 
-log "Ceating MSSQL_19_${_user} Now Complete"
+log "Ceating MSSQL_19_SYNCED Now Complete"
 
 
 log "Era Config Cluster 2 Complete"
