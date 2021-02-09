@@ -82,6 +82,7 @@ case ${1} in
     . lib.pc.sh
 
     export _prio_images_arr=(\
+      CentOS7.qcow2 \
       Windows2016.qcow2 \
       Citrix_Virtual_Apps_and_Desktops_7_1912.iso \
     )
@@ -89,7 +90,6 @@ case ${1} in
     export QCOW2_IMAGES=(\
       WinToolsVM.qcow2 \
       Linux_ToolsVM.qcow2 \
-      CentOS7.qcow2 \
       GTS21-MSSQL/CitrixGoldImage-Win10.qcow2 \
       GTS21-MSSQL/MSSQL16-Source-Disk1.qcow2 \
       GTS21-MSSQL/MSSQL16-Source-Disk2.qcow2 \
@@ -147,6 +147,7 @@ case ${1} in
     && configure_era \
     && configure_era_cluster_1 \
     && upload_citrix_calm_blueprint \
+    && upload_snow_calm_blueprint \
     && sleep 30 \
     && images \
     && seedPC \

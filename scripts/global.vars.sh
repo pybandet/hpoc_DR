@@ -21,14 +21,18 @@ SeedPC='seedPC202011.zip'
 BasicUnattend='basic_unattend.xml'
 CALM_RSA_KEY_FILE='calm_rsa_key.env'
 
+SNOWInstanceURL="dev78274.service-now.com"
+
 Citrix_Blueprint='CitrixBootcampInfra.json'
-Beam_Blueprint=''
+SNOW_Blueprint='SNOW-Deployerizer.json'
+Fiesta_MSSQL_Blueprint='Fiesta-MSSQL-Source.json'
+Docker_Fiesta_Era_Blueprint='Docker_MariaDB_FiestaApp_ERA.json'
 Karbon_Blueprint='KarbonClusterDeployment.json'
 CICDInfra_Blueprint='CICD_Infra.json'
 
 # Banner on Login screen
 
-Banner_Text="Bootcamp Testing"
+Banner_Text="GTSX21"
 
 # Curl and SSH settings
 CURL_OPTS='--insecure --silent --show-error' # --verbose'
