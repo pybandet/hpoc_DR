@@ -147,9 +147,6 @@ case ${1} in
     && configure_era \
     && configure_era_cluster_1 \
     && upload_citrix_calm_blueprint \
-    && upload_snow_calm_blueprint \
-    && upload_fiesta_mssql_blueprint \
-    && upload_docker_fiesta_era_blueprint \
     && images \
     && seedPC \
     && prism_check 'PC'
