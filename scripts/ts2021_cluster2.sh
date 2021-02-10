@@ -21,6 +21,8 @@ case ${1} in
     export AUTH_SERVER='AutoAD'
     # Networking needs for Era Bootcamp
 	  #export NW2_NAME='EraManaged'
+    export NW1_DHCP_START="${IPV4_PREFIX}.50"
+    export NW1_DHCP_END="${IPV4_PREFIX}.105"
     export NW2_DHCP_START="${IPV4_PREFIX}.132"
     export NW2_DHCP_END="${IPV4_PREFIX}.210"
 
@@ -70,11 +72,17 @@ case ${1} in
     . lib.pc.sh
 
     export _prio_images_arr=(\
+      CentOS7.qcow2 \
+      Windows2016.qcow2 \
+      Citrix_Virtual_Apps_and_Desktops_7_1912.iso \
     )
 
     export QCOW2_IMAGES=(\
       WinToolsVM.qcow2 \
       Linux_ToolsVM.qcow2 \
+      GTS21-MSSQL/CitrixGoldImage-Win10.qcow2 \
+      GTS21-MSSQL/MSSQL16-Source-Disk1.qcow2 \
+      GTS21-MSSQL/MSSQL16-Source-Disk2.qcow2 \
     )
     export ISO_IMAGES=(\
       Nutanix-VirtIO-1.1.5.iso \
