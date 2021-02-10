@@ -144,7 +144,7 @@ case ${1} in
     && flow_enable \
     && pc_cluster_img_import \
     && configure_era \
-    && cconfigure_era_cluster_1 \
+    && configure_era_cluster_1 \
     && upload_citrix_calm_blueprint \
     && upload_snow_calm_blueprint \
     && upload_fiesta_mssql_blueprint \

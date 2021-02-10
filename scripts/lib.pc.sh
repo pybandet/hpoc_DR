@@ -863,11 +863,15 @@ function pc_ui() {
   _json=$(cat <<EOF
 {"type":"custom_login_screen","key":"color_in","value":"#4379BD"} \
 {"type":"custom_login_screen","key":"color_out","value":"#3ABFEF"} \
-{"type":"custom_login_screen","key":"product_title","value":"${Banner_Text}"} \
+{"type":"custom_login_screen","key":"product_title","value":"":"${Banner_Text}"} \
 {"type":"custom_login_screen","key":"title","value":"Remember to RTFM"} \
+{"type":"WELCOME_BANNER","username":"system_data","key":"welcome_banner_status","value":true} \
+{"type":"WELCOME_BANNER","username":"system_data","key":"welcome_banner_content","value":"Remember to RTFM"} \
+{"type":"WELCOME_BANNER","username":"system_data","key":"disable_video","value":true} \
 {"type":"UI_CONFIG","username":"system_data","key":"disable_2048","value":true} \
 {"type":"UI_CONFIG","key":"autoLogoutGlobal","value":7200000} \
 {"type":"UI_CONFIG","key":"autoLogoutOverride","value":0} \
+{"type":"UI_CONFIG","key":"welcome_banner","value":"https://Nutanix.HandsOnWorkshops.com/workshops/6070f10d-3aa0-4c7e-b727-dc554cbc2ddf/start/"}
 EOF
   )
 
@@ -890,13 +894,13 @@ EOF
   if (( ${_pc_version[0]} >= 5 && ${_pc_version[1]} >= 10 && ${_test} != 500 )); then
     log "PC_VERSION ${PC_VERSION} >= 5.10, setting favorites..."
 
-    _json=$(cat <<EOF
+_json=$(cat <<EOF
 {"complete_query":"Karbon","route":"ebrowser/k8_cluster_entitys"} \
 {"complete_query":"Images","route":"ebrowser/image_infos"} \
 {"complete_query":"Projects","route":"ebrowser/projects"} \
 {"complete_query":"Calm","route":"calm"}
 EOF
-    )
+)
 
     for _http_body in ${_json}; do
       _test=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${_http_body}" \
