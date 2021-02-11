@@ -967,13 +967,13 @@ function deploy_pocworkshop_vms() {
 
   ## Creating the VMs ##
   log "-------------------------------------"
-  Log "Creating the Windows and Linux VMs for use in the SE POC Guide"
+  log "Creating the Windows and Linux VMs for use in the SE POC Guide"
 
   ## Creating the First WinServer VM ##
 
   VMName="WinServer"
 
-  Log "Creating ${VMName}"
+  log "Creating ${VMName}"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
@@ -1148,7 +1148,7 @@ EOF
 
   VMName="CentOS"
 
-  Log "Creating ${VMName}"
+  log "Creating ${VMName}"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
@@ -2760,7 +2760,7 @@ EOF
   fi
 
 log "Server Image UUID = |$SERVER_IMAGE_UUID|"
-Log "-----------------------------------------"
+log "-----------------------------------------"
 
 sleep 30
 
@@ -2989,7 +2989,7 @@ EOF
   fi
 
 log "Server Image UUID = |${SERVER_IMAGE_UUID}|"
-Log "-----------------------------------------"
+log "-----------------------------------------"
 
 sleep 30
 
@@ -3024,7 +3024,7 @@ EOF
   fi
 
 log "DB Server Image1 UUID = |${DB_SERVER_IMAGE1_UUID}|"
-Log "-----------------------------------------"
+log "-----------------------------------------"
 
 sleep 30
 
@@ -3059,7 +3059,7 @@ EOF
   fi
 
 log "DB Server Image1 UUID = |${DB_SERVER_IMAGE2_UUID}|"
-Log "-----------------------------------------"
+log "-----------------------------------------"
 
 sleep 30
 
@@ -3304,7 +3304,7 @@ EOF
   fi
 
 log "Server Image UUID = |${SERVER_IMAGE_UUID}|"
-Log "-----------------------------------------"
+log "-----------------------------------------"
 
 sleep 30
 
@@ -3382,7 +3382,7 @@ log "Currently updating blueprint $JSONFile..."
       bp_name=$blueprint_name
       project_uuid=$project_uuid
 
-      upload_result=$(curl -s -k --insecure --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -F file=@$path_to_file -F name=$bp_name -F project_uuid=$project_uuid "https://localhost:9440/api/nutanix/v3/blueprints/import_file")
+      upload_result=$(curl -s -k --insecure --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -F file=@$path_to_file -F name="${bp_name}" -F project_uuid=$project_uuid "https://localhost:9440/api/nutanix/v3/blueprints/import_file")
 
       #if the upload_result var is not empty then let's say it was succcessful
       if [ -z "$upload_result" ]; then
