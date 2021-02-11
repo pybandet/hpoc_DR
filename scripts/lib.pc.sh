@@ -2858,7 +2858,7 @@ log "Getting SNOW Blueprint ID Now"
 HTTP_JSON_BODY=$(cat <<EOF
 {
   "kind":"blueprint",
-  "filter": "name==${BLUEPRINT}"
+  "filter": "name==SNOW-Deployerizer"
 }
 EOF
 )
@@ -3157,7 +3157,7 @@ log "Getting SNOW Blueprint ID Now"
 HTTP_JSON_BODY=$(cat <<EOF
 {
   "kind":"blueprint",
-  "filter": "name==${BLUEPRINT}"
+  "filter": "name==Fiesta-MSSQL-Source"
 }
 EOF
 )
@@ -3402,7 +3402,7 @@ log "Getting CICD Blueprint ID Now"
 HTTP_JSON_BODY=$(cat <<EOF
 {
   "kind":"blueprint",
-  "filter": "name==${BLUEPRINT}"
+  "filter": "name==Docker_MariaDB_FiestaApp_ERA"
 }
 EOF
 )
