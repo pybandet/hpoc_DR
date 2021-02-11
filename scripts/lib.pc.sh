@@ -1723,7 +1723,7 @@ log "Era Config Complete"
 #########################################################################################################################################
 
 function configure_era_cluster_1() {
-  local CURL_HTTP_OPTS=" --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local CURL_HTTP_OPTS=" --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 set -x
 
@@ -1919,7 +1919,7 @@ set +x
 #########################################################################################################################################
 
 function configure_era_cluster_2() {
-  local CURL_HTTP_OPTS=" --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local CURL_HTTP_OPTS=" --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 #set -x
 
