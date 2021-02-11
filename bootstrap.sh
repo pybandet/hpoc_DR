@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 # Example use from a Nutanix CVM:
-# curl --remote-name --location https://raw.githubusercontent.com/nutanixworkshops/stageworkshop/master/bootstrap.sh && sh ${_##*/}
+# curl --remote-name --location https://raw.githubusercontent.com/nutanixworkshops/hol_staging_script/master/bootstrap.sh && sh ${_##*/}
 #
 # Development/Beta version
-# curl --remote-name --location https://raw.githubusercontent.com/jncox/stageworkshop/master/bootstrap.sh && sh ${_##*/}
+# curl --remote-name --location https://raw.githubusercontent.com/jncox/hol_staging_script/master/bootstrap.sh && sh ${_##*/}
 #
 # For testing:
 # curl --remote-name --location https://raw.githubusercontent.com/mlavi/stageworkshop/master/bootstrap.sh && SOURCE=${_} sh ${_##*/}
