@@ -1091,7 +1091,7 @@ function loop_era(){
 
 function waitloop {
   op_answer="$1"
-  loop=$2
+  loop=20
   # Get the op_id from the task
   op_id=$(echo $op_answer | jq '.operationId' | tr -d \")
 
@@ -1106,10 +1106,10 @@ function waitloop {
     # Checking routine to see that the registration in Era worked
     while [[ $counter -le $loop ]]
     do
-        ops_status=$(curl -k --silent https://${era_ip}/era/v0.9/operations/${op_id} -H 'Content-Type: application/json' --user @@{era_admin}@@:@@{era_passwd}@@ | jq '.["percentageComplete"]' | tr -d \")
+        ops_status=$(curl -k --silent https://${era_ip}/era/v0.9/operations/${op_id} -H 'Content-Type: application/json' --user ${ERA_USER}:${ERA_PASSWORD} | jq '.["percentageComplete"]' | tr -d \")
         if [[ $ops_status == "100" ]]
         then
-            ops_status=$(curl -k --silent https://${era_ip}/era/v0.9/operations/${op_id} -H 'Content-Type: application/json' --user @@{era_admin}@@:@@{era_passwd}@@ | jq '.status' | tr -d \")
+            ops_status=$(curl -k --silent https://${era_ip}/era/v0.9/operations/${op_id} -H 'Content-Type: application/json' --user ${ERA_USER}:${ERA_PASSWORD} | jq '.status' | tr -d \")
             if [[ $ops_status == "5" ]]
             then
                echo "Database and Database server have been registreed in Era..."

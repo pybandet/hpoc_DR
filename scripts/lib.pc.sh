@@ -1723,7 +1723,7 @@ log "Era Config Complete"
 #########################################################################################################################################
 
 function configure_era_cluster_1() {
-  local CURL_HTTP_OPTS=" --max-time 25 --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local CURL_HTTP_OPTS=" --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 set -x
 
@@ -1828,7 +1828,7 @@ EOF
   op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}")
 
 # Call the wait function
-waitloop "$op_answer" 20
+waitloop "$op_answer"
 
 log "MSSQLSource has been Registered"
 
@@ -1919,7 +1919,7 @@ set +x
 #########################################################################################################################################
 
 function configure_era_cluster_2() {
-  local CURL_HTTP_OPTS=" --max-time 25 --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local CURL_HTTP_OPTS=" --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 #set -x
 
