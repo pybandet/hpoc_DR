@@ -1919,7 +1919,7 @@ set +x
 #########################################################################################################################################
 
 function configure_era_cluster_2() {
-  local CURL_HTTP_OPTS=" --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 #set -x
 
@@ -1940,16 +1940,10 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
 
-  if [ -z "$_operationId" ]; then
-       log "Enable Era Multi-Cluster has encountered an error..."
-  else
-       log "Enable Era Multi-Cluster started.."
-       set _loops=0 # Reset the loop counter so we restart the amount of loops we need to run
-       # Run the progess checker
-       loop_era
-  fi
+  # Call the wait function
+  waitloop
 
 log "Era Multi-Cluster Enabled"
 
@@ -2045,10 +2039,10 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
 
 # Call the wait function
-waitloop "$op_answer" 20
+waitloop
 
 log "MSSQLSource has been Registered"
 
@@ -2118,10 +2112,10 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}")
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
 
 # Call the wait function
-waitloop "$op_answer" 20
+waitloop
 
 log "Ceating MSSQL_19_${_user} Now Complete"
 
@@ -2176,10 +2170,10 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}")
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
 
 # Call the wait function
-waitloop "$op_answer" 20
+waitloop
 
 log "Ceating MSSQL_19_SYNCED Now Complete"
 
