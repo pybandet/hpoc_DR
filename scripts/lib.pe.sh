@@ -1137,8 +1137,8 @@ function deploy_mssql_2019() {
   if (( $(source /etc/profile.d/nutanix_env.sh && acli image.list | grep ${MSSQL19_SourceVM_Image1} | wc --lines) == 0 )); then
     log "Import ${MSSQL19_SourceVM_Image1} image from ${QCOW2_REPOS}..."
 
-    acli image.create ${MSSQL19_SourceVM_Image1} image_type=kDiskImage wait=true container=${STORAGE_ERA} source_url="${QCOW2_REPOS}GTS21-MSSQL/${MSSQL19_SourceVM_Image1}.qcow2"
-    acli image.create ${MSSQL19_SourceVM_Image2} image_type=kDiskImage wait=true container=${STORAGE_ERA} source_url="${QCOW2_REPOS}GTS21-MSSQL/${MSSQL19_SourceVM_Image2}.qcow2"
+    acli image.create ${MSSQL19_SourceVM_Image1} image_type=kDiskImage wait=true container=${STORAGE_ERA} source_url="${QCOW2_REPOS}${MSSQL19_SourceVM_Image1}.qcow2"
+    acli image.create ${MSSQL19_SourceVM_Image2} image_type=kDiskImage wait=true container=${STORAGE_ERA} source_url="${QCOW2_REPOS}${MSSQL19_SourceVM_Image2}.qcow2"
   else
     log "Image found, assuming ready. Skipping ${MSSQL_SourceVM} import."
   fi

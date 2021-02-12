@@ -90,9 +90,9 @@ case ${1} in
     export QCOW2_IMAGES=(\
       WinToolsVM.qcow2 \
       Linux_ToolsVM.qcow2 \
-      GTS21-MSSQL/CitrixGoldImage-Win10.qcow2 \
-      GTS21-MSSQL/MSSQL16-Source-Disk1.qcow2 \
-      GTS21-MSSQL/MSSQL16-Source-Disk2.qcow2 \
+      CitrixGoldImage-Win10.qcow2 \
+      MSSQL16-Source-Disk1.qcow2 \
+      MSSQL16-Source-Disk2.qcow2 \
     )
     export ISO_IMAGES=(\
       Nutanix-VirtIO-1.1.5.iso \
