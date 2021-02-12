@@ -1837,7 +1837,7 @@ log "Getting DB Server ID"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-  "filter": "name==MSSQLSource"
+  "filter": "name==MSSQLSourceVM"
 }
 EOF
 )
@@ -2057,7 +2057,7 @@ log "Getting DB Server ID"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-  "filter": "name==MSSQLSource"
+  "filter": "name==MSSQLSourceVM"
 }
 EOF
 )
