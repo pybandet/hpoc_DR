@@ -3209,8 +3209,8 @@ log "-----------------------------------------"
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.nic_list[].subnet_reference.uuid = \"$NETWORK_UUID\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[1].create_spec.resources.nic_list[].subnet_reference.name = \"$NETWORK_NAME\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[1].create_spec.resources.nic_list[].subnet_reference.uuid = \"$NETWORK_UUID\")" \
-  | jq -c -r "(.spec.resources.credential_definition_list[0].secret.value = \"$ROOT_PASSWORD\")" \
-  | jq -c -r '(.spec.resources.credential_definition_list[0].secret.attrs.is_secret_modified = "true")' \
+  | jq -c -r "(.spec.resources.credential_definition_list[].secret.value = \"$ROOT_PASSWORD\")" \
+  | jq -c -r '(.spec.resources.credential_definition_list[].secret.attrs.is_secret_modified = "true")' \
   > $UPDATED_JSONFile
 
 log "Saving Credentials Edits with PUT"
@@ -3455,8 +3455,8 @@ log "-----------------------------------------"
   | jq -c -r "(.spec.resources.substrate_definition_list[1].create_spec.resources.nic_list[].subnet_reference.uuid = \"$NETWORK_UUID\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[2].create_spec.resources.nic_list[].subnet_reference.name = \"$NETWORK_NAME\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[2].create_spec.resources.nic_list[].subnet_reference.uuid = \"$NETWORK_UUID\")" \
-  | jq -c -r "(.spec.resources.credential_definition_list[0].secret.value = \"$ROOT_PASSWORD\")" \
-  | jq -c -r '(.spec.resources.credential_definition_list[0].secret.attrs.is_secret_modified = "true")' \
+  | jq -c -r "(.spec.resources.credential_definition_list[].secret.value = \"$ROOT_PASSWORD\")" \
+  | jq -c -r '(.spec.resources.credential_definition_list[].secret.attrs.is_secret_modified = "true")' \
   > $UPDATED_JSONFile
 
 log "Saving Credentials Edits with PUT"
