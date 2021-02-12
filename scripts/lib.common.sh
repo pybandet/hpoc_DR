@@ -1090,10 +1090,10 @@ function loop_era(){
 ###########################################################################################################
 
 function waitloop {
-  op_answer="$1"
+  #op_answer="$1"
   loop=20
   # Get the op_id from the task
-  op_id=$(echo $op_answer | jq '.operationId' | tr -d \")
+  #op_id=$(echo $op_answer | jq '.operationId' | tr -d \")
 
 
   # Checking on error. if we have received an error, show it and exit 1

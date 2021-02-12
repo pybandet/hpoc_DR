@@ -1723,7 +1723,7 @@ log "Era Config Complete"
 #########################################################################################################################################
 
 function configure_era_cluster_1() {
-  local CURL_HTTP_OPTS=" --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 set -x
 
@@ -1825,10 +1825,10 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}")
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
 
 # Call the wait function
-waitloop "$op_answer"
+waitloop
 
 log "MSSQLSource has been Registered"
 
@@ -1898,10 +1898,10 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  op_answer=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}")
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
 
 # Call the wait function
-waitloop "$op_answer" 20
+waitloop
 
 log "Ceating MSSQL_19_${_user} Now Complete"
 
@@ -2894,8 +2894,8 @@ log "-----------------------------------------"
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.uuid = \"$SERVER_IMAGE_UUID\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[].create_spec.resources.nic_list[].subnet_reference.name = \"$NETWORK_NAME\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[].create_spec.resources.nic_list[].subnet_reference.uuid = \"$NETWORK_UUID\")" \
-  | jq -c -r "(.spec.resources.credential_definition_list[0].secret.value = \"$ROOT_PASSWORD\")" \
-  | jq -c -r '(.spec.resources.credential_definition_list[0].secret.attrs.is_secret_modified = "true")' \
+  | jq -c -r "(.spec.resources.credential_definition_list[].secret.value = \"$ROOT_PASSWORD\")" \
+  | jq -c -r '(.spec.resources.credential_definition_list[].secret.attrs.is_secret_modified = "true")' \
   > $UPDATED_JSONFile
 
 log "Saving Credentials Edits with PUT"
