@@ -96,6 +96,12 @@ if [[ -z ${EMAIL} ]]; then
   read -p "REQUIRED: Email address for cluster admin? " EMAIL
 fi
 
+PC_HOST=${IPV4_PREFIX}.$((${OCTET[3]} + 2))
+if [[ -z ${PC_HOST} ]]; then
+  echo -e "\n    Note: Hit [Return] to use the default answer in side brackets.\n"
+  read -p "Optional: What is this cluster's Prism Central IP [${PC_HOST}]? " PC_HOST
+fi
+
 _WC_ARG='--lines'
 if [[ $(uname -s) == 'Darwin' ]]; then
   _WC_ARG='-l'
@@ -136,6 +142,7 @@ fi
     PE_HOST=${PE_HOST} \
 PRISM_ADMIN=${PRISM_ADMIN} \
 PE_PASSWORD=${PE_PASSWORD} \
+PC_HOST=${PC_HOST} \
 ./stage_workshop.sh -f - ${MY_WORKSHOP} # \
 #  && popd || exit
 
