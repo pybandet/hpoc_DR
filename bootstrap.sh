@@ -98,9 +98,13 @@ fi
 
 
 if [[ -z ${PC_HOST} ]]; then
-  PC_HOST=${IPV4_PREFIX}.$((${OCTET[3]} + 2))
-  echo -e "\n    Note: Hit [Return] to use the default answer in side brackets.\n"
-  read -p "Optional: What is this cluster's Prism Central IP [${PC_HOST}]? " PC_HOST
+  echo -e "\n    Note: This is so you can register multiple clusters to the same Prism Central.\n"
+  read -p "Optional: What is this cluster1's Prism Central IP? " PC_HOST
+fi
+
+if [[ -z ${SNOWInstanceURL} ]]; then
+  echo -e "\n    Note: This is for the SNOW-Deployerizer Calm BP.\n"
+  read -p "Optional: What is the ServiceNow URL for this Cluster? " SNOWInstanceURL
 fi
 
 _WC_ARG='--lines'
