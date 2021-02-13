@@ -1893,13 +1893,7 @@ log "MSSQLSourceVM has been Registered"
 # Get DB Server ID
 log "Getting DB Server ID"
 
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "filter": "name==MSSQLSourceVM"
-}
-EOF
-)
-  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data '{}' | jq '.[] | select(.name == "MSSQLSourceVM") | .id' | tr -d \")
 
 log "Era DB Server ID: |${_era_db_server_id}|"
 
@@ -2109,13 +2103,7 @@ log "MSSQLSource has been Registered"
 # Get DB Server ID
 log "Getting DB Server ID"
 
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "filter": "name==MSSQLSourceVM"
-}
-EOF
-)
-  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data "${HTTP_JSON_BODY}" | jq '.[] | select(.name == "MSSQLSourceVM") | .id' | tr -d \")
 
 log "Era DB Server ID ID: |${_era_db_server_id}|"
 
