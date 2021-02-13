@@ -1983,6 +1983,8 @@ function configure_era_cluster_2() {
 
 log "Starting Era Config Cluster 2"
 
+ERA_HOST="${ERA_HOST_Cluster1}"
+
 log "PE Cluster IP |${PE_HOST}|"
 log "EraServer IP |${ERA_HOST}|"
 log "Era Cluster ID: |${_era_cluster_id}|"

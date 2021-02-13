@@ -708,6 +708,32 @@ function cluster_check() {
 }
 
 ###############################################################################################################################################################################
+# Cluster 2 Prism Centra Registration
+###############################################################################################################################################################################
+
+function cluster2_pc_registration() {
+  local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
+
+log "Registering cluster2 PE to PC"
+log "PE Cluster IP |${PC_HOST}|"
+
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+	"ipAddresses":["${PC_HOST}"],
+	"username":"admin",
+	"password":"${PE_PASSWORD}",
+	"port":null
+}
+EOF
+)
+
+_response=$(curl -X POST $CURL_HTTP_OPTS --user ${PRISM_ADMIN}:${PE_PASSWORD} https://localhost:9440/PrismGateway/services/rest/v1/multicluster/add_to_multicluster -d $_json_data | jq '.value')
+
+}
+
+
+###############################################################################################################################################################################
 # Routine to configure the PC and handoff to the PC local installation
 ###############################################################################################################################################################################
 

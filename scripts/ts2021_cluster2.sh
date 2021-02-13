@@ -9,7 +9,7 @@
 . global.vars.sh
 begin
 
-args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST'
+args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST SNOWInstanceURL'
 
 #dependencies 'install' 'jq' && ntnx_download 'PC' & #attempt at parallelization
 # Some parallelization possible to critical path; not much: would require pre-requestite checks to work!
@@ -22,11 +22,13 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST'
 	  #export NW2_NAME='EraManaged'
     export NW1_DHCP_START="${IPV4_PREFIX}.50"
     export NW1_DHCP_END="${IPV4_PREFIX}.105"
-    export NW2_DHCP_START="${IPV4_PREFIX}.132"
-    export NW2_DHCP_END="${IPV4_PREFIX}.210"
+    export NW3_NAME='EraManaged'
+    export NW3_NETMASK='255.255.255.128'
+    export NW3_START="${IPV4_PREFIX}.106"
+    export NW3_END="${IPV4_PREFIX}.127"
     OCTET_Cluster2=(${PC_HOST//./ }) # zero index
     IPV4_PREFIX_Cluster2=${OCTET_Cluster2[0]}.${OCTET_Cluster2[1]}.${OCTET_Cluster2[2]}
-    ERA_HOST_Cluster2=${IPV4_PREFIX_Cluster2}.$((${OCTET_Cluster2[3]} + 5))
+    ERA_HOST_Cluster1=${IPV4_PREFIX_Cluster2}.$((${OCTET_Cluster2[3]} + 5))
 
     args_required 'PE_HOST PC_LAUNCH'
     ssh_pubkey & # non-blocking, parallel suitable
@@ -39,4 +41,5 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST'
     && authentication_source \
     && pe_auth \
     && deploy_mssql_2019 \
-    && configure_era_cluster_2
+    && configure_era_cluster_2 \
+    && cluster_check

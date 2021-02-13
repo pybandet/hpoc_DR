@@ -145,6 +145,7 @@ case ${1} in
     && pc_cluster_img_import \
     && configure_era \
     && configure_era_cluster_1 \
+    && create_categories \
     && upload_citrix_calm_blueprint \
     && upload_snow_calm_blueprint \
     && upload_fiesta_mssql_blueprint \
