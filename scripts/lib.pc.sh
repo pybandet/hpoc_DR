@@ -1845,7 +1845,7 @@ log "MSSQLSource VM IP: |${_mssqlsource_vm_ip}|"
 
 # Register User01-MSSQLSource Database VM
 
-log "Registering MSSQLSource"
+log "Registering MSSQLSourceVM"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
@@ -1888,7 +1888,7 @@ EOF
 # Call the wait function
 waitloop
 
-log "MSSQLSource has been Registered"
+log "MSSQLSourceVM has been Registered"
 
 # Get DB Server ID
 log "Getting DB Server ID"
@@ -1899,9 +1899,9 @@ HTTP_JSON_BODY=$(cat <<EOF
 }
 EOF
 )
-  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-log "Era DB Server ID ID: |${_era_db_server_id}|"
+log "Era DB Server ID: |${_era_db_server_id}|"
 
 # Create MSSQL19 Software profiles
 log "Creating Software Profiles Now"
@@ -1919,7 +1919,7 @@ HTTP_JSON_BODY=$(cat <<EOF
   "properties": [
     {
       "name": "SOURCE_DBSERVER_ID",
-      "value": "${_era_db_server_id}|",
+      "value": "${_era_db_server_id}",
       "secure": false,
       "description": "ID of the database server that should be used as a reference to create the software profile"
     },
@@ -2115,7 +2115,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 }
 EOF
 )
-  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
 log "Era DB Server ID ID: |${_era_db_server_id}|"
 
