@@ -911,6 +911,64 @@ EOF
 }
 
 #########################################################################################################################################
+# Routine to Create User Categories and values
+#########################################################################################################################################
+
+function create_categories() {
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+
+  #set -x
+
+log "Creating Catageories and Values"
+
+category_name="User"
+category_values=(\
+   01 \
+   02 \
+   03 \
+   04 \
+   05 \
+   06 \
+   07 \
+)
+
+log "Creating Catageory"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "api_version": "3.1.0",
+  "description": "${category_name}",
+  "name": "${category_name}"
+}
+EOF
+)
+
+  _category_uuid=$(curl ${CURL_HTTP_OPTS} -X PUT "https://localhost:9440/api/nutanix/v3/categories/${category_name}" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data "${HTTP_JSON_BODY}")
+
+log "Creating Values"
+
+for value in "${category_values[@]}" ; do
+
+log "Creating Value: |${value}|"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "api_version": "3.1.0",
+  "description": "${value}",
+  "value": "${value}"
+}
+EOF
+)
+
+  _category_uuid=$(curl ${CURL_HTTP_OPTS} -X PUT "https://localhost:9440/api/nutanix/v3/categories/${category_name}/${value}" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data "${HTTP_JSON_BODY}")
+
+log "Value: |${value} Created|"
+
+done
+
+  }
+
+#########################################################################################################################################
 # Routine to Deploy VMs for POC Workshop
 #########################################################################################################################################
 
