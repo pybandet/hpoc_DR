@@ -1275,6 +1275,66 @@ function deploy_oracle_19c() {
 
 }
 
+#########################################################################################################################################
+# Routine to Create Windows Tools VMs
+#########################################################################################################################################
+
+function deploy_windows_tools_vm() {
+
+  if (( $(source /etc/profile.d/nutanix_env.sh && acli image.list | grep ${WindowsToolsVM_Image} | wc --lines) == 0 )); then
+    log "Import ${WindowsToolsVM_Image} image from ${QCOW2_REPOS}..."
+
+    acli image.create ${WindowsToolsVM_Image} image_type=kDiskImage wait=true container=${STORAGE_IMAGES} source_url="${QCOW2_REPOS}${WindowsToolsVM_Image}.qcow2"
+  else
+    log "Image found, assuming ready. Skipping ${WindowsToolsVM_Image} import."
+  fi
+
+  for _user in "${USERS[@]}" ; do
+
+  SourceVM="${_user}_${WindowsToolsVM}"
+
+  echo "## ${SourceVM} Creation_INPROGRESS ##"
+  acli "vm.create ${SourceVM} memory=4096M num_cores_per_vcpu=1 num_vcpus=4"
+  acli "vm.disk_create ${SourceVM} clone_from_image=${WindowsToolsVM_Image}"
+  acli "vm.nic_create ${SourceVM} network=${NW1_NAME}"
+  echo "## ${SourceVM} - Powering On ##"
+  acli "vm.on ${SourceVM}"
+  echo "## ${SourceVM} Creation_COMPLETE ##"
+
+  done
+
+}
+
+#########################################################################################################################################
+# Routine to Create CitrixGoldImage VMs
+#########################################################################################################################################
+
+function deploy_citrix_gold_image_vm() {
+
+  if (( $(source /etc/profile.d/nutanix_env.sh && acli image.list | grep ${CitrixGoldImageVM_Image} | wc --lines) == 0 )); then
+    log "Import ${CitrixGoldImageVM_Image} image from ${QCOW2_REPOS}..."
+
+    acli image.create ${CitrixGoldImageVM_Image} image_type=kDiskImage wait=true container=${STORAGE_IMAGES} source_url="${QCOW2_REPOS}${CitrixGoldImageVM_Image}.qcow2"
+  else
+    log "Image found, assuming ready. Skipping ${CitrixGoldImageVM_Image} import."
+  fi
+
+  #for _user in "${USERS[@]}" ; do
+
+  SourceVM="${CitrixGoldImageVM}"
+
+  echo "## ${SourceVM} Creation_INPROGRESS ##"
+  acli "vm.create ${SourceVM} memory=4096M num_cores_per_vcpu=1 num_vcpus=4"
+  acli "vm.disk_create ${SourceVM} clone_from_image=${CitrixGoldImageVM_Image}"
+  acli "vm.nic_create ${SourceVM} network=${NW1_NAME}"
+  echo "## ${SourceVM} - Powering On ##"
+  acli "vm.on ${SourceVM}"
+  echo "## ${SourceVM} Creation_COMPLETE ##"
+
+  #done
+
+}
+
 ###################################################################################################################################################
 # Routine to deploy the Peer Management Center
 ###################################################################################################################################################

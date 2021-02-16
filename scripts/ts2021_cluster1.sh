@@ -88,7 +88,6 @@ case ${1} in
     )
 
     export QCOW2_IMAGES=(\
-      WinToolsVM.qcow2 \
       Linux_ToolsVM.qcow2 \
       CitrixGoldImage-Win10.qcow2 \
       MSSQL16-Source-Disk1.qcow2 \

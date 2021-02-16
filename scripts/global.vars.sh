@@ -56,6 +56,20 @@ USERS=(\
 )
 
 ####################################################
+# Windows Tools VM Vars
+###################################################
+
+WindowsToolsVM="WinToolsVM"
+WindowsToolsVM_Image="WinToolsVM-Q1CY21"
+
+####################################################
+# Citrix GoldeImage VM Vars
+###################################################
+
+CitrixGoldImageVM="CitrixGoldImage"
+CitrixGoldImageVM_Image="CitrixGoldImage-Win10"
+
+####################################################
 # Era VARs
 ###################################################
 
