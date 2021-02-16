@@ -36,17 +36,7 @@ case ${1} in
     && era_network_configure \
     && authentication_source \
     && pe_auth \
-    && prism_pro_server_deploy \
-    && files_install \
-    && sleep 30 \
-    && create_file_server "${NW1_NAME}" "${NW1_NAME}" \
-    && sleep 30 \
-    && file_analytics_install \
-    && sleep 30 \
-    && create_file_analytics_server \
-    && sleep 30 \
-    && deploy_era \
-    && deploy_mssql_2019
+    && deploy_era
 
     if (( $? == 0 )) ; then
       pc_install "${NW1_NAME}" \
@@ -139,20 +129,16 @@ case ${1} in
     && karbon_enable \
     && lcm \
     && pc_project \
-    && object_store \
-    && karbon_image_download \
     && priority_images \
     && flow_enable \
     && pc_cluster_img_import \
     && configure_era \
-    && configure_era_cluster_1 \
     && create_categories \
     && upload_citrix_calm_blueprint \
     && upload_snow_calm_blueprint \
     && upload_fiesta_mssql_blueprint \
     && upload_docker_fiesta_era_blueprint \
     && images \
-    && seedPC \
     && prism_check 'PC'
 
     log "Non-blocking functions (in development) follow."

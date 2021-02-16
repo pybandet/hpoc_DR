@@ -1783,13 +1783,93 @@ log "Era Config Complete"
 function configure_era_cluster_1() {
   local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
 
-set -x
+#set -x
 
 log "Starting Era Config Cluster 1"
 
 log "PE Cluster IP |${PE_HOST}|"
 log "EraServer IP |${ERA_HOST}|"
 log "Era Cluster ID: |${_era_cluster_id}|"
+
+##  Create the LAB_COMPUTE Compute Profile inside Era ##
+log "Create the LAB_COMPUTE Compute Profile"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "type": "Compute",
+  "topology": "ALL",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "CPUS",
+      "value": "4",
+      "description": "Number of CPUs in the VM"
+    },
+    {
+      "name": "CORE_PER_CPU",
+      "value": "1",
+      "description": "Number of cores per CPU in the VM"
+    },
+    {
+      "name": "MEMORY_SIZE",
+      "value": 8,
+      "description": "Total memory (GiB) for the VM"
+    }
+  ],
+  "name": "LAB_COMPUTE"
+}
+EOF
+)
+
+  _lab_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Created LAB_COMPUTE Compute Profile with ID |${_lab_compute_profile_id}|"
+
+
+
+
+log "--------------------------------------"
+log "Era Config Cluster 1 Complete"
+
+#set +x
+
+}
+
+#########################################################################################################################################
+# Routine to configure era cluster 2
+#########################################################################################################################################
+
+function configure_era_cluster_2() {
+  local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
+
+#set -x
+
+log "Starting Era Config Cluster 2"
+
+ERA_HOST="${ERA_HOST_Cluster1}"
+
+log "PE Cluster IP |${PE_HOST}|"
+log "EraServer IP |${ERA_HOST}|"
+log "Era Cluster ID: |${_era_cluster_id}|"
+
+##  Create the LAB_COMPUTE Compute Profile inside Era ##
+log "Enable Era Multi-Cluster"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "agentVMPrefix": "EraAgent",
+  "vlanName": "${NW3_NAME}"
+}
+EOF
+)
+
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+
+  # Call the wait function
+  waitloop
+
+log "Era Multi-Cluster Enabled"
 
 ##  Create the LAB_COMPUTE Compute Profile inside Era ##
 log "Create the LAB_COMPUTE Compute Profile"
@@ -1896,216 +1976,6 @@ log "Getting DB Server ID"
   _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data '{}' | jq '.[] | select(.name == "MSSQLSourceVM") | .id' | tr -d \")
 
 log "Era DB Server ID: |${_era_db_server_id}|"
-
-# Create MSSQL19 Software profiles
-log "Creating Software Profiles Now"
-
-for _user in "${USERS[@]}" ; do
-
-log "Creating ${_user} Software Profile Now"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "engineType": "sqlserver_database",
-  "type": "Software",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "SOURCE_DBSERVER_ID",
-      "value": "${_era_db_server_id}",
-      "secure": false,
-      "description": "ID of the database server that should be used as a reference to create the software profile"
-    },
-    {
-      "name": "BASE_PROFILE_VERSION_NAME",
-      "value": "MSSQL_19_${_user} (1.0)",
-      "secure": false,
-      "description": "Name of the base profile version."
-    },
-    {
-      "name": "BASE_PROFILE_VERSION_DESCRIPTION",
-      "value": "",
-      "secure": false,
-      "description": "Description of the base profile version."
-    },
-    {
-      "name": "OS_NOTES",
-      "value": "",
-      "secure": false,
-      "description": "Notes or description for the Operating System."
-    },
-    {
-      "name": "DB_SOFTWARE_NOTES",
-      "value": "",
-      "secure": false,
-      "description": "Description of the SQL Server database software."
-    }
-  ],
-  "availableClusterIds": [
-    "${_era_cluster_id}"
-  ],
-  "name": "MSSQL_19_${_user}"
-}
-EOF
-)
-
-  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
-
-# Call the wait function
-waitloop
-
-log "Ceating MSSQL_19_${_user} Now Complete"
-
-done
-
-
-log "Era Config Cluster 1 Complete"
-
-set +x
-
-}
-
-#########################################################################################################################################
-# Routine to configure era cluster 2
-#########################################################################################################################################
-
-function configure_era_cluster_2() {
-  local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
-
-#set -x
-
-log "Starting Era Config Cluster 2"
-
-ERA_HOST="${ERA_HOST_Cluster1}"
-
-log "PE Cluster IP |${PE_HOST}|"
-log "EraServer IP |${ERA_HOST}|"
-log "Era Cluster ID: |${_era_cluster_id}|"
-
-##  Create the LAB_COMPUTE Compute Profile inside Era ##
-log "Enable Era Multi-Cluster"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "agentVMPrefix": "EraAgent",
-  "vlanName": "${NW3_NAME}"
-}
-EOF
-)
-
-  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
-
-  # Call the wait function
-  waitloop
-
-log "Era Multi-Cluster Enabled"
-
-##  Create the LAB_COMPUTE Compute Profile inside Era ##
-log "Create the LAB_COMPUTE Compute Profile"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "type": "Compute",
-  "topology": "ALL",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "CPUS",
-      "value": "4",
-      "description": "Number of CPUs in the VM"
-    },
-    {
-      "name": "CORE_PER_CPU",
-      "value": "1",
-      "description": "Number of cores per CPU in the VM"
-    },
-    {
-      "name": "MEMORY_SIZE",
-      "value": 8,
-      "description": "Total memory (GiB) for the VM"
-    }
-  ],
-  "name": "LAB_COMPUTE"
-}
-EOF
-)
-
-  _lab_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created LAB_COMPUTE Compute Profile with ID |${_lab_compute_profile_id}|"
-
-
-# Get User01-MSSQLSource VM IP
-log "Getting MSSQLSource VM IP"
-
-VM_NAME="${MSSQL19_SourceVM}"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-    "kind": "vm"
-}
-EOF
-)
-
-  _mssqlsource_vm_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms/list' | jq --arg VM "${VM_NAME}" '.entities[]|select (.spec.name==$VM)| .spec.resources.nic_list[] | .ip_endpoint_list[] | .ip' | tr -d \")
-
-log "MSSQLSource VM IP: |${_mssqlsource_vm_ip}|"
-
-# Register User01-MSSQLSource Database VM
-
-log "Registering MSSQLSource"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "actionArguments": [
-    {
-      "name": "same_as_admin",
-      "value": true
-    },
-    {
-      "name": "sql_login_used",
-      "value": false
-    },
-    {
-      "name": "sysadmin_username_win",
-      "value": "Administrator"
-    },
-    {
-      "name": "sysadmin_password_win",
-      "value": "Nutanix/4u"
-    },
-    {
-      "name": "instance_name",
-      "value": "MSSQLSERVER"
-    }
-  ],
-  "vmIp": "${_mssqlsource_vm_ip}",
-  "nxClusterUuid": "${_era_cluster_id}",
-  "databaseType": "sqlserver_database",
-  "forcedInstall": true,
-  "workingDirectory": "c:\\\\",
-  "username": "Administrator",
-  "password": "Nutanix/4u",
-  "eraDeployBase": "c:\\\\"
-}
-EOF
-)
-
-  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
-
-# Call the wait function
-waitloop
-
-log "MSSQLSource has been Registered"
-
-# Get DB Server ID
-log "Getting DB Server ID"
-
-  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data "${HTTP_JSON_BODY}" | jq '.[] | select(.name == "MSSQLSourceVM") | .id' | tr -d \")
-
-log "Era DB Server ID ID: |${_era_db_server_id}|"
 
 # Create MSSQL19 Software profiles
 log "Creating Software Profiles Now"

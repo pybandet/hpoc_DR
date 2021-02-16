@@ -16,6 +16,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST SNOWInstanceURL'
 
 
     . lib.pe.sh
+    . lib.pc.sh
 
     export AUTH_SERVER='AutoAD'
     # Networking needs for Era Bootcamp
