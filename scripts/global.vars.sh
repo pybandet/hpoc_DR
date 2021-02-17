@@ -24,7 +24,7 @@ CALM_RSA_KEY_FILE='calm_rsa_key.env'
 SNOWInstanceURL="dev78274.service-now.com"
 
 Citrix_Blueprint='CitrixBootcampInfra.json'
-SNOW_Blueprint='SNOW-Paris.json'
+SNOW_Blueprint='SNOW-Deployerizer.json'
 Fiesta_MSSQL_Blueprint='Fiesta-MSSQL-Source.json'
 Docker_Fiesta_Era_Blueprint='Docker_MariaDB_FiestaApp_ERA.json'
 Karbon_Blueprint='KarbonClusterDeployment.json'
