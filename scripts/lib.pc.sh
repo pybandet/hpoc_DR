@@ -2770,7 +2770,7 @@ log "Getting SNOW Blueprint ID Now"
 HTTP_JSON_BODY=$(cat <<EOF
 {
   "kind":"blueprint",
-  "filter": "name==SNOW-Deployerizer"
+  "filter": "name==${SNOW_Blueprint_Name}"
 }
 EOF
 )
@@ -2801,9 +2801,7 @@ log "-----------------------------------------"
   | jq -c 'del(.status)' \
   | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[0].value = \"$SNOW_URL\")" \
   | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[1].value = \"$SNOW_ADMIN_PASSWORD\")" \
-  | jq -c -r '(.spec.resources.app_profile_list[0].variable_list[1].attrs.is_secret_modified = "true")' \
   | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[2].value = \"$PRISM_ADMIN_PASSWORD\")" \
-  | jq -c -r '(.spec.resources.app_profile_list[0].variable_list[2].attrs.is_secret_modified = "true")' \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.name = \"$SERVER_IMAGE\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.uuid = \"$SERVER_IMAGE_UUID\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[].create_spec.resources.nic_list[].subnet_reference.name = \"$NETWORK_NAME\")" \
