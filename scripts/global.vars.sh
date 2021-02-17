@@ -25,8 +25,8 @@ SNOWInstanceURL="dev78274.service-now.com"
 
 Citrix_Blueprint='CitrixBootcampInfra.json'
 Citrix_Blueprint_Name='CitrixBootcampInfra'
-SNOW_Blueprint='SNOW-Deployerizer.json'
-SNOW_Blueprint_Name='SNOW-Deployerizer'
+SNOW_Blueprint='SNOW-Paris.json'
+SNOW_Blueprint_Name='SNOW-Paris'
 Fiesta_MSSQL_Blueprint='Fiesta-MSSQL-Source.json'
 Fiesta_MSSQL_Blueprint_Name='Fiesta-MSSQL-Source'
 Docker_Fiesta_Era_Blueprint='Docker_MariaDB_FiestaApp_ERA.json'
