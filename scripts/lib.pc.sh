@@ -2214,7 +2214,7 @@ log "Calm Project Created"
 ###############################################################################################################################################################################
 
 function upload_citrix_calm_blueprint() {
-  local DIRECTORY="/home/nutanix/citrix"
+  local DIRECTORY="/home/nutanix/calm_blueprints"
   local BLUEPRINT=${Citrix_Blueprint}
   local CALM_PROJECT="BootcampInfra"
   local DOMAIN=${AUTH_FQDN}
@@ -2241,38 +2241,49 @@ function upload_citrix_calm_blueprint() {
   local _loops="0"
   local _maxtries="75"
 
+set -x
 
-  echo "Starting Citrix Blueprint Deployment"
+log "Starting Citrix Blueprint Deployment"
 
-  mkdir $DIRECTORY
+mkdir $DIRECTORY
 
-  echo "Getting Server Image UUID"
-  #Getting the IMAGE_UUID
+#Getting the IMAGE_UUID
+log "Getting Server Image UUID"
+
   _loops="0"
   _maxtries="75"
 
-  SERVER_IMAGE_UUID_CHECK=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d '{}' 'https://localhost:9440/api/nutanix/v3/images/list' | grep 'Windows2016.qcow2' | wc -l)
+  SERVER_IMAGE_UUID_CHECK=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d '{}' 'https://localhost:9440/api/nutanix/v3/images/list' | grep "${SERVER_IMAGE}" | wc -l)
   # The response should be a Task UUID
   while [[ $SERVER_IMAGE_UUID_CHECK -ne 1 && $_loops -lt $_maxtries ]]; do
       log "Image not yet uploaded. $_loops/$_maxtries... sleeping 60 seconds"
       sleep 60
-      SERVER_IMAGE_UUID_CHECK=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d '{}' 'https://localhost:9440/api/nutanix/v3/images/list' | grep 'Windows2016.qcow2' | wc -l)
+      SERVER_IMAGE_UUID_CHECK=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d '{}' 'https://localhost:9440/api/nutanix/v3/images/list' | grep "${SERVER_IMAGE}" | wc -l)
       (( _loops++ ))
   done
   if [[ $_loops -lt $_maxtries ]]; then
       log "Image has been uploaded."
-      SERVER_IMAGE_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{"kind":"image","filter": "name==Windows2016.qcow2"}' 'https://localhost:9440/api/nutanix/v3/images/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"image",
+  "filter": "name==${SERVER_IMAGE}"
+}
+EOF
+)
+
+      SERVER_IMAGE_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/images/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
   else
       log "Image is not upload, please check."
   fi
 
-  echo "Server Image UUID = $SERVER_IMAGE_UUID"
-  echo "-----------------------------------------"
+log "Server Image UUID = |$SERVER_IMAGE_UUID|"
+log "-----------------------------------------"
 
-  sleep 30
+sleep 30
 
-  echo "Getting Citrix Image UUID"
-  #Getting the IMAGE_UUID
+log "Getting Network UUID"
+
   _loops="0"
   _maxtries="75"
 
@@ -2295,12 +2306,13 @@ function upload_citrix_calm_blueprint() {
 
   sleep 30
 
-  echo "Getting Network UUID"
+# Getting Network UUID
+log "Getting Network UUID"
 
   NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
-  echo "NETWORK UUID = $NETWORK_UUID"
-  echo "-----------------------------------------"
+log "NETWORK UUID = $NETWORK_UUID"
+log "-----------------------------------------"
 
   # download the blueprint
   DOWNLOAD_BLUEPRINTS=$(curl -L ${BLUEPRINT_URL}${BLUEPRINT} -o ${DIRECTORY}/${BLUEPRINT})
@@ -2314,10 +2326,6 @@ function upload_citrix_calm_blueprint() {
 
   if [ $CALM_PROJECT != 'none' ]; then
 
-      # curl command needed:
-      # curl -s -k -X POST https://10.42.7.39:9440/api/nutanix/v3/projects/list -H 'Content-Type: application/json' --user admin:techX2019! -d '{"kind": "project", "filter": "name==default"}' | jq -r '.entities[].metadata.uuid'
-
-      # make API call and store project_uuid
       project_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{"kind":"project", "filter":"name==BootcampInfra"}' 'https://localhost:9440/api/nutanix/v3/projects/list' | jq -r '.entities[].metadata.uuid')
 
       echo "Projet UUID = $project_uuid"
@@ -2335,11 +2343,11 @@ function upload_citrix_calm_blueprint() {
 
   # update the user with script progress...
 
-  echo "Starting blueprint updates and then Uploading to Calm..."
+log "Starting blueprint updates and then Uploading to Calm..."
 
   JSONFile="${DIRECTORY}/${BLUEPRINT}"
 
-  echo "Currently updating blueprint $JSONFile..."
+log "Currently updating blueprint $JSONFile..."
 
 
   # NOTE: bash doesn't do in place editing so we need to use a temp file and overwrite the old file with new changes for every blueprint
@@ -2384,25 +2392,38 @@ function upload_citrix_calm_blueprint() {
       fi
   fi
 
-  echo "Finished uploading ${BLUEPRINT}!"
+log "Finished uploading ${BLUEPRINT}!"
 
-  #Getting the Blueprint UUID
-  CITRIX_BLUEPRINT_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{"kind":"blueprint","filter": "name==CitrixBootcampInfra"}' 'https://localhost:9440/api/nutanix/v3/blueprints/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+#Getting the Blueprint UUID
+log "Getting Citrix Blueprint ID Now"
 
-  echo "Citrix Blueprint UUID = $CITRIX_BLUEPRINT_UUID"
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"blueprint",
+  "filter": "name==${Citrix_Blueprint_Name}"
+}
+EOF
+)
 
-  echo "Update Blueprint and writing to temp file"
-  echo "${CALM_PROJECT} network UUID: ${project_uuid}"
-  echo "DOMAIN=${DOMAIN}"
-  echo "AD_IP=${AD_IP}"
-  echo "PE_IP=${PE_IP}"
-  echo "DDC_IP=${DDC_IP}"
-  echo "CVM_NETWORK=${CVM_NETWORK}"
-  echo "SERVER_IMAGE=${SERVER_IMAGE}"
-  echo "SERVER_IMAGE_UUID=${SERVER_IMAGE_UUID}"
-  echo "CITRIX_IMAGE=${CITRIX_IMAGE}"
-  echo "CITRIX_IMAGE_UUID=${CITRIX_IMAGE_UUID}"
-  echo "NETWORK_UUID=${NETWORK_UUID}"
+  CITRIX_BLUEPRINT_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/blueprints/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "Citrix Blueprint UUID = $CITRIX_BLUEPRINT_UUID"
+
+# Var list
+log "-----------------------------------------"
+log "Update Blueprint and writing to temp file"
+log "${CALM_PROJECT} network UUID: ${project_uuid}"
+log "DOMAIN=${DOMAIN}"
+log "AD_IP=${AD_IP}"
+log "PE_IP=${PE_IP}"
+log "DDC_IP=${DDC_IP}"
+log "CVM_NETWORK=${CVM_NETWORK}"
+log "SERVER_IMAGE=${SERVER_IMAGE}"
+log "SERVER_IMAGE_UUID=${SERVER_IMAGE_UUID}"
+log "CITRIX_IMAGE=${CITRIX_IMAGE}"
+log "CITRIX_IMAGE_UUID=${CITRIX_IMAGE_UUID}"
+log "NETWORK_UUID=${NETWORK_UUID}"
+log "-----------------------------------------"
 
   DOWNLOADED_JSONFile="${BLUEPRINT}-${CITRIX_BLUEPRINT_UUID}.json"
   UPDATED_JSONFile="${BLUEPRINT}-${CITRIX_BLUEPRINT_UUID}-updated.json"
@@ -2447,6 +2468,8 @@ function upload_citrix_calm_blueprint() {
   curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${CITRIX_BLUEPRINT_UUID}/launch"
 
   echo "Finished Launching the Citrix Infra Application"
+
+set +x
 
 }
 
@@ -2781,6 +2804,7 @@ log "SNOW Blueprint ID: |${SNOW_BLUEPRINT_UUID}|"
 
 # Var list
 log "-----------------------------------------"
+log "Update Blueprint and writing to temp file"
 log "SNOW Blueprint UUID = |${SNOW_BLUEPRINT_UUID}|"
 log "${CALM_PROJECT} Project UUID: |${project_uuid}|"
 log "PE_IP = |${PE_IP}|"
@@ -2795,7 +2819,7 @@ log "-----------------------------------------"
   UPDATED_JSONFile="${BLUEPRINT}-${SNOW_BLUEPRINT_UUID}-updated.json"
 
   # GET The Blueprint so it can be updated
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}|" > ${DOWNLOADED_JSONFile}
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}" > ${DOWNLOADED_JSONFile}
 
   cat $DOWNLOADED_JSONFile \
   | jq -c 'del(.status)' \
@@ -3104,7 +3128,7 @@ log "-----------------------------------------"
   UPDATED_JSONFile="${BLUEPRINT}-${FIESTA_BLUEPRINT_UUID}-updated.json"
 
   # GET The Blueprint so it can be updated
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}|" > ${DOWNLOADED_JSONFile}
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}" > ${DOWNLOADED_JSONFile}
 
   cat $DOWNLOADED_JSONFile \
   | jq -c 'del(.status)' \
@@ -3348,7 +3372,7 @@ log "-----------------------------------------"
   UPDATED_JSONFile="${BLUEPRINT}-${CICD_BLUEPRINT_UUID}-updated.json"
 
   # GET The Blueprint so it can be updated
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}|" > ${DOWNLOADED_JSONFile}
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}" > ${DOWNLOADED_JSONFile}
 
   cat $DOWNLOADED_JSONFile \
   | jq -c 'del(.status)' \

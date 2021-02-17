@@ -137,6 +137,8 @@ case ${1} in
     && create_categories \
     && upload_citrix_calm_blueprint \
     && upload_snow_calm_blueprint \
+    && upload_fiesta_mssql_blueprint \
+    && upload_docker_fiesta_era_blueprint \
     && images \
     && prism_check 'PC'
 
