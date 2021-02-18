@@ -2214,7 +2214,7 @@ log "Calm Project Created"
 ###############################################################################################################################################################################
 
 function upload_citrix_calm_blueprint() {
-  local DIRECTORY="/home/nutanix/calm_blueprints"
+  local DIRECTORY="/home/nutanix/citrix"
   local BLUEPRINT=${Citrix_Blueprint}
   local CALM_PROJECT="BootcampInfra"
   local DOMAIN=${AUTH_FQDN}
@@ -2405,7 +2405,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  CITRIX_BLUEPRINT_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/blueprints/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  CITRIX_BLUEPRINT_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{"kind":"blueprint","filter": "name==CitrixBootcampInfra"}' 'https://localhost:9440/api/nutanix/v3/blueprints/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 log "Citrix Blueprint UUID = $CITRIX_BLUEPRINT_UUID"
 
@@ -2636,7 +2636,7 @@ function upload_karbon_calm_blueprint() {
 ######################################################################################################################################
 
 function upload_snow_calm_blueprint() {
-  local DIRECTORY="/home/nutanix/calm_blueprints"
+  local DIRECTORY="/home/nutanix/snow"
   local BLUEPRINT=${SNOW_Blueprint}
   local CALM_PROJECT="BootcampInfra"
   local Calm_App_Name="SNOW-Deployerizer"
@@ -2798,7 +2798,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  SNOW_BLUEPRINT_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/blueprints/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  SNOW_BLUEPRINT_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{"kind":"blueprint","filter": "name==SNOW-Paris"}' 'https://localhost:9440/api/nutanix/v3/blueprints/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 log "SNOW Blueprint ID: |${SNOW_BLUEPRINT_UUID}|"
 
@@ -2836,19 +2836,19 @@ log "-----------------------------------------"
 
 log "Saving Credentials Edits with PUT"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d @$UPDATED_JSONFile "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}|"
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d @$UPDATED_JSONFile "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}"
 
 log "Finished Updating Credentials"
 
 # GET The Blueprint payload
 log "getting Calm Blueprint Payload"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}|" | jq --arg APPNAME "${Calm_App_Name}" 'del(.status, .spec.name) | .spec += {"application_name": "$APPNAME", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}" | jq --arg APPNAME "${Calm_App_Name}" 'del(.status, .spec.name) | .spec += {"application_name": "$APPNAME", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
 
 # Launch the BLUEPRINT
 log "Launching the SNOW-Deployerizer Application"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}|/launch"
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}/launch"
 
 log "Finished Launching the SNOW-Deployerizer Application"
 
@@ -2861,7 +2861,7 @@ set +x
 ###############################################################################################################################################################################
 
 function upload_fiesta_mssql_blueprint() {
-  local DIRECTORY="/home/nutanix/calm_blueprints"
+  local DIRECTORY="/home/nutanix/fiesta"
   local BLUEPRINT=${Fiesta_MSSQL_Blueprint}
   local CALM_PROJECT="BootcampInfra"
   local DOMAIN=${AUTH_FQDN}
@@ -3152,19 +3152,19 @@ log "-----------------------------------------"
 
 log "Saving Credentials Edits with PUT"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d @$UPDATED_JSONFile "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}|"
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d @$UPDATED_JSONFile "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}"
 
 log "Finished Updating Credentials"
 
 # GET The Blueprint payload
 log "getting Calm Blueprint Payload"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}|" | jq --arg APPNAME "${User_Calm_App_Nam}" 'del(.status, .spec.name) | .spec += {"application_name": "$APPNAME", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}" | jq --arg APPNAME "${User_Calm_App_Nam}" 'del(.status, .spec.name) | .spec += {"application_name": "$APPNAME", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
 
 # Launch the BLUEPRINT
 log "Launching the ${_user} Fiesta Application"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}|/launch"
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}/launch"
 
 log "Finished Launching the ${_user} Fiesta  Application"
 
@@ -3179,7 +3179,7 @@ set +x
 ###############################################################################################################################################################################
 
 function upload_docker_fiesta_era_blueprint() {
-  local DIRECTORY="/home/nutanix/calm_blueprints"
+  local DIRECTORY="/home/nutanix/cicd"
   local BLUEPRINT=${Docker_Fiesta_Era_Blueprint}
   local CALM_PROJECT="BootcampInfra"
   local DOMAIN=${AUTH_FQDN}
@@ -3398,19 +3398,19 @@ log "-----------------------------------------"
 
 log "Saving Credentials Edits with PUT"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d @$UPDATED_JSONFile "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}|"
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d @$UPDATED_JSONFile "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}"
 
 log "Finished Updating Credentials"
 
 # GET The Blueprint payload
 log "getting Calm Blueprint Payload"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}|" | jq --arg APPNAME "${User_Calm_App_Nam}" 'del(.status, .spec.name) | .spec += {"application_name": "$APPNAME", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}" | jq --arg APPNAME "${User_Calm_App_Nam}" 'del(.status, .spec.name) | .spec += {"application_name": "$APPNAME", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
 
 # Launch the BLUEPRINT
 log "Launching the ${_user} Fiesta Application"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}|/launch"
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}/launch"
 
 log "Finished Launching the ${_user} Fiesta  Application"
 
