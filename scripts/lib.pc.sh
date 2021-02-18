@@ -2642,6 +2642,7 @@ function upload_snow_calm_blueprint() {
   local Calm_App_Name="SNOW-Deployerizer"
   local AD_IP=${AUTH_HOST}
   local PE_IP=${PE_HOST}
+  local PC_IP=${PC_HOST}
   local ERA_IP=${ERA_HOST}
   local CVM_NETWORK=${NW1_NAME}
   local NETWORK_NAME=${NW1_NAME}
@@ -2808,6 +2809,7 @@ log "Update Blueprint and writing to temp file"
 log "SNOW Blueprint UUID = |${SNOW_BLUEPRINT_UUID}|"
 log "${CALM_PROJECT} Project UUID: |${project_uuid}|"
 log "PE_IP = |${PE_IP}|"
+log "PC_IP = |${PC_IP}|"
 log "CVM_NETWORK = |${CVM_NETWORK}|"
 log "SERVER_IMAGE = |${SERVER_IMAGE}|"
 log "SERVER_IMAGE_UUID = |${SERVER_IMAGE_UUID}|"
@@ -2826,6 +2828,7 @@ log "-----------------------------------------"
   | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[0].value = \"$SNOW_URL\")" \
   | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[1].value = \"$SNOW_ADMIN_PASSWORD\")" \
   | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[2].value = \"$PRISM_ADMIN_PASSWORD\")" \
+  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[3].value = \"$PC_IP\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.name = \"$SERVER_IMAGE\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.uuid = \"$SERVER_IMAGE_UUID\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[].create_spec.resources.nic_list[].subnet_reference.name = \"$NETWORK_NAME\")" \
