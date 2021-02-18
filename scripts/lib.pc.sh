@@ -2735,7 +2735,7 @@ function upload_fiesta_mssql_blueprint() {
 
 set -x
 
-log "Starting SNOW-Deployerizer Blueprint Deployment"
+log "Fiesta Blueprint Deployment"
 
 mkdir $DIRECTORY
 
@@ -2949,8 +2949,8 @@ log "FIESTA BLUEPRINT UUID: |${FIESTA_BLUEPRINT_UUID}|"
 
 # Launch for the numbe of users specified
 
-for _user in "${USERS[@]}" ; do
-
+#for _user in "${USERS[@]}" ; do
+_user="nate88"
 User_Calm_App_Nam="${_user}${Calm_App_Name}"
 
 # Var list
@@ -3012,7 +3012,7 @@ log "Launching the ${_user} Fiesta Application"
 
 log "Finished Launching the ${_user} Fiesta  Application"
 
-done
+#done
 
 set +x
 
