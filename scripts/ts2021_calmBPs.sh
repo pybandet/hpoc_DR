@@ -36,9 +36,7 @@ case ${1} in
     && era_network_configure \
     && authentication_source \
     && pe_auth \
-    && deploy_era \
-    && deploy_windows_tools_vm \
-    && deploy_citrix_gold_image_vm
+    && deploy_era
 
     if (( $? == 0 )) ; then
       pc_install "${NW1_NAME}" \
