@@ -2688,7 +2688,7 @@ log "Finished Updating Credentials"
 # GET The Blueprint payload
 log "getting Calm Blueprint Payload"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}" | jq --arg APPNAME "${Calm_App_Name}" 'del(.status, .spec.name) | .spec += {"application_name": "$APPNAME", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}" | jq 'del(.status, .spec.name) | .spec += {"application_name": "SNOW Infra", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
 
 # Launch the BLUEPRINT
 log "Launching the SNOW-Deployerizer Application"
@@ -2951,7 +2951,7 @@ log "FIESTA BLUEPRINT UUID: |${FIESTA_BLUEPRINT_UUID}|"
 
 for _user in "${USERS[@]}" ; do
 
-User_Calm_App_Nam="${_user}_${Calm_App_Name}"
+User_Calm_App_Nam="${_user}${Calm_App_Name}"
 
 # Var list
 log "-----------------------------------------"
@@ -3003,7 +3003,7 @@ log "Finished Updating Credentials"
 # GET The Blueprint payload
 log "getting Calm Blueprint Payload"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}" | jq --arg APPNAME "${User_Calm_App_Nam}" 'del(.status, .spec.name) | .spec += {"application_name": "$APPNAME", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}" | jq "del(.status, .spec.name) | .spec += {"application_name": \"$User_Calm_App_Nam\", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}" > set_blueprint_response_file.json
 
 # Launch the BLUEPRINT
 log "Launching the ${_user} Fiesta Application"
@@ -3196,7 +3196,7 @@ log "CICD BLUEPRINT UUID: |${CICD_BLUEPRINT_UUID}|"
 
 for _user in "${USERS[@]}" ; do
 
-User_Calm_App_Nam="${_user}_${Calm_App_Name}"
+User_Calm_App_Nam="${_user}${Calm_App_Name}"
 
 # Var list
 log "-----------------------------------------"
@@ -3249,7 +3249,7 @@ log "Finished Updating Credentials"
 # GET The Blueprint payload
 log "getting Calm Blueprint Payload"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}" | jq --arg APPNAME "${User_Calm_App_Nam}" 'del(.status, .spec.name) | .spec += {"application_name": "$APPNAME", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}" | jq "del(.status, .spec.name) | .spec += {"application_name": \"$User_Calm_App_Nam\", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}" > set_blueprint_response_file.json
 
 # Launch the BLUEPRINT
 log "Launching the ${_user} Fiesta Application"
