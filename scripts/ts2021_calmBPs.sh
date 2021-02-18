@@ -36,7 +36,6 @@ case ${1} in
     && era_network_configure \
     && authentication_source \
     && pe_auth \
-    && deploy_windows_tools_vm \
     && deploy_era
 
     if (( $? == 0 )) ; then
@@ -137,7 +136,6 @@ case ${1} in
     && upload_citrix_calm_blueprint \
     && upload_snow_calm_blueprint \
     && upload_fiesta_mssql_blueprint \
-    && upload_docker_fiesta_era_blueprint \
     && images \
     && prism_check 'PC'
 
