@@ -2995,13 +2995,36 @@ log "Saving Credentials Edits with PUT"
 
 log "Finished Updating Credentials"
 
-# GET The Blueprint payload
+# Getting the Blueprint UUID
+log "getting Calm Blueprint Runtime VAR UUIDs"
+
+# Getting db_domain_name UUID
+log "Getting VAR db_domain_name UUID"
+
+  DB_DomainName_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "db_domain_name") | .uuid'  | tr -d \")
+
+log "VAR db_domain_name UUID = |$DB_DomainName_UUID|"
+log "-----------------------------------------"
+
+# Getting db_password UUID
+log "Getting VAR db_password UUID"
+
+  DB_Password_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "db_password") | .uuid'  | tr -d \")
+
+log "VAR db_password UUID = |$DB_Password_UUID|"
+log "-----------------------------------------"
+
+# Getting user_initials UUID
+log "Getting VAR user_initials UUID"
+
+  User_Initials_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "user_initials") | .uuid'  | tr -d \")
+
+log "VAR user_initials UUID = |$User_Initials_UUID|"
+log "-----------------------------------------"
 
 for _user in "${USERS[@]}" ; do
 #_user="nate88"
 User_Calm_App_Nam="${_user} ${Calm_App_Name}"
-
-log "getting Calm Blueprint Payload"
 
 # Getting the Blueprint UUID
 log "Setting Runtime VARs"
@@ -3018,39 +3041,33 @@ HTTP_JSON_BODY=$(cat <<EOF
         "runtime_editables": {
             "variable_list": [
                 {
-                    "value": {
-                        "value": "mssql"
-                    },
-                    "name": "db_dialect"
-                },
-                {
+                    "description": "FQDN required for domain joined MSSQL databases (e.g. NTNXLAB.local)",
+                    "uuid": "${DB_DomainName_UUID}",
                     "value": {
                         "value": "${DOMAIN}"
                     },
+                    "context": "app_profile.AHV.variable",
+                    "type": "LOCAL",
                     "name": "db_domain_name"
                 },
                 {
+                    "description": "",
+                    "uuid": "${DB_Password_UUID}",
                     "value": {
                         "value": "${db_password}"
                     },
+                    "context": "app_profile.AHV.variable",
+                    "type": "LOCAL",
                     "name": "db_password"
                 },
                 {
-                    "value": {
-                        "value": "Administrator"
-                    },
-                    "name": "db_username"
-                },
-                {
-                    "value": {
-                        "value": "Fiesta"
-                    },
-                    "name": "db_name"
-                },
-                {
+                    "description": "",
+                    "uuid": "${User_Initials_UUID}",
                     "value": {
                         "value": "${_user}"
                     },
+                    "context": "app_profile.AHV.variable",
+                    "type": "LOCAL",
                     "name": "user_initials"
                 }
             ]
