@@ -2433,11 +2433,6 @@ log "-----------------------------------------"
 
   cat $DOWNLOADED_JSONFile \
   | jq -c 'del(.status)' \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[0].value = \"$DOMAIN\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[1].value = \"$AD_IP\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[2].value = \"$PE_IP\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[6].value = \"$DDC_IP\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[4].value = \"$CVM_NETWORK\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.name = \"$SERVER_IMAGE\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.uuid = \"$SERVER_IMAGE_UUID\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[1].data_source_reference.name = \"$CITRIX_IMAGE\")" \
@@ -2458,16 +2453,95 @@ log "-----------------------------------------"
 
   echo "Finished Updating Credentials"
 
+# Getting the Blueprint UUID
+log "getting Calm Blueprint Runtime VAR UUIDs"
+
+# Getting AD_IP UUID
+log "Getting VAR AD_IP UUID"
+
+  AD_IP_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${CITRIX_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "AD_IP") | .uuid'  | tr -d \")
+
+log "VAR AD_IP UUID = |${AD_IP_UUID}|"
+log "-----------------------------------------"
+
+# Getting PE_IP UUID
+log "Getting VAR PE_IP UUID"
+
+  PE_IP_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${CITRIX_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "PE_IP") | .uuid'  | tr -d \")
+
+log "VAR PE_IP UUID = |${PE_IP_UUID}|"
+log "-----------------------------------------"
+
+# Getting DDC_IP UUID
+log "Getting VAR DDC_IP UUID"
+
+  DDC_IP_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${CITRIX_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "DDC_IP") | .uuid'  | tr -d \")
+
+log "VAR DDC_IP UUID = |${DDC_IP_UUID}|"
+log "-----------------------------------------"
+
+# Getting the Blueprint UUID
+log "Setting Runtime VARs"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "app_name": "${Calm_App_Name}",
+        "app_description": "Citrix",
+        "app_profile_reference": {
+            "kind": "app_profile",
+            "name": "Nutanix"
+        },
+        "runtime_editables": {
+            "variable_list": [
+                {
+                        "description": "",
+                        "uuid": "${AD_IP_UUID}",
+                        "value": {
+                            "value": "${AD_IP}"
+                        },
+                        "context": "app_profile.Nutanix.variable",
+                        "type": "LOCAL",
+                        "name": "AD_IP"
+                    },
+                    {
+                        "description": "",
+                        "uuid": "${PE_IP_UUID}",
+                        "value": {
+                            "value": "${PE_IP}"
+                        },
+                        "context": "app_profile.Nutanix.variable",
+                        "type": "LOCAL",
+                        "name": "PE_IP"
+                    },
+                    {
+                        "description": "",
+                        "uuid": "${DDC_IP_UUID}",
+                        "value": {
+                            "value": "${DDC_IP}"
+                        },
+                        "context": "app_profile.Nutanix.variable",
+                        "type": "LOCAL",
+                        "name": "DDC_IP"
+                    }
+            ]
+        }
+    }
+}
+EOF
+)
+
   # GET The Blueprint payload
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${CITRIX_BLUEPRINT_UUID}" | jq 'del(.status, .spec.name) | .spec += {"application_name": "Citrix Infra", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
+  #curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${CITRIX_BLUEPRINT_UUID}" | jq 'del(.status, .spec.name) | .spec += {"application_name": "Citrix Infra", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
 
   # Launch the BLUEPRINT
 
-  echo "Launching the Era Server Application"
+log "Launching Citrix Infra Application"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${CITRIX_BLUEPRINT_UUID}/launch"
+  #curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${CITRIX_BLUEPRINT_UUID}/launch"
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d "${HTTP_JSON_BODY}" "https://localhost:9440/api/nutanix/v3/blueprints/${CITRIX_BLUEPRINT_UUID}/simple_launch"
 
-  echo "Finished Launching the Citrix Infra Application"
+log "Finished Launching the Citrix Infra Application"
 
 set +x
 
@@ -2481,7 +2555,7 @@ function upload_snow_calm_blueprint() {
   local DIRECTORY="/home/nutanix/snow"
   local BLUEPRINT=${SNOW_Blueprint}
   local CALM_PROJECT="BootcampInfra"
-  local Calm_App_Name="SNOW-Deployerizer"
+  local Calm_App_Name="SNOW Infra"
   local AD_IP=${AUTH_HOST}
   local PE_IP=${PE_HOST}
   local PC_IP=${PC_HOST}
@@ -2491,7 +2565,7 @@ function upload_snow_calm_blueprint() {
   local VLAN_NAME=${NW1_VLAN}
   local PRISM_ADMIN_PASSWORD="${PE_PASSWORD}"
   local ROOT_PASSWORD="nutanix/4u"
-  local SNOW_ADMIN_PASSWORD="nutanix/4u"
+  local SNOW_ADMIN_PASSWORD="${PE_PASSWORD}"
   local DOWNLOAD_BLUEPRINTS
   local NETWORK_UUID
   local SERVER_IMAGE="CentOS7.qcow2"
@@ -2667,10 +2741,6 @@ log "-----------------------------------------"
 
   cat $DOWNLOADED_JSONFile \
   | jq -c 'del(.status)' \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[0].value = \"$SNOW_URL\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[1].value = \"$SNOW_ADMIN_PASSWORD\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[2].value = \"$PRISM_ADMIN_PASSWORD\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[3].value = \"$PC_IP\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.name = \"$SERVER_IMAGE\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.uuid = \"$SERVER_IMAGE_UUID\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[].create_spec.resources.nic_list[].subnet_reference.name = \"$NETWORK_NAME\")" \
@@ -2685,17 +2755,111 @@ log "Saving Credentials Edits with PUT"
 
 log "Finished Updating Credentials"
 
-# GET The Blueprint payload
-log "getting Calm Blueprint Payload"
+# Getting the Blueprint UUID
+log "getting Calm Blueprint Runtime VAR UUIDs"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}" | jq 'del(.status, .spec.name) | .spec += {"application_name": "SNOW Infra", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
+# Getting SNOWInstanceURL UUID
+log "Getting VAR SNOWInstanceURL UUID"
+
+  SNOWInstanceURL_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "SNOWInstanceURL") | .uuid'  | tr -d \")
+
+log "VAR SNOWInstanceURL UUID = |${SNOWInstanceURL_UUID}|"
+log "-----------------------------------------"
+
+# Getting SNOWAdminPassword UUID
+log "Getting VAR SNOWAdminPassword UUID"
+
+  SNOWAdminPassword_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "SNOWAdminPassword") | .uuid'  | tr -d \")
+
+log "VAR SNOWAdminPassword UUID = |${SNOWAdminPassword_UUID}|"
+log "-----------------------------------------"
+
+# Getting PrismAdminPassword UUID
+log "Getting VAR PrismAdminPassword UUID"
+
+  PrismAdminPassword_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "PrismAdminPassword") | .uuid'  | tr -d \")
+
+log "VAR PrismAdminPassword UUID = |${PrismAdminPassword_UUID}|"
+log "-----------------------------------------"
+
+# Getting PC_IP UUID
+log "Getting VAR PC_IP UUID"
+
+  PC_IP_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "PC_IP") | .uuid'  | tr -d \")
+
+log "VAR PC_IP UUID = |${PC_IP_UUID}|"
+log "-----------------------------------------"
+
+# Getting the Blueprint UUID
+log "Setting Runtime VARs"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "app_name": "${Calm_App_Name}",
+        "app_description": "SNOW",
+        "app_profile_reference": {
+            "kind": "app_profile",
+            "name": "Default"
+        },
+        "runtime_editables": {
+            "variable_list": [
+                {
+                        "description": "",
+                        "uuid": "${SNOWInstanceURL_UUID}",
+                        "value": {
+                            "value": "${SNOW_URL}"
+                        },
+                        "context": "app_profile.Default.variable",
+                        "type": "LOCAL",
+                        "name": "SNOWInstanceURL"
+                    },
+                    {
+                        "description": "",
+                        "uuid": "${SNOWAdminPassword_UUID}",
+                        "value": {
+                            "value": "${SNOW_ADMIN_PASSWORD}"
+                        },
+                        "context": "app_profile.Default.variable",
+                        "type": "LOCAL",
+                        "name": "SNOWAdminPassword"
+                    },
+                    {
+                        "description": "",
+                        "uuid": "${PrismAdminPassword_UUID}",
+                        "value": {
+                            "value": "${PRISM_ADMIN_PASSWORD}"
+                        },
+                        "context": "app_profile.Default.variable",
+                        "type": "LOCAL",
+                        "name": "PrismAdminPassword"
+                    },
+                    {
+                        "description": "",
+                        "uuid": "${PC_IP_UUID}",
+                        "value": {
+                            "value": "${PC_IP}"
+                        },
+                        "context": "app_profile.Default.variable",
+                        "type": "LOCAL",
+                        "name": "PC_IP"
+                    }
+            ]
+        }
+    }
+}
+EOF
+)
+
+  #curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}" | jq 'del(.status, .spec.name) | .spec += {"application_name": "SNOW Infra", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}' > set_blueprint_response_file.json
 
 # Launch the BLUEPRINT
-log "Launching the SNOW-Deployerizer Application"
+log "Launching the SNOW Infra Application"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}/launch"
+  #curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}/launch"
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d "${HTTP_JSON_BODY}" "https://localhost:9440/api/nutanix/v3/blueprints/${SNOW_BLUEPRINT_UUID}/simple_launch"
 
-log "Finished Launching the SNOW-Deployerizer Application"
+log "Finished Launching the SNOW Infra Application"
 
 set +x
 
