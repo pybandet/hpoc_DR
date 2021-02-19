@@ -2949,9 +2949,7 @@ log "FIESTA BLUEPRINT UUID: |${FIESTA_BLUEPRINT_UUID}|"
 
 # Launch for the numbe of users specified
 
-#for _user in "${USERS[@]}" ; do
-_user="nate88"
-User_Calm_App_Nam="${_user}${Calm_App_Name}"
+
 
 # Var list
 log "-----------------------------------------"
@@ -2977,9 +2975,6 @@ log "-----------------------------------------"
 
   cat $DOWNLOADED_JSONFile \
   | jq -c 'del(.status)' \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[1].value = \"$DOMAIN\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[2].value = \"$db_password\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[5].value = \"$_user\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.name = \"$SERVER_IMAGE\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.uuid = \"$SERVER_IMAGE_UUID\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[1].create_spec.resources.disk_list[0].data_source_reference.name = \"$DB_SERVER_IMAGE1\")" \
@@ -3001,18 +2996,81 @@ log "Saving Credentials Edits with PUT"
 log "Finished Updating Credentials"
 
 # GET The Blueprint payload
+
+for _user in "${USERS[@]}" ; do
+#_user="nate88"
+User_Calm_App_Nam="${_user} ${Calm_App_Name}"
+
 log "getting Calm Blueprint Payload"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}" | jq "del(.status, .spec.name) | .spec += {"application_name": \"$User_Calm_App_Nam\", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}" > set_blueprint_response_file.json
+# Getting the Blueprint UUID
+log "Setting Runtime VARs"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "app_name": "${User_Calm_App_Nam}",
+        "app_description": "Fiesta",
+        "app_profile_reference": {
+            "kind": "app_profile",
+            "name": "AHV"
+        },
+        "runtime_editables": {
+            "variable_list": [
+                {
+                    "value": {
+                        "value": "mssql"
+                    },
+                    "name": "db_dialect"
+                },
+                {
+                    "value": {
+                        "value": "${DOMAIN}"
+                    },
+                    "name": "db_domain_name"
+                },
+                {
+                    "value": {
+                        "value": "${db_password}"
+                    },
+                    "name": "db_password"
+                },
+                {
+                    "value": {
+                        "value": "Administrator"
+                    },
+                    "name": "db_username"
+                },
+                {
+                    "value": {
+                        "value": "Fiesta"
+                    },
+                    "name": "db_name"
+                },
+                {
+                    "value": {
+                        "value": "${_user}"
+                    },
+                    "name": "user_initials"
+                }
+            ]
+        }
+    }
+}
+EOF
+)
+
+  #curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}" | jq "del(.status, .spec.name) | .spec += {"application_name": \"$User_Calm_App_Nam\", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}" > set_blueprint_response_file.json
 
 # Launch the BLUEPRINT
 log "Launching the ${_user} Fiesta Application"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}/launch"
+  #curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}/launch"
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d "${HTTP_JSON_BODY}" "https://localhost:9440/api/nutanix/v3/blueprints/${FIESTA_BLUEPRINT_UUID}/simple_launch"
 
 log "Finished Launching the ${_user} Fiesta  Application"
 
-#done
+done
 
 set +x
 
