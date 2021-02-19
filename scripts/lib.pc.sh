@@ -3431,11 +3431,6 @@ EOF
 
 log "CICD BLUEPRINT UUID: |${CICD_BLUEPRINT_UUID}|"
 
-# Launch for the numbe of users specified
-
-for _user in "${USERS[@]}" ; do
-
-User_Calm_App_Nam="${_user}${Calm_App_Name}"
 
 # Var list
 log "-----------------------------------------"
@@ -3492,6 +3487,8 @@ log "Getting VAR era_ip UUID"
 log "VAR era_ip UUID = |${Era_IP_UUID}|"
 log "-----------------------------------------"
 
+
+
 # Getting era_admin UUID
 log "Getting VAR era_admin UUID"
 
@@ -3535,45 +3532,45 @@ HTTP_JSON_BODY=$(cat <<EOF
         "runtime_editables": {
             "variable_list": [
                 {
-                        "description": "",
-                        "uuid": "${Initials_UUID}",
-                        "value": {
-                            "value": "${_user}"
-                        },
-                        "context": "app_profile.Default.variable",
-                        "type": "LOCAL",
-                        "name": "initials"
-                    },
-                    {
-                        "description": "",
-                        "uuid": "${Era_IP_UUID}",
-                        "value": {
-                            "value": "${ERA_IP}"
-                        },
-                        "context": "app_profile.Default.variable",
-                        "type": "LOCAL",
-                        "name": "era_ip"
-                    },
-                    {
-                        "description": "",
-                        "uuid": "${Era_Admin_UUID}",
-                        "value": {
-                            "value": "${ERA_ADMIN}"
-                        },
-                        "context": "app_profile.Default.variable",
-                        "type": "LOCAL",
-                        "name": "era_admin"
-                    },
-                    {
-                        "description": "",
-                        "uuid": "${Era_Password_UUID}",
-                        "value": {
-                            "value": "${ERA_PASSWD}"
-                        },
-                        "context": "app_profile.Default.variable",
-                        "type": "LOCAL",
-                        "name": "era_passwd"
-                    }
+                      "description": "",
+                      "uuid": "${Initials_UUID}",
+                      "value": {
+                          "value": "${_user}"
+                      },
+                      "context": "app_profile.Default.variable",
+                      "type": "LOCAL",
+                      "name": "initials"
+                  },
+                  {
+                      "description": "",
+                      "uuid": "${Era_IP_UUID}",
+                      "value": {
+                          "value": "${ERA_IP}"
+                      },
+                      "context": "app_profile.Default.variable",
+                      "type": "LOCAL",
+                      "name": "era_ip"
+                  },
+                  {
+                      "description": "",
+                      "uuid": "${Era_Admin_UUID}",
+                      "value": {
+                          "value": "${ERA_ADMIN}"
+                      },
+                      "context": "app_profile.Default.variable",
+                      "type": "LOCAL",
+                      "name": "era_admin"
+                  },
+                  {
+                      "description": "",
+                      "uuid": "${Era_Password_UUID}",
+                      "value": {
+                          "value": "${ERA_PASSWD}"
+                      },
+                      "context": "app_profile.Default.variable",
+                      "type": "LOCAL",
+                      "name": "era_passwd"
+                  }
             ]
         }
     }
