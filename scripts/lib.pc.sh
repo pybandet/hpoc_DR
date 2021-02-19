@@ -3295,10 +3295,6 @@ log "-----------------------------------------"
 
   cat $DOWNLOADED_JSONFile \
   | jq -c 'del(.status)' \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[0].value = \"$_user\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[1].value = \"$ERA_IP\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[2].value = \"$ERA_ADMIN\")" \
-  | jq -c -r "(.spec.resources.app_profile_list[0].variable_list[5].value = \"$ERA_PASSWD\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.name = \"$SERVER_IMAGE\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.uuid = \"$SERVER_IMAGE_UUID\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[1].create_spec.resources.disk_list[0].data_source_reference.name = \"$SERVER_IMAGE\")" \
@@ -3321,15 +3317,113 @@ log "Saving Credentials Edits with PUT"
 
 log "Finished Updating Credentials"
 
-# GET The Blueprint payload
-log "getting Calm Blueprint Payload"
+# Getting the Blueprint UUID
+log "getting Calm Blueprint Runtime VAR UUIDs"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}" | jq "del(.status, .spec.name) | .spec += {"application_name": \"$User_Calm_App_Nam\", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}" > set_blueprint_response_file.json
+# Getting era_ip_name UUID
+log "Getting VAR era_ip UUID"
+
+  Era_IP_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "era_ip") | .uuid'  | tr -d \")
+
+log "VAR era_ip UUID = |${Era_IP_UUID}|"
+log "-----------------------------------------"
+
+# Getting era_admin UUID
+log "Getting VAR era_admin UUID"
+
+  Era_Admin_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "era_admin") | .uuid'  | tr -d \")
+
+log "VAR era_admin UUID = |${Era_Admin_UUID}|"
+log "-----------------------------------------"
+
+# Getting era_passwd UUID
+log "Getting VAR era_passwd UUID"
+
+  Era_Password_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "era_passwd") | .uuid'  | tr -d \")
+
+log "VAR era_passwd UUID = |${Era_Password_UUID}|"
+log "-----------------------------------------"
+
+# Getting initials UUID
+log "Getting VAR initials UUID"
+
+  Initials_UUID=$(curl ${CURL_HTTP_OPTS} --request GET "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}/runtime_editables" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{}' | jq -r '.resources[] | .runtime_editables.variable_list[] | select(.name == "initials") | .uuid'  | tr -d \")
+
+log "VAR user_initials UUID = |${Initials_UUID}|"
+log "-----------------------------------------"
+
+for _user in "${USERS[@]}" ; do
+#_user="nate88"
+User_Calm_App_Nam="${_user} ${Calm_App_Name}"
+
+# Getting the Blueprint UUID
+log "Setting Runtime VARs"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "app_name": "${User_Calm_App_Nam}",
+        "app_description": "CICD",
+        "app_profile_reference": {
+            "kind": "app_profile",
+            "name": "Default"
+        },
+        "runtime_editables": {
+            "variable_list": [
+                {
+                        "description": "",
+                        "uuid": "${Initials_UUID}",
+                        "value": {
+                            "value": "${_user}"
+                        },
+                        "context": "app_profile.Default.variable",
+                        "type": "LOCAL",
+                        "name": "initials"
+                    },
+                    {
+                        "description": "",
+                        "uuid": "${Era_IP_UUID}",
+                        "value": {
+                            "value": "${ERA_IP}"
+                        },
+                        "context": "app_profile.Default.variable",
+                        "type": "LOCAL",
+                        "name": "era_ip"
+                    },
+                    {
+                        "description": "",
+                        "uuid": "${Era_Admin_UUID}",
+                        "value": {
+                            "value": "${ERA_ADMIN}"
+                        },
+                        "context": "app_profile.Default.variable",
+                        "type": "LOCAL",
+                        "name": "era_admin"
+                    },
+                    {
+                        "description": "",
+                        "uuid": "${Era_Password_UUID}",
+                        "value": {
+                            "value": "${ERA_PASSWD}"
+                        },
+                        "context": "app_profile.Default.variable",
+                        "type": "LOCAL",
+                        "name": "era_passwd"
+                    }
+            ]
+        }
+    }
+}
+EOF
+)
+
+  #curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}" | jq "del(.status, .spec.name) | .spec += {"application_name": \"$User_Calm_App_Nam\", "app_profile_reference": {"uuid": .spec.resources.app_profile_list[0].uuid, "kind": "app_profile" }}" > set_blueprint_response_file.json
 
 # Launch the BLUEPRINT
 log "Launching the ${_user} Fiesta Application"
 
-  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}/launch"
+  #curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}/launch"
+  curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d "${HTTP_JSON_BODY}" "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}/simple_launch"
 
 log "Finished Launching the ${_user} Fiesta  Application"
 
