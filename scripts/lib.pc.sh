@@ -2217,6 +2217,7 @@ function upload_citrix_calm_blueprint() {
   local DIRECTORY="/home/nutanix/citrix"
   local BLUEPRINT=${Citrix_Blueprint}
   local CALM_PROJECT="BootcampInfra"
+  local Calm_App_Name="Citrix Infra"
   local DOMAIN=${AUTH_FQDN}
   local AD_IP=${AUTH_HOST}
   local PE_IP=${PE_HOST}
