@@ -46,7 +46,7 @@ case ${1} in
     && create_file_analytics_server \
     && sleep 30 \
     && deploy_era \
-    && deploy_mssql_2019 \
+    && deploy_api_mssql_2019 \
     && deploy_windows_tools_vm \
     && deploy_citrix_gold_image_vm
 

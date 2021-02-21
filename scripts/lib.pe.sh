@@ -1188,6 +1188,174 @@ function deploy_mssql_2019() {
 }
 
 #########################################################################################################################################
+# Routine to Create Era Bootcamp PreProvisioned MSSQL Server 2019
+#########################################################################################################################################
+
+function deploy_api_mssql_2019() {
+
+mssql_2019_images=(\
+  ${MSSQL19_SourceVM_Image1}.qcow2 \
+  ${MSSQL19_SourceVM_Image2}.qcow2 \
+)
+
+log "--------------------------------------"
+log "Uploading ${MSSQL19_SourceVM_Image1}"
+
+for _image in "${mssql_2019_images[@]}"; do
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "action_on_failure": "CONTINUE",
+    "execution_order": "SEQUENTIAL",
+    "api_request_list": [
+        {
+            "operation": "POST",
+            "path_and_params": "/api/nutanix/v3/images",
+            "body": {
+                "spec": {
+                    "name": "${_image}",
+                    "description": "${_image}",
+                    "resources": {
+                        "image_type": "DISK_IMAGE",
+                        "source_uri": "${QCOW2_REPOS}/${_image}"
+                    }
+                },
+                "metadata": {
+                    "kind": "image"
+                },
+                "api_version": "3.1.0"
+            }
+        }
+    ],
+    "api_version": "3.0"
+}
+EOF
+  )
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/batch| jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
+loop ${_task_id}
+
+done
+
+log "--------------------------------------"
+log "Getting UUIDs for Create VM Payload"
+
+# Getting Image UUIDs
+log "--------------------------------------"
+log "Getting ${MSSQL19_SourceVM_Image1} UUID"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"image",
+  "filter": "name==${MSSQL19_SourceVM_Image1}.qcow2"
+}
+EOF
+)
+
+      MSSQL19_SourceVM_Image1_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/images/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  else
+      log "Image is not upload, please check."
+  fi
+
+log "${MSSQL19_SourceVM_Image1} UUID = |${MSSQL19_SourceVM_Image1_UUID}|"
+log "-----------------------------------------"
+
+log "--------------------------------------"
+log "Getting ${MSSQL19_SourceVM_Image2} UUID"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"image",
+  "filter": "name==${MSSQL19_SourceVM_Image2}.qcow2"
+}
+EOF
+)
+
+      MSSQL19_SourceVM_Image2_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/images/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  else
+      log "Image is not upload, please check."
+  fi
+
+log "${MSSQL19_SourceVM_Image2} UUID = |${MSSQL19_SourceVM_Image2_UUID}|"
+log "-----------------------------------------"
+
+# Getting Network UUID
+log "--------------------------------------"
+log "Getting Network UUID"
+
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "NETWORK UUID = |${NETWORK_UUID}|"
+
+
+
+log "--------------------------------------"
+log "Creating ${MSSQL19_SourceVM} VM"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "name": "${MSSQL19_SourceVM}",
+        "resources": {
+            "num_threads_per_core": 1,
+            "num_vcpus_per_socket": 1,
+            "num_sockets": 4,
+            "memory_size_mib": 8192,
+            "disk_list": [
+                {
+                    "data_source_reference": {
+                        "kind": "image",
+                        "uuid": "${MSSQL19_SourceVM_Image1_UUID}"
+                    },
+                    "device_properties": {
+                        "device_type": "DISK",
+                        "disk_address": {
+                            "adapter_type": "SCSI",
+                            "device_index": 0
+                        }
+                    }
+                },
+                {
+                    "data_source_reference": {
+                        "kind": "image",
+                        "uuid": "${MSSQL19_SourceVM_Image2_UUID}"
+                    },
+                    "device_properties": {
+                        "device_type": "DISK",
+                        "disk_address": {
+                            "adapter_type": "SCSI",
+                            "device_index": 1
+                        }
+                    }
+                }
+            ],
+            "power_state": "ON",
+            "nic_list": [
+                {
+                    "nic_type": "NORMAL_NIC",
+                    "subnet_reference": {
+                        "kind": "subnet",
+                        "uuid": "${NETWORK_UUID}"
+                    }
+                }
+            ]
+        }
+    },
+    "api_version": "3.1.0",
+    "metadata": {
+        "kind": "vm"
+    }
+}
+EOF
+  )
+
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/vms | jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
+loop ${_task_id}
+
+log "${MSSQL19_SourceVM} VM Created"
+
+}
+
+#########################################################################################################################################
 # Routine to Create Era Bootcamp PreProvisioned Oracle Server
 #########################################################################################################################################
 
@@ -1332,6 +1500,135 @@ function deploy_citrix_gold_image_vm() {
   echo "## ${SourceVM} Creation_COMPLETE ##"
 
   #done
+
+}
+
+#########################################################################################################################################
+# Routine to Create Era Bootcamp PreProvisioned MSSQL Server 2019
+#########################################################################################################################################
+
+function deploy_api_citrix_gold_image_vm() {
+
+log "--------------------------------------"
+log "Uploading ${CitrixGoldImageVM_Image}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "action_on_failure": "CONTINUE",
+    "execution_order": "SEQUENTIAL",
+    "api_request_list": [
+        {
+            "operation": "POST",
+            "path_and_params": "/api/nutanix/v3/images",
+            "body": {
+                "spec": {
+                    "name": "${CitrixGoldImageVM_Image}",
+                    "description": "${CitrixGoldImageVM_Image}",
+                    "resources": {
+                        "image_type": "DISK_IMAGE",
+                        "source_uri": "${QCOW2_REPOS}/${CitrixGoldImageVM_Image}.qcow2"
+                    }
+                },
+                "metadata": {
+                    "kind": "image"
+                },
+                "api_version": "3.1.0"
+            }
+        }
+    ],
+    "api_version": "3.0"
+}
+EOF
+  )
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/batch| jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
+loop ${_task_id}
+
+done
+
+log "--------------------------------------"
+log "Getting UUIDs for Create VM Payload"
+
+# Getting Image UUIDs
+log "--------------------------------------"
+log "Getting ${CitrixGoldImageVM_Image} UUID"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"image",
+  "filter": "name==${CitrixGoldImageVM_Image}"
+}
+EOF
+)
+
+      CitrixGoldImageVM_Image_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/images/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  else
+      log "Image is not upload, please check."
+  fi
+
+log "${CitrixGoldImageVM_Image} UUID = |${CitrixGoldImageVM_Image_UUID}|"
+log "-----------------------------------------"
+
+# Getting Network UUID
+log "--------------------------------------"
+log "Getting Network UUID"
+
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "NETWORK UUID = |${NETWORK_UUID}|"
+
+
+
+log "--------------------------------------"
+log "Creating ${CitrixGoldImageVM} VM"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "name": "${CitrixGoldImageVM}",
+        "resources": {
+            "num_threads_per_core": 1,
+            "num_vcpus_per_socket": 1,
+            "num_sockets": 4,
+            "memory_size_mib": 8192,
+            "disk_list": [
+                {
+                    "data_source_reference": {
+                        "kind": "image",
+                        "uuid": "${CitrixGoldImageVM_Image_UUID}"
+                    },
+                    "device_properties": {
+                        "device_type": "DISK",
+                        "disk_address": {
+                            "adapter_type": "SCSI",
+                            "device_index": 0
+                        }
+                    }
+                }
+            ],
+            "power_state": "ON",
+            "nic_list": [
+                {
+                    "nic_type": "NORMAL_NIC",
+                    "subnet_reference": {
+                        "kind": "subnet",
+                        "uuid": "${NETWORK_UUID}"
+                    }
+                }
+            ]
+        }
+    },
+    "api_version": "3.1.0",
+    "metadata": {
+        "kind": "vm"
+    }
+}
+EOF
+  )
+
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/vms | jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
+loop ${_task_id}
+
+log "${CitrixGoldImageVM} VM Created"
 
 }
 
