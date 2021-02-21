@@ -433,7 +433,7 @@ function pc_auth() {
 
   # TODO:50 FUTURE: pass AUTH_SERVER argument
 
-set -x
+#set -x
 
   log "Add Directory ${AUTH_DOMAIN}"
   _http_body=$(cat <<EOF
@@ -504,7 +504,7 @@ EOF
 
   log "Cluster Admin=${AUTH_ADMIN_GROUP}, _task_id=|${_task_id}|_http_body=|${_http_body}| "
 
-set +x
+#set +x
 
 }
 
@@ -2214,7 +2214,7 @@ log "Calm Project Created"
 ###############################################################################################################################################################################
 
 function upload_citrix_calm_blueprint() {
-  local DIRECTORY="/home/nutanix/citrix"
+  local DIRECTORY="/home/nutanix/calm_blueprints"
   local BLUEPRINT=${Citrix_Blueprint}
   local CALM_PROJECT="BootcampInfra"
   local Calm_App_Name="Citrix Infra"
@@ -2242,7 +2242,7 @@ function upload_citrix_calm_blueprint() {
   local _loops="0"
   local _maxtries="75"
 
-set -x
+#set -x
 
 log "Starting Citrix Blueprint Deployment"
 
@@ -2544,7 +2544,7 @@ log "Launching Citrix Infra Application"
 
 log "Finished Launching the Citrix Infra Application"
 
-set +x
+#set +x
 
 }
 
@@ -2553,7 +2553,7 @@ set +x
 ######################################################################################################################################
 
 function upload_snow_calm_blueprint() {
-  local DIRECTORY="/home/nutanix/snow"
+  local DIRECTORY="/home/nutanix/calm_blueprints"
   local BLUEPRINT=${SNOW_Blueprint}
   local CALM_PROJECT="BootcampInfra"
   local Calm_App_Name="SNOW Infra"
@@ -2576,7 +2576,7 @@ function upload_snow_calm_blueprint() {
   local _loops="0"
   local _maxtries="75"
 
-set -x
+#set -x
 
 log "Starting SNOW-Deployerizer Blueprint Deployment"
 
@@ -2862,7 +2862,7 @@ log "Launching the SNOW Infra Application"
 
 log "Finished Launching the SNOW Infra Application"
 
-set +x
+#set +x
 
 }
 
@@ -2871,7 +2871,7 @@ set +x
 ###############################################################################################################################################################################
 
 function upload_fiesta_mssql_blueprint() {
-  local DIRECTORY="/home/nutanix/fiesta"
+  local DIRECTORY="/home/nutanix/calm_blueprints"
   local BLUEPRINT=${Fiesta_MSSQL_Blueprint}
   local CALM_PROJECT="BootcampInfra"
   local DOMAIN=${AUTH_FQDN}
@@ -3263,7 +3263,7 @@ set +x
 ###############################################################################################################################################################################
 
 function upload_docker_fiesta_era_blueprint() {
-  local DIRECTORY="/home/nutanix/cicd"
+  local DIRECTORY="/home/nutanix/calm_blueprints"
   local BLUEPRINT=${Docker_Fiesta_Era_Blueprint}
   local CALM_PROJECT="BootcampInfra"
   local DOMAIN=${AUTH_FQDN}

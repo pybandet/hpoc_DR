@@ -81,7 +81,6 @@ case ${1} in
 
     export QCOW2_IMAGES=(\
       Linux_ToolsVM.qcow2 \
-      CitrixGoldImage-Win10.qcow2 \
     )
     export ISO_IMAGES=(\
       Nutanix-VirtIO-1.1.5.iso \

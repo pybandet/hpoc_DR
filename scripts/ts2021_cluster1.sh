@@ -9,7 +9,7 @@
 . global.vars.sh
 begin
 
-args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST SNOWInstanceURL'
+args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST'
 
 #dependencies 'install' 'jq' && ntnx_download 'PC' & #attempt at parallelization
 # Some parallelization possible to critical path; not much: would require pre-requestite checks to work!
@@ -87,13 +87,13 @@ case ${1} in
       CentOS7.qcow2 \
       Windows2016.qcow2 \
       Citrix_Virtual_Apps_and_Desktops_7_1912.iso \
+      MSSQL16-Source-Disk1.qcow2 \
+      MSSQL16-Source-Disk2.qcow2 \
     )
 
     export QCOW2_IMAGES=(\
       Linux_ToolsVM.qcow2 \
       CitrixGoldImage-Win10.qcow2 \
-      MSSQL16-Source-Disk1.qcow2 \
-      MSSQL16-Source-Disk2.qcow2 \
     )
     export ISO_IMAGES=(\
       Nutanix-VirtIO-1.1.5.iso \
