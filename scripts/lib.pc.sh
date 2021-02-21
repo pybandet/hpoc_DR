@@ -2572,6 +2572,7 @@ function upload_snow_calm_blueprint() {
   local NETWORK_UUID
   local SERVER_IMAGE="CentOS7.qcow2"
   local SERVER_IMAGE_UUID
+  local IMAGE_KIND="image"
   local SNOW_URL="${SNOWInstanceURL}"
   local CURL_HTTP_OPTS="--max-time 25 --silent -k --header Content-Type:application/json --header Accept:application/json  --insecure"
   local _loops="0"
@@ -2745,6 +2746,7 @@ log "-----------------------------------------"
   | jq -c 'del(.status)' \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.name = \"$SERVER_IMAGE\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.uuid = \"$SERVER_IMAGE_UUID\")" \
+  | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.kind = \"$IMAGE_KIND")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[].create_spec.resources.nic_list[].subnet_reference.name = \"$NETWORK_NAME\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[].create_spec.resources.nic_list[].subnet_reference.uuid = \"$NETWORK_UUID\")" \
   | jq -c -r "(.spec.resources.credential_definition_list[].secret.value = \"$ROOT_PASSWORD\")" \
@@ -2894,6 +2896,7 @@ function upload_fiesta_mssql_blueprint() {
   local DB_SERVER_IMAGE1_UUID
   local DB_SERVER_IMAGE2="MSSQL16-Source-Disk2.qcow2"
   local DB_SERVER_IMAGE2_UUID
+  local IMAGE_KIND="image"
   local db_password="Nutanix/4u"
   local CURL_HTTP_OPTS="--max-time 25 --silent -k --header Content-Type:application/json --header Accept:application/json  --insecure"
   local _loops="0"
@@ -3279,11 +3282,11 @@ function upload_docker_fiesta_era_blueprint() {
   local VLAN_NAME=${NW1_VLAN}
   local PRISM_ADMIN_PASSWORD="${PE_PASSWORD}"
   local ROOT_PASSWORD="nutanix/4u"
-  local SNOW_ADMIN_PASSWORD="nutanix/4u"
   local DOWNLOAD_BLUEPRINTS
   local NETWORK_UUID
   local SERVER_IMAGE="CentOS7.qcow2"
   local SERVER_IMAGE_UUID
+  local IMAGE_KIND="image"
   local db_password="Nutanix/4u"
   local CURL_HTTP_OPTS="--max-time 25 --silent -k --header Content-Type:application/json --header Accept:application/json  --insecure"
   local _loops="0"
@@ -3458,10 +3461,13 @@ log "-----------------------------------------"
   | jq -c 'del(.status)' \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.name = \"$SERVER_IMAGE\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.uuid = \"$SERVER_IMAGE_UUID\")" \
+  | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.disk_list[0].data_source_reference.kind = \"$IMAGE_KIND\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[1].create_spec.resources.disk_list[0].data_source_reference.name = \"$SERVER_IMAGE\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[1].create_spec.resources.disk_list[0].data_source_reference.uuid = \"$SERVER_IMAGE_UUID\")" \
+  | jq -c -r "(.spec.resources.substrate_definition_list[1].create_spec.resources.disk_list[0].data_source_reference.kind = \"$IMAGE_KIND\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[2].create_spec.resources.disk_list[0].data_source_reference.name = \"$SERVER_IMAGE\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[2].create_spec.resources.disk_list[0].data_source_reference.uuid = \"$SERVER_IMAGE_UUID\")" \
+  | jq -c -r "(.spec.resources.substrate_definition_list[2].create_spec.resources.disk_list[0].data_source_reference.kind = \"$IMAGE_KIND\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.nic_list[].subnet_reference.name = \"$NETWORK_NAME\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[0].create_spec.resources.nic_list[].subnet_reference.uuid = \"$NETWORK_UUID\")" \
   | jq -c -r "(.spec.resources.substrate_definition_list[1].create_spec.resources.nic_list[].subnet_reference.name = \"$NETWORK_NAME\")" \
