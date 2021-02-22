@@ -756,7 +756,7 @@ function prism_check() {
   local  _pw_init='Nutanix/4u'
   local    _sleep=${SLEEP}
   local     _test=0
-  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+
 
   #shellcheck disable=2153
   if [[ ${1} == 'PC' ]]; then

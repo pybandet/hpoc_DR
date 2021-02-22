@@ -9,7 +9,7 @@
 . global.vars.sh
 begin
 
-args_required 'EMAIL PE_PASSWORD PC_HOST AUTH_HOST'
+args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
 
 #dependencies 'install' 'jq' && ntnx_download 'PC' & #attempt at parallelization
 # Some parallelization possible to critical path; not much: would require pre-requestite checks to work!
