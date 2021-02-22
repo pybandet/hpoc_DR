@@ -686,19 +686,19 @@ function cluster_check() {
   log "PC is installed, registering the PE to PC"
    # Enable the PE to PC registration
    _json_data="{\"ipAddresses\":[\"${PC_HOST}\"],\"username\":\"${PRISM_ADMIN}\",\"password\":\"${PE_PASSWORD}\",\"port\":null}"
-   _response=$(curl -X POST $CURL_HTTP_OPTS --user ${PRISM_ADMIN}:${PE_PASSWORD} https://localhost:9440/PrismGateway/services/rest/v1/multicluster/add_to_multicluster -d $_json_data | jq '.value')
+   _response=$(curl -X POST $CURL_HTTP_OPTS --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/multicluster/add_to_multicluster" -d $_json_data | jq '.value')
 
    # Let's sleep a few seconds before moving on
    sleep 5
 
    # Checking if the registration has worked
-   _pc_ip_addr=$(curl $CURL_HTTP_OPTS --user ${PRISM_ADMIN}:${PE_PASSWORD} https://localhost:9440/PrismGateway/services/rest/v1/multicluster/cluster_external_state | jq '.[].clusterDetails.ipAddresses[0]' | tr -d \")
+   _pc_ip_addr=$(curl $CURL_HTTP_OPTS --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/multicluster/cluster_external_state" | jq '.[].clusterDetails.ipAddresses[0]' | tr -d \")
    while [[ -z $_pc_ip_addr ]]
    do
       log "Registering PE has failed, retrying"
-      curl -X POST $CURL_HTTP_OPTS --user ${PRISM_ADMIN}:${PE_PASSWORD} https://localhost:9440/PrismGateway/services/rest/v1/multicluster/add_to_multicluster -d $_json_data
+      curl -X POST $CURL_HTTP_OPTS --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/multicluster/add_to_multicluster" -d $_json_data
       (( _loop++ ))
-      _pc_ip_addr=$(curl $CURL_HTTP_OPTS --user ${PRISM_ADMIN}:${PE_PASSWORD} https://localhost:9440/PrismGateway/services/rest/v1/multicluster/cluster_external_state | jq '.[].clusterDetails.ipAddresses[0]' | tr -d \")
+      _pc_ip_addr=$(curl $CURL_HTTP_OPTS --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/multicluster/cluster_external_state" | jq '.[].clusterDetails.ipAddresses[0]' | tr -d \")
       sleep 5
       log "Sleeping for 5 seconds before retrying...$_loop/$_attempts"
       if [[ $_loop -gt $_attempts ]]; then
@@ -707,31 +707,6 @@ function cluster_check() {
       fi
    done
    log "PE has been registered to PC... Proceeding..."
-}
-
-###############################################################################################################################################################################
-# Cluster 2 Prism Centra Registration
-###############################################################################################################################################################################
-
-function cluster2_pc_registration() {
-  local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
-
-log "Registering cluster2 PE to PC"
-log "PE Cluster IP |${PC_HOST}|"
-
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-	"ipAddresses":["${PC_HOST}"],
-	"username":"admin",
-	"password":"${PE_PASSWORD}",
-	"port":null
-}
-EOF
-)
-
-_response=$(curl -X POST $CURL_HTTP_OPTS --user ${PRISM_ADMIN}:${PE_PASSWORD} https://localhost:9440/PrismGateway/services/rest/v1/multicluster/add_to_multicluster -d $_json_data | jq '.value')
-
 }
 
 
@@ -864,7 +839,7 @@ EOF
     local _test
     _test=$(curl ${CURL_POST_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} \
       -X POST --data "${HTTP_BODY}" \
-      https://localhost:9440/api/nutanix/v3/prism_central)
+      "https://${PE_HOST}:9440/api/nutanix/v3/prism_central")
     #log "_test=|${_test}|"
   fi
 }
