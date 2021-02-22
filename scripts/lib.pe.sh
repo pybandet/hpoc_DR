@@ -1171,7 +1171,7 @@ function pe_license_api() {
   args_required 'CURL_POST_OPTS PE_PASSWORD'
 
   log "IDEMPOTENCY: Checking PC API responds, curl failures are acceptable..."
-  prism_check 'PC' 2 0
+  prism_check 'PE' 2 0
 
   echo ${PE_HOST}
 
