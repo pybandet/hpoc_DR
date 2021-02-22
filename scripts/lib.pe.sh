@@ -963,7 +963,7 @@ function pe_auth() {
 # Routine to set the PE to use the AutoDC for authentication
 ###############################################################################################################################################################################
 function pe_auth_api() {
-  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
   local _directory_url="ldap://${AUTH_HOST}:${LDAP_PORT}"
   local         _error=45
 
@@ -1332,7 +1332,7 @@ function deploy_mssql_2019() {
 #########################################################################################################################################
 
 function deploy_api_mssql_2019() {
-    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
 
 
 log "--------------------------------------"
@@ -1649,7 +1649,7 @@ function deploy_citrix_gold_image_vm() {
 #########################################################################################################################################
 
 function deploy_api_citrix_gold_image_vm() {
-    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
 
 log "--------------------------------------"
 log "Uploading ${CitrixGoldImageVM_Image}"
