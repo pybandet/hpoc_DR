@@ -741,7 +741,7 @@ function pe_determine() {
 ##################################################################################
 
 
-function prism_check {
+function prism_check() {
   # Argument ${1} = REQUIRED: PE or PC
   # Argument ${2} = OPTIONAL: number of attempts
   # Argument ${3} = OPTIONAL: number of seconds per cycle
