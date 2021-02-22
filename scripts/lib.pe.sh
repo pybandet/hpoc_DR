@@ -727,7 +727,7 @@ HTTP_JSON_BODY='{"spec":{"name": "'${NW1_NAME}'","resources":{"subnet_type": "VL
         args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
 
   log "Create secondary network: Name: ${NW2_NAME}, VLAN: ${NW2_VLAN}, Subnet: ${NW2_SUBNET}"
-
+  NW2_subnet_correct=${NW2_SUBNET%??????}"129"
 HTTP_JSON_BODY=$(cat <<EOF
 {
     "spec": {
@@ -746,7 +746,8 @@ HTTP_JSON_BODY=$(cat <<EOF
                 "dhcp_options": {
                     "domain_name_server_list": [
                         "${AUTH_HOST}",
-                        "${DNS_SERVERS}"
+                        "${dns_array[0]}",
+                        "${dns_array[1]}",
                     ],
                     "domain_search_list": [
                         "${AUTH_FQDN}"
@@ -766,7 +767,7 @@ EOF
   )
 
   _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/subnets" | jq -r '.status.execution_context.task_uuid' | tr -d \")
-  loop ${_task_id}
+  loop ${_task_id} ${PE_HOST}
 
   log "Secondary Network Created"
   log "--------------------------------------"
@@ -803,7 +804,7 @@ EOF
   )
 
   _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/subnets" | jq -r '.status.execution_context.task_uuid' | tr -d \")
-  loop ${_task_id}
+  loop ${_task_id} ${PE_HOST}
 
     fi
 

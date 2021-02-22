@@ -1033,7 +1033,7 @@ function loop(){
 
   if [ -z $2 ]
   then
-    host='localhost'
+    host=localhost
   else
     host=$2
   fi
