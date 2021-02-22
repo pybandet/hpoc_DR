@@ -1113,7 +1113,7 @@ HTTP_JSON_BODY=$(cat <<EOF
   "service_account_username": "${AUTH_ADMIN_USER}"
 }
 EOF
-  )
+)
 
   _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v2.0/authconfig/directories/")
 
@@ -1131,7 +1131,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     ]
 }
 EOF
-  )
+)
 
   _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440//PrismGateway/services/rest/v1/authconfig/directories/${AUTH_DOMAIN}/role_mappings?&entityType=GROUP&role=ROLE_CLUSTER_ADMIN")
 
@@ -1369,6 +1369,39 @@ function pe_license() {
     #  https://localhost:9440/PrismGateway/services/rest/v1/application/system_data
   fi
 }
+
+function pe_license_api() {
+  local _test
+  args_required 'CURL_POST_OPTS PE_PASSWORD'
+
+  log "IDEMPOTENCY: Checking PC API responds, curl failures are acceptable..."
+  prism_check 'PC' 2 0
+
+  if (( $? == 0 )) ; then
+    log "IDEMPOTENCY: PC API responds, skip"
+  else
+    _test=$(curl ${CURL_POST_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{
+      "username": "SE with $(basename ${0})",
+      "companyName": "Nutanix",
+      "jobTitle": "SE"
+    }' https://$PE_HOST:9440/PrismGateway/services/rest/v1/eulas/accept)
+    log "Validate EULA on PE: _test=|${_test}|"
+
+    _test=$(curl ${CURL_POST_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT --data '{
+      "defaultNutanixEmail": null,
+      "emailContactList": null,
+      "enable": false,
+      "enableDefaultNutanixEmail": false,
+      "isPulsePromptNeeded": false,
+      "nosVersion": null,
+      "remindLater": null,
+      "verbosityType": null
+    }' https://$PE_HOST:9440/PrismGateway/services/rest/v1/pulse)
+    log "Disable Pulse in PE: _test=|${_test}|"
+
+  fi
+}
+
 
 ###############################################################################################################################################################################
 # Routine to unregister PE from PC
