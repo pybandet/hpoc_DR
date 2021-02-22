@@ -635,7 +635,7 @@ function secondary_network_SNC(){
 
 function era_network_configure() {
   local _network_name="${NW1_NAME}"
-
+  
 
   if [[ ! -z $(acli "net.list" | grep ${_network_name}) ]]; then
     log "IDEMPOTENCY: ${_network_name} network set, skip."
@@ -675,7 +675,7 @@ function era_network_configure() {
 
 function era_network_configure_api() {
   local _network1_name="${NW1_NAME}"
-
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
   log "--------------------------------------"
 
   NW1_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .status.name' | tr -d \")
