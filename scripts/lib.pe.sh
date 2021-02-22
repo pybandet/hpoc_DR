@@ -1197,18 +1197,18 @@ function pe_license_api() {
 
   log "IDEMPOTENCY: Checking PC API responds, curl failures are acceptable..."
   prism_check 'PC' 2 0
-  echo $PE_HOST
+  echo ${PE_HOST}
   if (( $? == 0 )) ; then
     log "IDEMPOTENCY: PC API responds, skip"
   else
-    _test=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{
+    _test=$(curl ${CURL_POST_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{
       "username": "SE with $(basename ${0})",
       "companyName": "Nutanix",
       "jobTitle": "SE"
-    }' https://$PE_HOST:9440/PrismGateway/services/rest/v1/eulas/accept)
+    }' "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/eulas/accept")
     log "Validate EULA on PE: _test=|${_test}|"
 
-    _test=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT --data '{
+    _test=$(curl ${CURL_POST_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT --data '{
       "defaultNutanixEmail": null,
       "emailContactList": null,
       "enable": false,
@@ -1217,7 +1217,7 @@ function pe_license_api() {
       "nosVersion": null,
       "remindLater": null,
       "verbosityType": null
-    }' https://$PE_HOST:9440/PrismGateway/services/rest/v1/pulse)
+    }' "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/pulse")
     log "Disable Pulse in PE: _test=|${_test}|"
 
   fi
