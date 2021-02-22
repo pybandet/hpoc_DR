@@ -35,7 +35,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST'
     ssh_pubkey & # non-blocking, parallel suitable
 
     dependencies 'install' 'sshpass' && dependencies 'install' 'jq' \
-    && pe_license \
+    && pe_license_api \
     && pe_init_api \
     && create_era_container \
     && era_network_configure_api \
