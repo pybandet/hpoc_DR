@@ -1231,7 +1231,8 @@ HTTP_JSON_BODY=$(cat <<EOF
 }
 EOF
   )
-_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/batch| jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
+
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/batch' | jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
 done
@@ -1252,9 +1253,6 @@ EOF
 )
 
       MSSQL19_SourceVM_Image1_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/images/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
-  else
-      log "Image is not upload, please check."
-  fi
 
 log "${MSSQL19_SourceVM_Image1} UUID = |${MSSQL19_SourceVM_Image1_UUID}|"
 log "-----------------------------------------"
@@ -1271,9 +1269,6 @@ EOF
 )
 
       MSSQL19_SourceVM_Image2_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/images/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
-  else
-      log "Image is not upload, please check."
-  fi
 
 log "${MSSQL19_SourceVM_Image2} UUID = |${MSSQL19_SourceVM_Image2_UUID}|"
 log "-----------------------------------------"
@@ -1348,7 +1343,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
   )
 
-_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/vms | jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms' | jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
 log "${MSSQL19_SourceVM} VM Created"
