@@ -101,11 +101,6 @@ if [[ -z ${PC_HOST} ]]; then
   read -p "Optional: What is this cluster1's Prism Central IP? " PC_HOST
 fi
 
-if [[ -z ${AUTH_HOST} ]]; then
-  echo -e "\n    Note: This is so you can use the same AutoAD.\n"
-  read -p "Optional: What is this cluster1's AutoAD IP? " AUTH_HOST
-fi
-
 if [[ -z ${SNOWInstanceURL} ]]; then
   echo -e "\n    Note: This is for the SNOW-Deployerizer Calm BP.\n"
   read -p "Optional: What is the ServiceNow URL for this Cluster? " SNOWInstanceURL
