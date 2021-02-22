@@ -635,7 +635,7 @@ function secondary_network_SNC(){
 
 function era_network_configure() {
   local _network_name="${NW1_NAME}"
-  
+
 
   if [[ ! -z $(acli "net.list" | grep ${_network_name}) ]]; then
     log "IDEMPOTENCY: ${_network_name} network set, skip."
@@ -692,7 +692,7 @@ function era_network_configure_api() {
 
   log "Creating ${NW1_NAME} Network"
 
-    if [[${NW1_NAME_CHECK} == ${NW1_NAME}]]; then
+    if [[ ! -z $(${NW1_NAME_CHECK} | grep ${NW1_NAME})]]; then
       log "IDEMPOTENCY: ${NW1_NAME} network set, skip."
     else
       args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
@@ -721,7 +721,7 @@ HTTP_JSON_BODY='{"spec":{"name": "'${NW1_NAME}'","resources":{"subnet_type": "VL
   log "Primary NETWORK Check = |${NW2_NAME_CHECK}|"
 
       # so we do not need DHCP
-      if [[ ${NW2_NAME_CHECK} == ${NW2_NAME} ]]; then
+      if [[ ! -z $(${NW2_NAME_CHECK} | grep ${NW2_NAME}) ]]; then
         log "IDEMPOTENCY: ${NW2_NAME} network set, skip."
       else
         args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
@@ -779,7 +779,7 @@ EOF
   log "Primary NETWORK Check = |${NW3_NAME_CHECK}|"
 
       # so we do not need DHCP
-      if [[ ${NW3_NAME_CHECK} == ${NW3_NAME} ]]; then
+      if [[ ! -z $(${NW3_NAME_CHECK} | grep ${NW3_NAME}) ]]; then
         log "IDEMPOTENCY: ${NW3_NAME} network set, skip."
       else
         args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
@@ -1163,7 +1163,7 @@ function pe_init_api() {
     SMTP_SERVER_ADDRESS SMTP_SERVER_FROM SMTP_SERVER_PORT \
     STORAGE_DEFAULT STORAGE_POOL STORAGE_IMAGES \
     SLEEP ATTEMPTS'
-  
+
   # Set the AWS IP address to PE_HOST
   AWScluster=$PE_HOST
 
@@ -1173,7 +1173,7 @@ function pe_init_api() {
   log "Configure SMTP"
   payload='{"address":"mxb-002c1b01.gslb.pphosted.com","port":"25","username":null,"password":null,"secureMode":"NONE","fromEmailAddress":"NutanixHostedPOC@nutanix.com","emailStatus":null}'
   return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d $payload https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/smtp | jq '.address'| tr -d \")
-  if [ ! -z "$return_code" ] 
+  if [ ! -z "$return_code" ]
   then
       log "SMTP sever was set..."
       # Sending the email
@@ -1181,7 +1181,7 @@ function pe_init_api() {
       payload='{"recipients":["'$EMAIL'"],"subject":"TEST-'$cluster_name'","text":"TEST-'$cluster_name'"}'
       return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/send_email | jq '.emailSent'| tr -d \")
       if [ ${return_code} ]
-      then    
+      then
           log "Email sent to $EMAIL..."
       else
           log "Email not sent to $EMAIL..."
@@ -1189,17 +1189,17 @@ function pe_init_api() {
   else
       log "SMTP sever was not set..."
   fi
-    
-    
+
+
   #############################################################
   # Set the NTP servers
   #############################################################
   log "Configure NTP servers"
   ntp_arr=('0.us.pool.ntp.org' '1.us.pool.ntp.org' '2.us.pool.ntp.org' '3.us.pool.ntp.org')
   for ntp_server in ${ntp_arr[@]}
-  do 
+  do
       payload='{"value":"'$ntp_server'"}'
-      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/api/nutanix/v2.0/cluster/ntp_servers" | jq '.value' | tr -d \") 
+      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/api/nutanix/v2.0/cluster/ntp_servers" | jq '.value' | tr -d \")
       if [ ${return_code} ]
       then
         log "NTP server $ntp_server has been added"
@@ -1264,7 +1264,7 @@ function pe_init_api() {
       payload='{"name":"Images","marked_for_removal":false,"replication_factor":2,"oplog_replication_factor":2,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":false,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
       return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
       if [ ${return_code} ]
-      then    
+      then
           log "Container Images has been created..."
       else
           log "Container Images has not been created..."
@@ -1286,7 +1286,7 @@ function pe_init_api() {
   # Set the databaservice IP
   result_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d $payload https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster | jq '.value'| tr -d \")
   if [ ${return_code} ]
-  then    
+  then
       log "Data services IP has been set..."
   else
       log "Data services IP has not been set..."
@@ -1476,7 +1476,7 @@ function create_era_container_api() {
   payload='{"name":"Era","marked_for_removal":false,"replication_factor":2,"oplog_replication_factor":2,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":true,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
   return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
   if [ ${return_code} ]
-  then    
+  then
       log "Container Era has been created..."
   else
       log "Container Era has not been created..."
