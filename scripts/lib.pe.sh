@@ -674,44 +674,175 @@ function era_network_configure() {
 
 
 function era_network_configure_api() {
-  local _network_name="${NW1_NAME}"
+  local _network1_name="${NW1_NAME}"
 
 log "--------------------------------------"
-log "Uploading ${MSSQL19_SourceVM_Image1}"
 
-  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+NW1_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .status.name' | tr -d \")
 
-log "NETWORK UUID = |${NETWORK_UUID}|"
+log "Primary NETWORK Check = |${NW1_NAME_CHECK}|"
 
-  if [[ ! -z $(acli "net.list" | grep ${_network_name}) ]]; then
-    log "IDEMPOTENCY: ${_network_name} network set, skip."
+RX_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Rx-Automation-Network""}' | jq -r '.entities[] | .status.name' | tr -d \")
+
+RX_NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Rx-Automation-Network""}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "RX NETWORK Check = |${RX_NAME_CHECK}|"
+log "RX NETWORK UUID = |${RX_NETWORK_UUID}|"
+
+
+log "Creating ${NW1_NAME} Network"
+
+  if [[${NW1_NAME_CHECK} == ${NW1_NAME}]]; then
+    log "IDEMPOTENCY: ${NW1_NAME} network set, skip."
   else
     args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
 
-    if [[ ! -z $(acli "net.list" | grep 'Rx-Automation-Network') ]]; then
+    if [[ ! -z ${RX_NAME_CHECK} ]]; then
       log "Remove Rx-Automation-Network..."
-      acli "-y net.delete Rx-Automation-Network"
+      RX_NETWORK_DELETE=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/${RX_NETWORK_UUID}|" --user ${PRISM_ADMIN}:${PE_PASSWORD})
     fi
 
-    log "Create primary network: Name: ${NW1_NAME}, VLAN: ${NW1_VLAN}, Subnet: ${NW1_SUBNET}, Domain: ${AUTH_DOMAIN}, Pool: ${NW1_DHCP_START} to ${NW1_DHCP_END}"
-    acli "net.create ${NW1_NAME} vlan=${NW1_VLAN} ip_config=${NW1_SUBNET}"
-    acli "net.update_dhcp_dns ${NW1_NAME} servers=${AUTH_HOST},${DNS_SERVERS} domains=${AUTH_FQDN}"
-    acli "  net.add_dhcp_pool ${NW1_NAME} start=${NW1_DHCP_START} end=${NW1_DHCP_END}"
+log "---------------------------------------------"
+log "Create primary network: Name: ${NW1_NAME}, VLAN: ${NW1_VLAN}, Subnet: ${NW1_SUBNET}, Domain: ${AUTH_DOMAIN}, Pool: ${NW1_DHCP_START} to ${NW1_DHCP_END}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "name": "${NW1_NAME}",
+        "resources": {
+            "subnet_type": "VLAN",
+            "ip_config": {
+                "default_gateway_ip": "${NW1_GATEWAY}",
+                "pool_list": [
+                    {
+                        "range": "${NW1_DHCP_START} ${NW1_DHCP_END}"
+                    }
+                ],
+                "prefix_length": 25,
+                "subnet_ip": "${NW1_SUBNET}",
+                "dhcp_options": {
+                    "domain_name_server_list": [
+                        "${AUTH_HOST}",
+                        "${DNS_SERVERS}"
+                    ],
+                    "domain_search_list": [
+                        "${AUTH_FQDN}"
+                    ],
+                    "domain_name": "${AUTH_FQDN}"
+                }
+            },
+            "vlan_id": ${NW1_VLAN}
+        }
+    },
+    "metadata": {
+        "kind": "subnet"
+    },
+    "api_version": "3.1.0"
+}
+EOF
+  )
+
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/subnets" | jq -r '.status.execution_context.task_uuid' | tr -d \")
+loop ${_task_id}
+fi
+
+log "Primary Network Created"
+log "--------------------------------------"
+
+NW2_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Secondary"}' | jq -r '.entities[] | .status.name' | tr -d \")
+
+log "Primary NETWORK Check = |${NW2_NAME_CHECK}|"
 
     # so we do not need DHCP
-    if [[ ! -z "${NW2_NAME}" ]]; then
-      log "Create secondary network: Name: ${NW2_NAME}, VLAN: ${NW2_VLAN}, Subnet: ${NW2_SUBNET}"
-      acli "net.create ${NW2_NAME} vlan=${NW2_VLAN} ip_config=${NW2_SUBNET}"
-      acli "net.update_dhcp_dns ${NW2_NAME} servers=${AUTH_HOST},${DNS_SERVERS} domains=${AUTH_FQDN}"
-      acli "  net.add_dhcp_pool ${NW2_NAME} start=${NW2_DHCP_START} end=${NW2_DHCP_END}"
+    if [[ ${NW2_NAME_CHECK} == ${NW2_NAME} ]]; then
+      log "IDEMPOTENCY: ${NW2_NAME} network set, skip."
+    else
+      args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
+
+log "Create secondary network: Name: ${NW2_NAME}, VLAN: ${NW2_VLAN}, Subnet: ${NW2_SUBNET}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "name": "${NW2_NAME}",
+        "resources": {
+            "subnet_type": "VLAN",
+            "ip_config": {
+                "default_gateway_ip": "${NW2_GATEWAY}",
+                "pool_list": [
+                    {
+                        "range": "${NW2_DHCP_START} ${NW2_DHCP_END}"
+                    }
+                ],
+                "prefix_length": 25,
+                "subnet_ip": "${NW2_SUBNET}",
+                "dhcp_options": {
+                    "domain_name_server_list": [
+                        "${AUTH_HOST}",
+                        "${DNS_SERVERS}"
+                    ],
+                    "domain_search_list": [
+                        "${AUTH_FQDN}"
+                    ],
+                    "domain_name": "${AUTH_FQDN}"
+                }
+            },
+            "vlan_id": ${NW2_VLAN}
+        }
+    },
+    "metadata": {
+        "kind": "subnet"
+    },
+    "api_version": "3.1.0"
+}
+EOF
+  )
+
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/subnets" | jq -r '.status.execution_context.task_uuid' | tr -d \")
+loop ${_task_id}
+
+log "Secondary Network Created"
+log "--------------------------------------"
+
     fi
 
-    if [[ ! -z "${NW3_NAME}" ]]; then
-      log "Create EraManaged network: Name: ${NW3_NAME}, VLAN: ${NW3_VLAN}"
-      acli "net.create ${NW3_NAME} vlan=${NW2_VLAN}"
-    fi
+NW3_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==EraManaged"}' | jq -r '.entities[] | .status.name' | tr -d \")
+
+log "Primary NETWORK Check = |${NW3_NAME_CHECK}|"
+
+    # so we do not need DHCP
+    if [[ ${NW3_NAME_CHECK} == ${NW3_NAME} ]]; then
+      log "IDEMPOTENCY: ${NW3_NAME} network set, skip."
+    else
+      args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
+
+log "Create EraManaged network: Name: ${NW3_NAME}, VLAN: ${NW2_VLAN}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "name": "${NW3_NAME}",
+        "resources": {
+            "subnet_type": "VLAN",
+            "vlan_id": ${NW2_VLAN}
+        }
+    },
+    "metadata": {
+        "kind": "subnet"
+    },
+    "api_version": "3.1.0"
+}
+EOF
+  )
+
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/subnets" | jq -r '.status.execution_context.task_uuid' | tr -d \")
+loop ${_task_id}
 
   fi
+
+log "EraManaged Network Created"
+log "--------------------------------------"
+
 }
 
 ###############################################################################################################################################################################
@@ -963,7 +1094,7 @@ function pe_auth() {
 # Routine to set the PE to use the AutoDC for authentication
 ###############################################################################################################################################################################
 function pe_auth_api() {
-  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
   local _directory_url="ldap://${AUTH_HOST}:${LDAP_PORT}"
   local         _error=45
 
@@ -1429,7 +1560,7 @@ function deploy_mssql_2019() {
 #########################################################################################################################################
 
 function deploy_api_mssql_2019() {
-    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
 
 
 log "--------------------------------------"
@@ -1746,7 +1877,7 @@ function deploy_citrix_gold_image_vm() {
 #########################################################################################################################################
 
 function deploy_api_citrix_gold_image_vm() {
-    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
 
 log "--------------------------------------"
 log "Uploading ${CitrixGoldImageVM_Image}"
