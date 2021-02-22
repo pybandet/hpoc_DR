@@ -1195,40 +1195,27 @@ function deploy_api_mssql_2019() {
     local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 mssql_2019_images=(\
-  ${MSSQL19_SourceVM_Image1}.qcow2 \
-  ${MSSQL19_SourceVM_Image2}.qcow2 \
+  ${MSSQL19_SourceVM_Image1} \
+  ${MSSQL19_SourceVM_Image2} \
 )
 
 log "--------------------------------------"
 log "Uploading ${MSSQL19_SourceVM_Image1}"
 
-for _image in "${mssql_2019_images[@]}"; do
-
 HTTP_JSON_BODY=$(cat <<EOF
 {
-    "action_on_failure": "CONTINUE",
-    "execution_order": "SEQUENTIAL",
-    "api_request_list": [
-        {
-            "operation": "POST",
-            "path_and_params": "/api/nutanix/v3/images",
-            "body": {
-                "spec": {
-                    "name": "${_image}",
-                    "description": "${_image}",
-                    "resources": {
-                        "image_type": "DISK_IMAGE",
-                        "source_uri": "${QCOW2_REPOS}/${_image}"
-                    }
-                },
-                "metadata": {
-                    "kind": "image"
-                },
-                "api_version": "3.1.0"
-            }
-        }
-    ],
-    "api_version": "3.0"
+  "spec": {
+      "name": "${MSSQL19_SourceVM_Image1}",
+      "description": "${MSSQL19_SourceVM_Image1}",
+      "resources": {
+          "image_type": "DISK_IMAGE",
+          "source_uri": "${QCOW2_REPOS}/${MSSQL19_SourceVM_Image1}.qcow2"
+      }
+  },
+  "metadata": {
+      "kind": "image"
+  },
+  "api_version": "3.1.0"
 }
 EOF
   )
@@ -1236,7 +1223,29 @@ EOF
 _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/batch' | jq '.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
-done
+log "--------------------------------------"
+log "Uploading ${MSSQL19_SourceVM_Image2}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "spec": {
+      "name": "${MSSQL19_SourceVM_Image2}",
+      "description": "${MSSQL19_SourceVM_Image2}",
+      "resources": {
+          "image_type": "DISK_IMAGE",
+          "source_uri": "${QCOW2_REPOS}/${MSSQL19_SourceVM_Image2}.qcow2"
+      }
+  },
+  "metadata": {
+      "kind": "image"
+  },
+  "api_version": "3.1.0"
+}
+EOF
+  )
+
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/batch' | jq '.status.execution_context.task_uuid' | tr -d \")
+loop ${_task_id}
 
 log "--------------------------------------"
 log "Getting UUIDs for Create VM Payload"
@@ -1248,7 +1257,7 @@ log "Getting ${MSSQL19_SourceVM_Image1} UUID"
 HTTP_JSON_BODY=$(cat <<EOF
 {
   "kind":"image",
-  "filter": "name==${MSSQL19_SourceVM_Image1}.qcow2"
+  "filter": "name==${MSSQL19_SourceVM_Image1}"
 }
 EOF
 )
@@ -1264,7 +1273,7 @@ log "Getting ${MSSQL19_SourceVM_Image2} UUID"
 HTTP_JSON_BODY=$(cat <<EOF
 {
   "kind":"image",
-  "filter": "name==${MSSQL19_SourceVM_Image2}.qcow2"
+  "filter": "name==${MSSQL19_SourceVM_Image2}"
 }
 EOF
 )
