@@ -1169,14 +1169,14 @@ function pe_init_api() {
   #############################################################
   log "Configure SMTP"
   payload='{"address":"mxb-002c1b01.gslb.pphosted.com","port":"25","username":null,"password":null,"secureMode":"NONE","fromEmailAddress":"NutanixHostedPOC@nutanix.com","emailStatus":null}'
-  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d $payload https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster/smtp | jq '.address'| tr -d \")
+  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d $payload https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/smtp | jq '.address'| tr -d \")
   if [ ! -z "$return_code" ] 
   then
       log "SMTP sever was set..."
       # Sending the email
-      cluster_name=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster | jq '.name' | tr -d \")
+      cluster_name=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster | jq '.name' | tr -d \")
       payload='{"recipients":["'$EMAIL'"],"subject":"TEST-'$cluster_name'","text":"TEST-'$cluster_name'"}'
-      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster/send_email | jq '.emailSent'| tr -d \")
+      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/send_email | jq '.emailSent'| tr -d \")
       if [ ${return_code} ]
       then    
           log "Email sent to $EMAIL..."
@@ -1196,7 +1196,7 @@ function pe_init_api() {
   for ntp_server in ${ntp_arr[@]}
   do 
       payload='{"value":"'$ntp_server'"}'
-      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$AWScluster:9440/api/nutanix/v2.0/cluster/ntp_servers" | jq '.value' | tr -d \") 
+      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/api/nutanix/v2.0/cluster/ntp_servers" | jq '.value' | tr -d \") 
       if [ ${return_code} ]
       then
         log "NTP server $ntp_server has been added"
@@ -1210,8 +1210,8 @@ function pe_init_api() {
   #############################################################
   log "Rename default storage pool to ${STORAGE_POOL}"
   # Need to grab the id of the storage pool and the disks so that we can change the Storega Pool name
-  sp_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://"$AWScluster":9440/PrismGateway/services/rest/v1/storage_pools?sortOrder=storage_pool_name" | jq '.entities[].id'| tr -d \")
-  disks_arr=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$AWScluster:9440/PrismGateway/services/rest/v1/storage_pools?sortOrder=storage_pool_name" | jq '.entities[].disks[]' | tr -d \"))
+  sp_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://"$PE_HOST":9440/PrismGateway/services/rest/v1/storage_pools?sortOrder=storage_pool_name" | jq '.entities[].id'| tr -d \")
+  disks_arr=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$PE_HOST:9440/PrismGateway/services/rest/v1/storage_pools?sortOrder=storage_pool_name" | jq '.entities[].disks[]' | tr -d \"))
 
   # Build the payload
   payload='{"id":"'$sp_id'","name":"'$STORAGE_POOL'","disks":['
@@ -1223,7 +1223,7 @@ function pe_init_api() {
   payload=${payload%?}
   payload=$payload"]}"
   # Send the command to the cluster
-  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -d $payload -X PUT "https://$AWScluster:9440/PrismGateway/services/rest/v1/storage_pools?sortOrder=storage_pool_name" | jq '.value' | tr -d \")
+  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -d $payload -X PUT "https://$PE_HOST:9440/PrismGateway/services/rest/v1/storage_pools?sortOrder=storage_pool_name" | jq '.value' | tr -d \")
   # Did we get the correct return?
   if [ ${return_code} ]
   then
@@ -1236,10 +1236,10 @@ function pe_init_api() {
   # Renaming the default container
   #############################################################
   log "Rename default container to ${STORAGE_DEFAULT}"
-  default_cont_id=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[] | select (.name | contains("default")) .id' | tr -d \"))
-  default_cont_st_id=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[] | select (.name | contains("default")) .storage_container_uuid' | tr -d \"))
+  default_cont_id=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[] | select (.name | contains("default")) .id' | tr -d \"))
+  default_cont_st_id=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[] | select (.name | contains("default")) .storage_container_uuid' | tr -d \"))
   payload='{"id":"'$default_cont_id'","storage_container_uuid":"'$default_cont_st_id'","name":"'${STORAGE_DEFAULT}'","vstore_name_list":["'${STORAGE_DEFAULT}'"]}'
-  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PATCH -d $payload "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
+  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PATCH -d $payload "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
   # Did we get the correct return?
   if [ ${return_code} ]
   then
@@ -1252,14 +1252,14 @@ function pe_init_api() {
   # Check to see if there is a container named Images. If not, create it
   #############################################################
   log "Check if there is a container named ${STORAGE_IMAGES}, if not create one"
-  cont_arr=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[].name' | tr -d \"))
+  cont_arr=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[].name' | tr -d \"))
   if [[ " ${cont_arr[@]} " =~ "Images" ]]
   then
       log "Found the Images container.."
   else
       log "Creating the container..."
       payload='{"name":"Images","marked_for_removal":false,"replication_factor":2,"oplog_replication_factor":2,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":false,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
-      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
+      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
       if [ ${return_code} ]
       then    
           log "Container Images has been created..."
@@ -1274,14 +1274,14 @@ function pe_init_api() {
   #############################################################
   log "Set Data Services IP address to ${DATA_SERVICE_IP}"
   # Get the cluster UUID
-  cluster_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster | jq '.id' | tr -d \")
-  cluster_name=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster | jq '.name' | tr -d \")
-  cluster_vip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster | jq '.clusterExternalIPAddress' | tr -d \")
+  cluster_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster | jq '.id' | tr -d \")
+  cluster_name=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster | jq '.name' | tr -d \")
+  cluster_vip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster | jq '.clusterExternalIPAddress' | tr -d \")
   cluster_data=$DATA_SERVICE_IP
   payload='{"id":"'$cluster_uuid'","name":"'$cluster_name'","clusterExternalIPAddress":"'$cluster_vip'","clusterExternalDataServicesIPAddress":"'$cluster_data'"}'
 
   # Set the databaservice IP
-  result_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d $payload https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster | jq '.value'| tr -d \")
+  result_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d $payload https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster | jq '.value'| tr -d \")
   if [ ${return_code} ]
   then    
       log "Data services IP has been set..."
@@ -1471,7 +1471,7 @@ function create_era_container_api() {
 
   log "Creating Era Storage Container"
   payload='{"name":"Era","marked_for_removal":false,"replication_factor":2,"oplog_replication_factor":2,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":true,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
-  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
+  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
   if [ ${return_code} ]
   then    
       log "Container Era has been created..."
