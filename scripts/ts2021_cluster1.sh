@@ -34,7 +34,7 @@ case ${1} in
     dependencies 'install' 'sshpass' && dependencies 'install' 'jq' \
     && pe_license \
     && pe_init \
-    && era_network_configure_api \
+    && era_network_configure \
     && authentication_source \
     && pe_auth_api \
     && prism_pro_server_deploy \
