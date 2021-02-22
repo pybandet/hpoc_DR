@@ -1178,14 +1178,14 @@ function pe_license_api() {
   if (( $? == 0 )) ; then
     log "IDEMPOTENCY: PC API responds, skip"
   else
-    _test=$(curl ${URL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{
+    _test=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{
       "username": "SE with $(basename ${0})",
       "companyName": "Nutanix",
       "jobTitle": "SE"
     }' "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/eulas/accept")
     log "Validate EULA on PE: _test=|${_test}|"
 
-    _test=$(curl ${URL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT --data '{
+    _test=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT --data '{
       "defaultNutanixEmail": null,
       "emailContactList": null,
       "enable": false,
