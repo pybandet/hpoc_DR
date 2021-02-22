@@ -101,6 +101,11 @@ if [[ -z ${PC_HOST} ]]; then
   read -p "Optional: What is this cluster1's Prism Central IP? " PC_HOST
 fi
 
+if [[ -z ${AUTH_HOST} ]]; then
+  echo -e "\n    Note: This is so you can use the same AutoAD.\n"
+  read -p "Optional: What is this cluster1's AutoAD IP? " AUTH_HOST
+fi
+
 if [[ -z ${SNOWInstanceURL} ]]; then
   echo -e "\n    Note: This is for the SNOW-Deployerizer Calm BP.\n"
   read -p "Optional: What is the ServiceNow URL for this Cluster? " SNOWInstanceURL
@@ -147,6 +152,8 @@ fi
 PRISM_ADMIN=${PRISM_ADMIN} \
 PE_PASSWORD=${PE_PASSWORD} \
 PC_HOST=${PC_HOST} \
+AUTH_HOST=${AUTH_HOST} \
+SNOWInstanceURL=${SNOWInstanceURL} \
 ./stage_workshop.sh -f - ${MY_WORKSHOP} # \
 #  && popd || exit
 
