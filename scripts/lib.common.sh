@@ -771,7 +771,7 @@ function prism_check {
     (( _loop++ ))
     _test=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${_password} \
       -X POST --data '{ "kind": "cluster" }' \
-      https://${_host}:9440/api/nutanix/v3/clusters/list \
+      "https://${_host}:9440/api/nutanix/v3/clusters/list" \
       | tr -d \") # wonderful addition of "" around HTTP status code by cURL
 
     if [[ ! -z ${3} ]]; then
