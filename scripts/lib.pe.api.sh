@@ -11,6 +11,9 @@
 function era_network_configure_api() {
   local _network1_name="${NW1_NAME}"
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+
+set -x
+
   log "--------------------------------------"
 
   NW1_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .status.name' | tr -d \")
@@ -27,12 +30,12 @@ function era_network_configure_api() {
 
   log "Creating ${NW1_NAME} Network"
 
-    if [[ ! -z $(${NW1_NAME_CHECK} | grep ${NW1_NAME}) ]]; then
+    if [[ ! -z $(${NW1_NAME_CHECK} == ${NW1_NAME}) ]]; then
       log "IDEMPOTENCY: ${NW1_NAME} network set, skip."
     else
       args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
 
-      if [[ ! -z $(${RX_NAME_CHECK} | grep 'Rx-Automation-Network') ]]; then
+      if [[ ! -z $(${RX_NAME_CHECK} == 'Rx-Automation-Network') ]]; then
         log "Remove Rx-Automation-Network..."
         RX_NETWORK_DELETE=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/${RX_NETWORK_UUID}|" --user ${PRISM_ADMIN}:${PE_PASSWORD})
       fi
@@ -56,7 +59,7 @@ HTTP_JSON_BODY='{"spec":{"name": "'${NW1_NAME}'","resources":{"subnet_type": "VL
   log "Primary NETWORK Check = |${NW2_NAME_CHECK}|"
 
       # so we do not need DHCP
-      if [[ ! -z $(${NW2_NAME_CHECK} | grep ${NW2_NAME}) ]]; then
+      if [[ ! -z $(${NW2_NAME_CHECK} == ${NW2_NAME}) ]]; then
         log "IDEMPOTENCY: ${NW2_NAME} network set, skip."
       else
         args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
@@ -109,6 +112,7 @@ EOF
 
       fi
 
+set +x
 
 }
 
@@ -119,6 +123,8 @@ function pe_auth_api() {
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
   local _directory_url="ldap://${AUTH_HOST}:${LDAP_PORT}"
   local         _error=45
+
+set -x
 
 log "--------------------------------------"
 log "Adding ${AUTH_HOST} Directory"
@@ -159,6 +165,8 @@ EOF
 
 log "Role Added"
 log "--------------------------------------"
+
+set +x
 
 }
 
@@ -311,6 +319,9 @@ function pe_init_api() {
 function pe_license_api() {
   local _test
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+
+set -x
+
   args_required 'CURL_POST_OPTS PE_PASSWORD'
 
   log "IDEMPOTENCY: Checking PC API responds, curl failures are acceptable..."
@@ -341,6 +352,9 @@ function pe_license_api() {
     log "Disable Pulse in PE: _test=|${_test}|"
 
   fi
+
+set +x
+
 }
 
 ###################################################################################################################################################
@@ -370,6 +384,7 @@ function create_era_container_api() {
 function deploy_api_mssql_2019() {
     local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
 
+set -x
 
 log "--------------------------------------"
 log "Uploading ${MSSQL19_SourceVM_Image1}"
@@ -530,6 +545,8 @@ loop ${_task_id}
 
 log "${MSSQL19_SourceVM} VM Created"
 
+set +x
+
 }
 
 #########################################################################################################################################
@@ -538,6 +555,8 @@ log "${MSSQL19_SourceVM} VM Created"
 
 function deploy_api_citrix_gold_image_vm() {
     local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
+
+set -x
 
 log "--------------------------------------"
 log "Uploading ${CitrixGoldImageVM_Image}"
@@ -646,5 +665,7 @@ _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -
 loop ${_task_id}
 
 log "${CitrixGoldImageVM} VM Created"
+
+set +x
 
 }
