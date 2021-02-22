@@ -1535,10 +1535,10 @@ HTTP_JSON_BODY=$(cat <<EOF
 }
 EOF
   )
+
 _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/batch| jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
-done
 
 log "--------------------------------------"
 log "Getting UUIDs for Create VM Payload"
@@ -1556,9 +1556,7 @@ EOF
 )
 
       CitrixGoldImageVM_Image_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/images/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
-  else
-      log "Image is not upload, please check."
-  fi
+
 
 log "${CitrixGoldImageVM_Image} UUID = |${CitrixGoldImageVM_Image_UUID}|"
 log "-----------------------------------------"
