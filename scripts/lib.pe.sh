@@ -1064,39 +1064,136 @@ function pe_init_api() {
     SMTP_SERVER_ADDRESS SMTP_SERVER_FROM SMTP_SERVER_PORT \
     STORAGE_DEFAULT STORAGE_POOL STORAGE_IMAGES \
     SLEEP ATTEMPTS'
+  
+  # Set the AWS IP address to PE_HOST
+  AWScluster=$PE_HOST
 
+  #############################################################
+  # Set the SMTP server
+  #############################################################
+  log "Configure SMTP"
+  payload='{"address":"mxb-002c1b01.gslb.pphosted.com","port":"25","username":null,"password":null,"secureMode":"NONE","fromEmailAddress":"NutanixHostedPOC@nutanix.com","emailStatus":null}'
+  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d $payload https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster/smtp | jq '.address'| tr -d \")
+  if [ ! -z "$return_code" ] 
+  then
+      log "SMTP sever was set..."
+      # Sending the email
+      cluster_name=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster | jq '.name' | tr -d \")
+      payload='{"recipients":["'$EMAIL'"],"subject":"TEST-'$cluster_name'","text":"TEST-'$cluster_name'"}'
+      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster/send_email | jq '.emailSent'| tr -d \")
+      if [ ${return_code} ]
+      then    
+          log "Email sent to $EMAIL..."
+      else
+          log "Email not sent to $EMAIL..."
+      fi
+  else
+      log "SMTP sever was not set..."
+  fi
+    
+    
+  #############################################################
+  # Set the NTP servers
+  #############################################################
+  log "Configure NTP servers"
+  ntp_arr=('0.us.pool.ntp.org' '1.us.pool.ntp.org' '2.us.pool.ntp.org' '3.us.pool.ntp.org')
+  for ntp_server in ${ntp_arr[@]}
+  do 
+      payload='{"value":"'$ntp_server'"}'
+      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$AWScluster:9440/api/nutanix/v2.0/cluster/ntp_servers" | jq '.value' | tr -d \") 
+      if [ ${return_code} ]
+      then
+        log "NTP server $ntp_server has been added"
+      else
+        log "NTP server $ntp_server has not been added"
+      fi
+  done
 
-    log "Configure SMTP"
-    ncli cluster set-smtp-server port=${SMTP_SERVER_PORT} \
-      from-email-address=${SMTP_SERVER_FROM} address=${SMTP_SERVER_ADDRESS}
-    ${HOME}/serviceability/bin/email-alerts --to_addresses="${EMAIL}" \
-      --subject="[pe_init:Config SMTP:alert test] $(ncli cluster get-params)" \
-      && ${HOME}/serviceability/bin/send-email
+  #############################################################
+  # Renaming the Default Storage Pool
+  #############################################################
+  log "Rename default storage pool to ${STORAGE_POOL}"
+  # Need to grab the id of the storage pool and the disks so that we can change the Storega Pool name
+  sp_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://"$AWScluster":9440/PrismGateway/services/rest/v1/storage_pools?sortOrder=storage_pool_name" | jq '.entities[].id'| tr -d \")
+  disks_arr=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$AWScluster:9440/PrismGateway/services/rest/v1/storage_pools?sortOrder=storage_pool_name" | jq '.entities[].disks[]' | tr -d \"))
 
-    log "Configure NTP"
-    ncli cluster add-to-ntp-servers servers=${NTP_SERVERS}
+  # Build the payload
+  payload='{"id":"'$sp_id'","name":"'$STORAGE_POOL'","disks":['
+  for disk in "${disks_arr[@]}"
+    do
+      payload=$payload'"'$disk'",'
+    done
+  # Remove the last ","as we don't need it
+  payload=${payload%?}
+  payload=$payload"]}"
+  # Send the command to the cluster
+  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -d $payload -X PUT "https://$AWScluster:9440/PrismGateway/services/rest/v1/storage_pools?sortOrder=storage_pool_name" | jq '.value' | tr -d \")
+  # Did we get the correct return?
+  if [ ${return_code} ]
+  then
+    log "Storage Pool has been renamed"
+  else
+    log "Storage Pool has not been renamed... Still continueing.."
+  fi
 
-    log "Rename default container to ${STORAGE_DEFAULT}"
-    default_container=$(ncli container ls | grep -P '^(?!.*VStore Name).*Name' \
-      | cut -d ':' -f 2 | sed s/' '//g | grep '^default-container-')
-    ncli container edit name="${default_container}" new-name="${STORAGE_DEFAULT}"
+  #############################################################
+  # Renaming the default container
+  #############################################################
+  log "Rename default container to ${STORAGE_DEFAULT}"
+  default_cont_id=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[] | select (.name | contains("default")) .id' | tr -d \"))
+  default_cont_st_id=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[] | select (.name | contains("default")) .storage_container_uuid' | tr -d \"))
+  payload='{"id":"'$default_cont_id'","storage_container_uuid":"'$default_cont_st_id'","name":"'${STORAGE_DEFAULT}'","vstore_name_list":["'${STORAGE_DEFAULT}'"]}'
+  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PATCH -d $payload "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
+  # Did we get the correct return?
+  if [ ${return_code} ]
+  then
+    log "Default container has been renamed"
+  else
+    log "Default container has not been renamed... Still continueing.."
+  fi
 
-    log "Rename default storage pool to ${STORAGE_POOL}"
-    default_sp=$(ncli storagepool ls | grep 'Name' | cut -d ':' -f 2 | sed s/' '//g)
-    ncli sp edit name="${default_sp}" new-name="${STORAGE_POOL}"
+  #############################################################
+  # Check to see if there is a container named Images. If not, create it
+  #############################################################
+  log "Check if there is a container named ${STORAGE_IMAGES}, if not create one"
+  cont_arr=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[].name' | tr -d \"))
+  if [[ " ${cont_arr[@]} " =~ "Images" ]]
+  then
+      log "Found the Images container.."
+  else
+      log "Creating the container..."
+      payload='{"name":"Images","marked_for_removal":false,"replication_factor":2,"oplog_replication_factor":2,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":false,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
+      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
+      if [ ${return_code} ]
+      then    
+          log "Container Images has been created..."
+      else
+          log "Container Images has not been created..."
+          exit 10
+      fi
+  fi
 
-    log "Check if there is a container named ${STORAGE_IMAGES}, if not create one"
-    (ncli container ls | grep -P '^(?!.*VStore Name).*Name' \
-      | cut -d ':' -f 2 | sed s/' '//g | grep "^${STORAGE_IMAGES}" > /dev/null 2>&1) \
-      && log "Container ${STORAGE_IMAGES} exists" \
-      || ncli container create name="${STORAGE_IMAGES}" sp-name="${STORAGE_POOL}"
+  #############################################################
+  # Set dataservices IP address:
+  #############################################################
+  log "Set Data Services IP address to ${DATA_SERVICE_IP}"
+  # Get the cluster UUID
+  cluster_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster | jq '.id' | tr -d \")
+  cluster_name=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster | jq '.name' | tr -d \")
+  cluster_vip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster | jq '.clusterExternalIPAddress' | tr -d \")
+  cluster_data=$DATA_SERVICE_IP
+  payload='{"id":"'$cluster_uuid'","name":"'$cluster_name'","clusterExternalIPAddress":"'$cluster_vip'","clusterExternalDataServicesIPAddress":"'$cluster_data'"}'
 
-    # Set external IP address:
-    #ncli cluster edit-params external-ip-address=${PE_HOST}
+  # Set the databaservice IP
+  result_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d $payload https://$AWScluster:9440/PrismGateway/services/rest/v1/cluster | jq '.value'| tr -d \")
+  if [ ${return_code} ]
+  then    
+      log "Data services IP has been set..."
+  else
+      log "Data services IP has not been set..."
+      exit 11
+  fi
 
-    log "Set Data Services IP address to ${DATA_SERVICE_IP}"
-    ncli cluster edit-params external-data-services-ip-address=${DATA_SERVICE_IP}
-  #fi
 }
 
 ###############################################################################################################################################################################
