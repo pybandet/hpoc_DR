@@ -1370,13 +1370,16 @@ function pe_license() {
   fi
 }
 
+###############################################################################################################################################################################
+# Routine to accept the EULA and disable pulse API based
+###############################################################################################################################################################################
 function pe_license_api() {
   local _test
   args_required 'CURL_POST_OPTS PE_PASSWORD'
 
   log "IDEMPOTENCY: Checking PC API responds, curl failures are acceptable..."
   prism_check 'PC' 2 0
-
+  echo $PE_HOST
   if (( $? == 0 )) ; then
     log "IDEMPOTENCY: PC API responds, skip"
   else
@@ -1490,6 +1493,25 @@ function create_era_container() {
 
   log "Creating Era Storage Container"
   ncli container create name="${STORAGE_ERA}" rf="${ERA_Container_RF}" sp-name="${STORAGE_POOL}" enable-compression=true compression-delay=60
+
+}
+
+###################################################################################################################################################
+# Routine create the Era Storage container for the Era Bootcamps API Based
+###################################################################################################################################################
+
+function create_era_container_api() {
+
+  log "Creating Era Storage Container"
+  payload='{"name":"Era","marked_for_removal":false,"replication_factor":2,"oplog_replication_factor":2,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":true,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
+  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$AWScluster:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
+  if [ ${return_code} ]
+  then    
+      log "Container Era has been created..."
+  else
+      log "Container Era has not been created..."
+      exit 10
+  fi
 
 }
 
