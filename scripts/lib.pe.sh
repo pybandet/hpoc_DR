@@ -727,7 +727,7 @@ HTTP_JSON_BODY='{"spec":{"name": "'${NW1_NAME}'","resources":{"subnet_type": "VL
         args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
 
   log "Create secondary network: Name: ${NW2_NAME}, VLAN: ${NW2_VLAN}, Subnet: ${NW2_SUBNET}"
-  NW2_subnet_correct=${NW2_SUBNET%???}
+  NW2_subnet_correct=${NW2_SUBNET%????}8
 HTTP_JSON_BODY=$(cat <<EOF
 {
     "spec": {
