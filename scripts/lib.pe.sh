@@ -1232,7 +1232,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
   )
 
-_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/batch' | jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/batch' | jq '.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
 done
@@ -1343,7 +1343,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
   )
 
-_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms' | jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms' | jq '.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
 log "${MSSQL19_SourceVM} VM Created"
@@ -1536,7 +1536,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
   )
 
-_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/batch| jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/batch| jq '.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
 
@@ -1618,7 +1618,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
   )
 
-_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/vms | jq '.api_response_list[].api_response.status.execution_context.task_uuid' | tr -d \")
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/vms | jq '.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
 log "${CitrixGoldImageVM} VM Created"
