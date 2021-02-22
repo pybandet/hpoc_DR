@@ -1354,18 +1354,18 @@ echo $ClusterJSON > cluster.json
   _task_id=$(curl -k -H 'Content-Type: multipart/form-data' -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/${_era_cluster_id}/json" -F file="@"cluster.json)
 
 ##  Add the Secondary Network inside Era ##
-log "Create ${NW2_NAME} DHCP/IPAM Network"
-
-  _dhcp_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data '{"name": "'${NW2_NAME}'","type": "DHCP"}' | jq -r '.id' | tr -d \")
-
-log "Created ${NW2_NAME} Network with Network ID |${_dhcp_network_id}|"
+#log "Create ${NW2_NAME} DHCP/IPAM Network"
+#
+#  _dhcp_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data '{"name": "'${NW2_NAME}'","type": "DHCP"}' | jq -r '.id' | tr -d \")
+#
+#log "Created ${NW2_NAME} Network with Network ID |${_dhcp_network_id}|"
 
 ##  Create the EraManaged network inside Era ##
 log "Create ${NW3_NAME} Static Network"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-    "name": "${NW3_NAME}",
+    "name": "${NW2_NAME}",
     "type": "Static",
     "ipPools": [
         {
@@ -1384,7 +1384,7 @@ HTTP_JSON_BODY=$(cat <<EOF
         },
         {
             "name": "VLAN_SUBNET_MASK",
-            "value": "${NW3_NETMASK}"
+            "value": "${NW2_GATEWAY}"
         },
         {
     		"name": "VLAN_DNS_DOMAIN",
@@ -1397,7 +1397,7 @@ EOF
 
   _static_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-log "Created ${NW3_NAME} Network with Network ID |${_static_network_id}|"
+log "Created ${NW2_NAME} Network with Network ID |${_static_network_id}|"
 
 ##  Create the Primary-MSSQL-NETWORK Network Profile inside Era ##
 log "Create the Primary-MSSQL-NETWORK Network Profile"
@@ -1490,7 +1490,7 @@ HTTP_JSON_BODY=$(cat <<EOF
   "properties": [
     {
       "name": "VLAN_NAME",
-      "value": "${NW3_NAME}",
+      "value": "${ERA_NETWORK}",
       "description": "Name of the vLAN"
     }
   ],

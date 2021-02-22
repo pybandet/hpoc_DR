@@ -16,6 +16,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
 
 
     . lib.pe.sh
+    . lib.pe.api.sh
     . lib.pc.sh
 
     export AUTH_SERVER='AutoAD'

@@ -17,6 +17,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST SNOWInstanceURL'
 case ${1} in
   PE | pe )
     . lib.pe.sh
+    . lib.pe.api.sh
 
     export AUTH_SERVER='AutoAD'
     # Networking needs for Era Bootcamp
@@ -32,7 +33,7 @@ case ${1} in
     ssh_pubkey & # non-blocking, parallel suitable
 
     dependencies 'install' 'sshpass' && dependencies 'install' 'jq' \
-    && pe_license_api \
+    && pe_license \
     && pe_init_api \
     && era_network_configure \
     && authentication_source \
