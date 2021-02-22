@@ -1192,6 +1192,7 @@ function deploy_mssql_2019() {
 #########################################################################################################################################
 
 function deploy_api_mssql_2019() {
+    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 mssql_2019_images=(\
   ${MSSQL19_SourceVM_Image1}.qcow2 \
@@ -1503,35 +1504,25 @@ function deploy_citrix_gold_image_vm() {
 #########################################################################################################################################
 
 function deploy_api_citrix_gold_image_vm() {
+    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
 log "--------------------------------------"
 log "Uploading ${CitrixGoldImageVM_Image}"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-    "action_on_failure": "CONTINUE",
-    "execution_order": "SEQUENTIAL",
-    "api_request_list": [
-        {
-            "operation": "POST",
-            "path_and_params": "/api/nutanix/v3/images",
-            "body": {
-                "spec": {
-                    "name": "${CitrixGoldImageVM_Image}",
-                    "description": "${CitrixGoldImageVM_Image}",
-                    "resources": {
-                        "image_type": "DISK_IMAGE",
-                        "source_uri": "${QCOW2_REPOS}/${CitrixGoldImageVM_Image}.qcow2"
-                    }
-                },
-                "metadata": {
-                    "kind": "image"
-                },
-                "api_version": "3.1.0"
-            }
-        }
-    ],
-    "api_version": "3.0"
+  "spec": {
+      "name": "${CitrixGoldImageVM_Image}",
+      "description": "${CitrixGoldImageVM_Image}",
+      "resources": {
+          "image_type": "DISK_IMAGE",
+          "source_uri": "${QCOW2_REPOS}/${CitrixGoldImageVM_Image}.qcow2"
+      }
+  },
+  "metadata": {
+      "kind": "image"
+  },
+  "api_version": "3.1.0"
 }
 EOF
   )
