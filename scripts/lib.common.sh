@@ -756,6 +756,7 @@ function prism_check() {
   local  _pw_init='Nutanix/4u'
   local    _sleep=${SLEEP}
   local     _test=0
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
   #shellcheck disable=2153
   if [[ ${1} == 'PC' ]]; then
@@ -769,10 +770,7 @@ function prism_check() {
 
   while true ; do
     (( _loop++ ))
-    _test=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${_password} \
-      -X POST --data '{ "kind": "cluster" }' \
-      "https://${_host}:9440/api/nutanix/v3/clusters/list" \
-      | tr -d \") # wonderful addition of "" around HTTP status code by cURL
+    _test=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${_password} -X POST --data '{ "kind": "cluster" }' "https://${_host}:9440/api/nutanix/v3/clusters/list" | tr -d \") # wonderful addition of "" around HTTP status code by cURL
 
     if [[ ! -z ${3} ]]; then
       _sleep=${3}
