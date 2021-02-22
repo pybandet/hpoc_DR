@@ -22,7 +22,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST'
     # Networking needs for Era Bootcamp
 	  #export NW2_NAME='EraManaged'
     export NW1_DHCP_START="${IPV4_PREFIX}.10"
-    export NW1_DHCP_END="${IPV4_PREFIX}.208"
+    export NW1_DHCP_END="${IPV4_PREFIX}.125" # Need to understand the NETMASK for this!!! Changed to 125 as the original Cluster staging script
     export NW3_NAME='EraManaged'
     export NW3_NETMASK='255.255.255.128'
     export NW3_START="${IPV4_PREFIX}.209"
