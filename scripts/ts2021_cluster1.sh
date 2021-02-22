@@ -21,8 +21,10 @@ case ${1} in
     export AUTH_SERVER='AutoAD'
     # Networking needs for Era Bootcamp
 	  #export NW2_NAME='EraManaged'
+    export NW1_SUBNET="${IPV4_PREFIX}.0"
     export NW1_DHCP_START="${IPV4_PREFIX}.50"
     export NW1_DHCP_END="${IPV4_PREFIX}.105"
+    export NW2_SUBNET="${IPV4_PREFIX}.128"
     export NW2_DHCP_START="${IPV4_PREFIX}.132"
     export NW2_DHCP_END="${IPV4_PREFIX}.210"
 

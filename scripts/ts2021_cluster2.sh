@@ -37,7 +37,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     dependencies 'install' 'sshpass' && dependencies 'install' 'jq' \
     && pe_license \
     && pe_init \
-    && era_network_configure \
+    && era_network_configure_api \
     && pe_auth_api \
     && deploy_api_mssql_2019 \
     && configure_era_cluster_2 \
