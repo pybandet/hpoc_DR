@@ -9,7 +9,7 @@
 . global.vars.sh
 begin
 
-args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST'
+args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
 
 #dependencies 'install' 'jq' && ntnx_download 'PC' & #attempt at parallelization
 # Some parallelization possible to critical path; not much: would require pre-requestite checks to work!
@@ -37,11 +37,9 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST'
     dependencies 'install' 'sshpass' && dependencies 'install' 'jq' \
     && pe_license \
     && pe_init \
-    && create_era_container \
     && era_network_configure \
-    && authentication_source \
-    && pe_auth \
+    && pe_auth_api \
     && deploy_api_mssql_2019 \
     && configure_era_cluster_2 \
-    && deploy_citrix_gold_image_vm
+    && deploy_api_citrix_gold_image_vm \
     && cluster_check

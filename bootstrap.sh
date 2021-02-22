@@ -98,6 +98,11 @@ fi
 
 
 if [[ -z ${PC_HOST} ]]; then
+  echo -e "\n    Note: This is so you can use the same AutoAD.\n"
+  read -p "Optional: What is this cluster1's AutoAD IP? " AUTH_HOST
+fi
+
+if [[ -z ${AUTH_HOST} ]]; then
   echo -e "\n    Note: This is so you can register multiple clusters to the same Prism Central.\n"
   read -p "Optional: What is this cluster1's Prism Central IP? " PC_HOST
 fi

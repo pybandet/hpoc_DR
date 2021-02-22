@@ -32,10 +32,9 @@ case ${1} in
     dependencies 'install' 'sshpass' && dependencies 'install' 'jq' \
     && pe_license \
     && pe_init \
-    && create_era_container \
     && era_network_configure \
     && authentication_source \
-    && pe_auth \
+    && pe_auth_api \
     && prism_pro_server_deploy \
     && files_install \
     && sleep 30 \
@@ -48,7 +47,7 @@ case ${1} in
     && deploy_era \
     && deploy_api_mssql_2019 \
     && deploy_windows_tools_vm \
-    && deploy_citrix_gold_image_vm
+    && deploy_api_citrix_gold_image_vm
 
     if (( $? == 0 )) ; then
       pc_install "${NW1_NAME}" \

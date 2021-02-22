@@ -669,6 +669,52 @@ function era_network_configure() {
 }
 
 ###############################################################################################################################################################################
+# Routine to create the networks for Era bootcamp
+###############################################################################################################################################################################
+
+
+function era_network_configure_api() {
+  local _network_name="${NW1_NAME}"
+
+log "--------------------------------------"
+log "Uploading ${MSSQL19_SourceVM_Image1}"
+
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "NETWORK UUID = |${NETWORK_UUID}|"
+
+  if [[ ! -z $(acli "net.list" | grep ${_network_name}) ]]; then
+    log "IDEMPOTENCY: ${_network_name} network set, skip."
+  else
+    args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
+
+    if [[ ! -z $(acli "net.list" | grep 'Rx-Automation-Network') ]]; then
+      log "Remove Rx-Automation-Network..."
+      acli "-y net.delete Rx-Automation-Network"
+    fi
+
+    log "Create primary network: Name: ${NW1_NAME}, VLAN: ${NW1_VLAN}, Subnet: ${NW1_SUBNET}, Domain: ${AUTH_DOMAIN}, Pool: ${NW1_DHCP_START} to ${NW1_DHCP_END}"
+    acli "net.create ${NW1_NAME} vlan=${NW1_VLAN} ip_config=${NW1_SUBNET}"
+    acli "net.update_dhcp_dns ${NW1_NAME} servers=${AUTH_HOST},${DNS_SERVERS} domains=${AUTH_FQDN}"
+    acli "  net.add_dhcp_pool ${NW1_NAME} start=${NW1_DHCP_START} end=${NW1_DHCP_END}"
+
+    # so we do not need DHCP
+    if [[ ! -z "${NW2_NAME}" ]]; then
+      log "Create secondary network: Name: ${NW2_NAME}, VLAN: ${NW2_VLAN}, Subnet: ${NW2_SUBNET}"
+      acli "net.create ${NW2_NAME} vlan=${NW2_VLAN} ip_config=${NW2_SUBNET}"
+      acli "net.update_dhcp_dns ${NW2_NAME} servers=${AUTH_HOST},${DNS_SERVERS} domains=${AUTH_FQDN}"
+      acli "  net.add_dhcp_pool ${NW2_NAME} start=${NW2_DHCP_START} end=${NW2_DHCP_END}"
+    fi
+
+    if [[ ! -z "${NW3_NAME}" ]]; then
+      log "Create EraManaged network: Name: ${NW3_NAME}, VLAN: ${NW3_VLAN}"
+      acli "net.create ${NW3_NAME} vlan=${NW2_VLAN}"
+    fi
+
+  fi
+}
+
+###############################################################################################################################################################################
 # Routine to check if the registration of PE was successful
 ###############################################################################################################################################################################
 
@@ -914,6 +960,56 @@ function pe_auth() {
 }
 
 ###############################################################################################################################################################################
+# Routine to set the PE to use the AutoDC for authentication
+###############################################################################################################################################################################
+function pe_auth_api() {
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local _directory_url="ldap://${AUTH_HOST}:${LDAP_PORT}"
+  local         _error=45
+
+log "--------------------------------------"
+log "Adding ${AUTH_HOST} Directory"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "connection_type": "LDAP",
+  "directory_type": "ACTIVE_DIRECTORY",
+  "directory_url": "${_directory_url}",
+  "domain": "${AUTH_FQDN}",
+  "group_search_type": "RECURSIVE",
+  "name": "${AUTH_DOMAIN}",
+  "service_account_password": "${AUTH_ADMIN_PASS}",
+  "service_account_username": "${AUTH_ADMIN_USER}"
+}
+EOF
+  )
+
+  _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v2.0/authconfig/directories/")
+
+
+log "--------------------------------------"
+log "Adding Role"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "directoryName": "${AUTH_DOMAIN},
+    "role": "ROLE_CLUSTER_ADMIN",
+    "entityType": "GROUP",
+    "entityValues": [
+        "${AUTH_ADMIN_GROUP}"
+    ]
+}
+EOF
+  )
+
+  _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440//PrismGateway/services/rest/v1/authconfig/directories/${AUTH_DOMAIN}/role_mappings?&entityType=GROUP&role=ROLE_CLUSTER_ADMIN")
+
+log "Role Added"
+log "--------------------------------------"
+
+}
+
+###############################################################################################################################################################################
 # Routine set PE's initial configuration
 ###############################################################################################################################################################################
 function pe_init() {
@@ -926,6 +1022,50 @@ function pe_init() {
   #       awk -F: '{print $2}' | tr -d '[:space:]'` == "${DATA_SERVICE_IP}" ]]; then
   #  log "IDEMPOTENCY: Data Services IP set, skip."
   #else
+    log "Configure SMTP"
+    ncli cluster set-smtp-server port=${SMTP_SERVER_PORT} \
+      from-email-address=${SMTP_SERVER_FROM} address=${SMTP_SERVER_ADDRESS}
+    ${HOME}/serviceability/bin/email-alerts --to_addresses="${EMAIL}" \
+      --subject="[pe_init:Config SMTP:alert test] $(ncli cluster get-params)" \
+      && ${HOME}/serviceability/bin/send-email
+
+    log "Configure NTP"
+    ncli cluster add-to-ntp-servers servers=${NTP_SERVERS}
+
+    log "Rename default container to ${STORAGE_DEFAULT}"
+    default_container=$(ncli container ls | grep -P '^(?!.*VStore Name).*Name' \
+      | cut -d ':' -f 2 | sed s/' '//g | grep '^default-container-')
+    ncli container edit name="${default_container}" new-name="${STORAGE_DEFAULT}"
+
+    log "Rename default storage pool to ${STORAGE_POOL}"
+    default_sp=$(ncli storagepool ls | grep 'Name' | cut -d ':' -f 2 | sed s/' '//g)
+    ncli sp edit name="${default_sp}" new-name="${STORAGE_POOL}"
+
+    log "Check if there is a container named ${STORAGE_IMAGES}, if not create one"
+    (ncli container ls | grep -P '^(?!.*VStore Name).*Name' \
+      | cut -d ':' -f 2 | sed s/' '//g | grep "^${STORAGE_IMAGES}" > /dev/null 2>&1) \
+      && log "Container ${STORAGE_IMAGES} exists" \
+      || ncli container create name="${STORAGE_IMAGES}" sp-name="${STORAGE_POOL}"
+
+    # Set external IP address:
+    #ncli cluster edit-params external-ip-address=${PE_HOST}
+
+    log "Set Data Services IP address to ${DATA_SERVICE_IP}"
+    ncli cluster edit-params external-data-services-ip-address=${DATA_SERVICE_IP}
+  #fi
+}
+
+###############################################################################################################################################################################
+# Routine set PE's initial configuration
+###############################################################################################################################################################################
+function pe_init_api() {
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+  args_required 'DATA_SERVICE_IP EMAIL \
+    SMTP_SERVER_ADDRESS SMTP_SERVER_FROM SMTP_SERVER_PORT \
+    STORAGE_DEFAULT STORAGE_POOL STORAGE_IMAGES \
+    SLEEP ATTEMPTS'
+
+
     log "Configure SMTP"
     ncli cluster set-smtp-server port=${SMTP_SERVER_PORT} \
       from-email-address=${SMTP_SERVER_FROM} address=${SMTP_SERVER_ADDRESS}
@@ -1131,8 +1271,8 @@ function deploy_mssql() {
   if (( $(source /etc/profile.d/nutanix_env.sh && acli image.list | grep ${MSSQL_SourceVM_Image} | wc --lines) == 0 )); then
     log "Import ${MSSQL_SourceVM_Image} image from ${QCOW2_REPOS}..."
 
-    acli image.create ${MSSQL_SourceVM_Image1} image_type=kDiskImage wait=true container=${STORAGE_ERA} source_url="${QCOW2_REPOS}era/SQLServer/${MSSQL_SourceVM_Image1}.qcow2"
-    acli image.create ${MSSQL_SourceVM_Image2} image_type=kDiskImage wait=true container=${STORAGE_ERA} source_url="${QCOW2_REPOS}era/SQLServer/${MSSQL_SourceVM_Image2}.qcow2"
+    acli image.create ${MSSQL_SourceVM_Image1} image_type=kDiskImage wait=true container=${STORAGE_IMAGES} source_url="${QCOW2_REPOS}era/SQLServer/${MSSQL_SourceVM_Image1}.qcow2"
+    acli image.create ${MSSQL_SourceVM_Image2} image_type=kDiskImage wait=true container=${STORAGE_IMAGES} source_url="${QCOW2_REPOS}era/SQLServer/${MSSQL_SourceVM_Image2}.qcow2"
   else
     log "Image found, assuming ready. Skipping ${MSSQL_SourceVM} import."
   fi
@@ -1163,8 +1303,8 @@ function deploy_mssql_2019() {
   if (( $(source /etc/profile.d/nutanix_env.sh && acli image.list | grep ${MSSQL19_SourceVM_Image1} | wc --lines) == 0 )); then
     log "Import ${MSSQL19_SourceVM_Image1} image from ${QCOW2_REPOS}..."
 
-    acli image.create ${MSSQL19_SourceVM_Image1} image_type=kDiskImage wait=true container=${STORAGE_ERA} source_url="${QCOW2_REPOS}${MSSQL19_SourceVM_Image1}.qcow2"
-    acli image.create ${MSSQL19_SourceVM_Image2} image_type=kDiskImage wait=true container=${STORAGE_ERA} source_url="${QCOW2_REPOS}${MSSQL19_SourceVM_Image2}.qcow2"
+    acli image.create ${MSSQL19_SourceVM_Image1} image_type=kDiskImage wait=true container=${STORAGE_IMAGES} source_url="${QCOW2_REPOS}${MSSQL19_SourceVM_Image1}.qcow2"
+    acli image.create ${MSSQL19_SourceVM_Image2} image_type=kDiskImage wait=true container=${STORAGE_IMAGES} source_url="${QCOW2_REPOS}${MSSQL19_SourceVM_Image2}.qcow2"
   else
     log "Image found, assuming ready. Skipping ${MSSQL_SourceVM} import."
   fi
@@ -1194,10 +1334,6 @@ function deploy_mssql_2019() {
 function deploy_api_mssql_2019() {
     local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
-mssql_2019_images=(\
-  ${MSSQL19_SourceVM_Image1} \
-  ${MSSQL19_SourceVM_Image2} \
-)
 
 log "--------------------------------------"
 log "Uploading ${MSSQL19_SourceVM_Image1}"
@@ -1220,7 +1356,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
   )
 
-_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/batch' | jq '.status.execution_context.task_uuid' | tr -d \")
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images" | jq -r '.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
 log "--------------------------------------"
@@ -1244,7 +1380,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
   )
 
-_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/batch' | jq '.status.execution_context.task_uuid' | tr -d \")
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images" | jq -r '.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
 log "--------------------------------------"
@@ -1262,7 +1398,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-      MSSQL19_SourceVM_Image1_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/images/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+      MSSQL19_SourceVM_Image1_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images/list" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 log "${MSSQL19_SourceVM_Image1} UUID = |${MSSQL19_SourceVM_Image1_UUID}|"
 log "-----------------------------------------"
@@ -1278,7 +1414,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-      MSSQL19_SourceVM_Image2_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/images/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+      MSSQL19_SourceVM_Image2_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images/list" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 log "${MSSQL19_SourceVM_Image2} UUID = |${MSSQL19_SourceVM_Image2_UUID}|"
 log "-----------------------------------------"
@@ -1287,7 +1423,7 @@ log "-----------------------------------------"
 log "--------------------------------------"
 log "Getting Network UUID"
 
-  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 log "NETWORK UUID = |${NETWORK_UUID}|"
 
@@ -1353,7 +1489,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
   )
 
-_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms' | jq '.status.execution_context.task_uuid' | tr -d \")
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/vms" | jq -r '.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
 log "${MSSQL19_SourceVM} VM Created"
@@ -1536,7 +1672,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
   )
 
-_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/batch| jq '.status.execution_context.task_uuid' | tr -d \")
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images" | jq -r '.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
 
@@ -1555,7 +1691,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-      CitrixGoldImageVM_Image_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/images/list' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+      CitrixGoldImageVM_Image_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images/list" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 
 log "${CitrixGoldImageVM_Image} UUID = |${CitrixGoldImageVM_Image_UUID}|"
@@ -1565,7 +1701,7 @@ log "-----------------------------------------"
 log "--------------------------------------"
 log "Getting Network UUID"
 
-  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 log "NETWORK UUID = |${NETWORK_UUID}|"
 
@@ -1618,7 +1754,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
   )
 
-_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" https://localhost:9440/api/nutanix/v3/vms | jq '.status.execution_context.task_uuid' | tr -d \")
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/vms" | jq -r '.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id}
 
 log "${CitrixGoldImageVM} VM Created"
