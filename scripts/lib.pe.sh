@@ -1327,14 +1327,6 @@ function pe_license() {
     }' https://localhost:9440/PrismGateway/services/rest/v1/pulse)
     log "Disable Pulse in PE: _test=|${_test}|"
 
-    #echo; log "Create PE Banner Login" # TODO: for PC, login banner
-    # https://portal.nutanix.com/#/page/docs/details?targetId=Prism-Central-Guide-Prism-v56:mul-welcome-banner-configure-pc-t.html
-    # curl ${CURL_POST_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data \
-    #  '{type: "welcome_banner", key: "welcome_banner_status", value: true}' \
-    #  https://localhost:9440/PrismGateway/services/rest/v1/application/system_data
-    #curl ${CURL_POST_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data
-    #  '{type: "welcome_banner", key: "welcome_banner_content", value: "HPoC '${OCTET[2]}' password = '${PE_PASSWORD}'"}' \
-    #  https://localhost:9440/PrismGateway/services/rest/v1/application/system_data
   fi
 }
 
