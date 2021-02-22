@@ -705,7 +705,7 @@ function era_network_configure_api() {
   log "---------------------------------------------"
   log "Create primary network: Name: ${NW1_NAME}, VLAN: ${NW1_VLAN}, Subnet: ${NW1_SUBNET}, Domain: ${AUTH_DOMAIN}, Pool: ${NW1_DHCP_START} to ${NW1_DHCP_END}"
   NW1_subnet_correct=${NW1_SUBNET%????}"0"
-  dns_array=(${DNS_SERVER//,/ }) # To split the DNS servers into array elements
+  dns_array=(${DNS_SERVERS//,/ }) # To split the DNS servers into array elements
   dhcp_scope=${NW1_DHCP_START}" "${NW1_DHCP_END}
 HTTP_JSON_BODY='{"spec":{"name": "'${NW1_NAME}'","resources":{"subnet_type": "VLAN","ip_config":{"default_gateway_ip":"'${NW1_GATEWAY}'","pool_list":[{"range":"'${dhcp_scope}'"}],"prefix_length":25,"subnet_ip":"'${NW1_subnet_correct}'","dhcp_options":{"domain_name_server_list":["'${AUTH_HOST}'","'${dns_array[0]}'","'${dns_array[1]}'"],"domain_search_list":["'${AUTH_FQDN}'"],"domain_name":"'${AUTH_FQDN}'"}},"vlan_id":'${NW1_VLAN}'}},"metadata":{"kind":"subnet"},"api_version": "3.1.0"}'
 
