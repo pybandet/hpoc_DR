@@ -727,7 +727,7 @@ HTTP_JSON_BODY='{"spec":{"name": "'${NW1_NAME}'","resources":{"subnet_type": "VL
         args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
 
   log "Create secondary network: Name: ${NW2_NAME}, VLAN: ${NW2_VLAN}, Subnet: ${NW2_SUBNET}"
-  NW2_subnet_correct=${NW2_SUBNET%??????}"129"
+  NW2_subnet_correct=${NW2_SUBNET%???}
 HTTP_JSON_BODY=$(cat <<EOF
 {
     "spec": {
@@ -742,12 +742,12 @@ HTTP_JSON_BODY=$(cat <<EOF
                     }
                 ],
                 "prefix_length": 25,
-                "subnet_ip": "${NW2_SUBNET}",
+                "subnet_ip": "${NW2_subnet_correct}",
                 "dhcp_options": {
                     "domain_name_server_list": [
                         "${AUTH_HOST}",
                         "${dns_array[0]}",
-                        "${dns_array[1]}",
+                        "${dns_array[1]}"
                     ],
                     "domain_search_list": [
                         "${AUTH_FQDN}"
