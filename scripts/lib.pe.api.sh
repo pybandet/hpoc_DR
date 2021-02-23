@@ -230,7 +230,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440//PrismGateway/services/rest/v1/authconfig/directories/${AUTH_DOMAIN}/role_mappings?&entityType=GROUP&role=ROLE_CLUSTER_ADMIN")
+  _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/authconfig/directories/${AUTH_DOMAIN}/role_mappings?&entityType=GROUP&role=ROLE_CLUSTER_ADMIN")
 
 log "Role Added"
 log "--------------------------------------"
