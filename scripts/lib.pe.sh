@@ -1281,7 +1281,7 @@ function deploy_windows_tools_vm() {
   echo "## ${SourceVM} Creation_INPROGRESS ##"
   acli "vm.create ${SourceVM} memory=4096M num_cores_per_vcpu=1 num_vcpus=4"
   acli "vm.disk_create ${SourceVM} clone_from_image=${WindowsToolsVM_Image}"
-  acli "vm.nic_create ${SourceVM} network=${NW1_NAME}"
+  acli "vm.nic_create ${SourceVM} network=${NW2_NAME}"
   echo "## ${SourceVM} - Powering On ##"
   acli "vm.on ${SourceVM}"
   echo "## ${SourceVM} Creation_COMPLETE ##"
