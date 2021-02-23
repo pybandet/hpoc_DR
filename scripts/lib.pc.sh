@@ -3008,7 +3008,7 @@ EOF
       log "Image is not upload, please check."
   fi
 
-log "DB Server Image1 UUID = |${DB_SERVER_IMAGE2_UUID}|"
+log "DB Server Image2 UUID = |${DB_SERVER_IMAGE2_UUID}|"
 log "-----------------------------------------"
 
 sleep 30
@@ -3021,9 +3021,10 @@ log "Getting Network UUID"
 log "NETWORK UUID = |$NETWORK_UUID|"
 log "-----------------------------------------"
 
-# download the blueprint
-DOWNLOAD_BLUEPRINTS=$(curl -L ${BLUEPRINT_URL}${BLUEPRINT} -o ${DIRECTORY}/${BLUEPRINT})
-log "Downloading ${BLUEPRINT} | BLUEPRINT_URL ${BLUEPRINT_URL}|${DOWNLOAD_BLUEPRINTS}"
+
+  # download the blueprint
+  DOWNLOAD_BLUEPRINTS=$(curl -L ${BLUEPRINT_URL}${BLUEPRINT} -o ${DIRECTORY}/${BLUEPRINT})
+  log "Downloading ${BLUEPRINT} | BLUEPRINT_URL ${BLUEPRINT_URL}|${DOWNLOAD_BLUEPRINTS}"
 
   # ensure the directory that contains the blueprints to be imported is not empty
   if [[ $(ls -l "$DIRECTORY"/*.json) == *"No such file or directory"* ]]; then
@@ -3048,11 +3049,11 @@ log "Downloading ${BLUEPRINT} | BLUEPRINT_URL ${BLUEPRINT_URL}|${DOWNLOAD_BLUEPR
   fi
 
 
-# update the user with script progress...
+  # update the user with script progress...
 
 log "Starting blueprint updates and then Uploading to Calm..."
 
-JSONFile="${DIRECTORY}/${BLUEPRINT}"
+  JSONFile="${DIRECTORY}/${BLUEPRINT}"
 
 log "Currently updating blueprint $JSONFile..."
 
@@ -3102,7 +3103,7 @@ log "Currently updating blueprint $JSONFile..."
 log "Finished uploading ${BLUEPRINT}!"
 
 # Getting the Blueprint UUID
-log "Getting SNOW Blueprint ID Now"
+log "Getting Fiesta Blueprint ID Now"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
