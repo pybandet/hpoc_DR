@@ -193,7 +193,7 @@ function pe_auth_api() {
   local _directory_url="ldap://${AUTH_HOST}:${LDAP_PORT}"
   local         _error=45
 
-set -x
+#set -x
 
 log "--------------------------------------"
 log "Adding ${AUTH_HOST} Directory"
@@ -235,7 +235,7 @@ EOF
 log "Role Added"
 log "--------------------------------------"
 
-set +x
+#set +x
 
 }
 
@@ -389,7 +389,7 @@ function pe_license_api() {
   local _test
   args_required 'CURL_POST_OPTS PE_PASSWORD'
   #local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
-  set -x
+  #set -x
 
   echo ${PE_HOST}
 
@@ -420,7 +420,7 @@ function pe_license_api() {
 
   fi
 
-set +x
+#set +x
 
 }
 
@@ -451,7 +451,7 @@ function create_era_container_api() {
 function deploy_api_mssql_2019() {
     local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
 
-set -x
+#set -x
 
 log "--------------------------------------"
 log "Uploading ${MSSQL19_SourceVM_Image1}"
@@ -612,7 +612,7 @@ loop ${_task_id}
 
 log "${MSSQL19_SourceVM} VM Created"
 
-set +x
+#set +x
 
 }
 
