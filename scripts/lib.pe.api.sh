@@ -86,7 +86,7 @@ EOF
 
   _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/subnets" | jq -r '.status.execution_context.task_uuid' | tr -d \")
   loop ${_task_id} ${PE_HOST}
-  fi
+
 
   log "Primary Network Created"
 
