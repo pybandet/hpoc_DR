@@ -636,6 +636,10 @@ function secondary_network_SNC(){
 function era_network_configure() {
   local _network_name="${NW1_NAME}"
 
+  if [[ ! -z "${NW2_NAME}" ]]; then
+    #TODO: accommodate for X networks!
+    _network_name="${NW2_NAME}"
+  fi
 
   if [[ ! -z $(acli "net.list" | grep ${_network_name}) ]]; then
     log "IDEMPOTENCY: ${_network_name} network set, skip."
