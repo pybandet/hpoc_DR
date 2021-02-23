@@ -387,16 +387,16 @@ function pe_init_api() {
 ###############################################################################################################################################################################
 function pe_license_api() {
   local _test
-  #local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
-
-set -x
-
   args_required 'CURL_POST_OPTS PE_PASSWORD'
+  #local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+  set -x
+
+  echo ${PE_HOST}
 
   log "IDEMPOTENCY: Checking PC API responds, curl failures are acceptable..."
   prism_check 'PC' 2 0
 
-  echo ${PE_HOST}
+  e
 
   if (( $? == 0 )) ; then
     log "IDEMPOTENCY: PC API responds, skip"
