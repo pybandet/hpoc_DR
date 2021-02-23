@@ -2199,9 +2199,12 @@ function pc_project() {
 log "-------------------------------------"
 log "Get cluster network UUID"
 
-_nw_uuid=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+_nw1_uuid=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
-log "NW UUID = ${_nw_uuid}"
+_nw2_uuid=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Secondary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "NW UUID = ${_nw1_uuid}"
+log "NW UUID = ${_nw2_uuid}"
 
 # Get the Role UUIDs
 log "-------------------------------------"
@@ -2243,8 +2246,13 @@ HTTP_JSON_BODY=$(cat <<EOF
             {
                "kind":"subnet",
                "name": "Primary",
-        	   "uuid": "${_nw_uuid}"
-            }
+        	   "uuid": "${_nw1_uuid}"
+           },
+           {
+              "kind":"subnet",
+              "name": "Secondary",
+            "uuid": "${_nw2_uuid}"
+           }
          ],
          "user_reference_list":[
             {
@@ -3670,7 +3678,7 @@ log "Launching the ${_user} Fiesta Application"
   #curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d @set_blueprint_response_file.json "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}/launch"
   curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d "${HTTP_JSON_BODY}" "https://localhost:9440/api/nutanix/v3/blueprints/${CICD_BLUEPRINT_UUID}/simple_launch"
 
-log "Finished Launching the ${_user} Fiesta  Application"
+log "Finished Launching the ${_user} CICD Fiesta Application"
 
 done
 
