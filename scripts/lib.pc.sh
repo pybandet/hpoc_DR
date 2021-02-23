@@ -1771,6 +1771,26 @@ log "Created User ${_user} with ID |${_user_id}|"
 
 done
 
+##  Enable Multi-Cluster Era ##
+log "Enable Era Multi-Cluster"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "agentVMPrefix": "EraAgent",
+  "vlanName": "${NW3_NAME}"
+}
+EOF
+)
+
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+
+  # Call the wait function
+  waitloop
+
+log "Era Multi-Cluster Enabled"
+
+log "--------------------------------------"
+
 log "Era Config Complete"
 
 #set +x
@@ -1827,10 +1847,8 @@ EOF
 
 log "Created LAB_COMPUTE Compute Profile with ID |${_lab_compute_profile_id}|"
 
-
-
-
 log "--------------------------------------"
+
 log "Era Config Cluster 1 Complete"
 
 #set +x
@@ -1844,7 +1862,7 @@ log "Era Config Cluster 1 Complete"
 function configure_era_cluster_2() {
   local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
 
-#set -x
+set -x
 
 log "Starting Era Config Cluster 2"
 
@@ -1854,23 +1872,80 @@ log "PE Cluster IP |${PE_HOST}|"
 log "EraServer IP |${ERA_HOST}|"
 log "Era Cluster ID: |${_era_cluster_id}|"
 
-##  Create the LAB_COMPUTE Compute Profile inside Era ##
-log "Enable Era Multi-Cluster"
+##  Register Cluster  ##
+log "Register ${CLUSTER_NAME} with Era"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-  "agentVMPrefix": "EraAgent",
-  "vlanName": "${NW3_NAME}"
+    "name": "AWSCluster",
+    "description": "AWS Bootcamp Cluster",
+    "ip": "${PE_HOST}",
+    "username": "${PRISM_ADMIN}",
+    "password": "${PE_PASSWORD}",
+    "status": "UP",
+    "version": "v2",
+    "cloudType": "NTNX",
+    "properties": [
+        {
+            "name": "ERA_STORAGE_CONTAINER",
+            "value": "${STORAGE_DEFAULT}"
+        }
+    ]
 }
 EOF
 )
 
-  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+  _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-  # Call the wait function
-  waitloop
+log "Era Cluster ID: |${_era_cluster_id}|"
 
-log "Era Multi-Cluster Enabled"
+##  Update EraCluster ##
+log "Updating Era Cluster ID: |${_era_cluster_id}|"
+
+ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_DEFAULT}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
+
+echo $ClusterJSON > cluster.json
+
+  _task_id=$(curl -k -H 'Content-Type: multipart/form-data' -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/${_era_cluster_id}/json" -F file="@"cluster.json)
+
+##  Create the EraManaged network inside Era ##
+log "Create ${NW3_NAME} Static Network"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "name": "${NW3_NAME}",
+    "type": "Static",
+    "ipPools": [
+        {
+            "startIP": "${NW3_START}",
+            "endIP": "${NW3_END}"
+        }
+    ],
+    "properties": [
+        {
+            "name": "VLAN_GATEWAY",
+            "value": "${NW2_GATEWAY}"
+        },
+        {
+            "name": "VLAN_PRIMARY_DNS",
+            "value": "${AUTH_HOST}"
+        },
+        {
+            "name": "VLAN_SUBNET_MASK",
+            "value": "${NW3_NETMASK}"
+        },
+        {
+    		"name": "VLAN_DNS_DOMAIN",
+    		"value": "ntnxlab.local"
+    	  }
+    ]
+}
+EOF
+)
+
+  _static_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Created ${NW3_NAME} Network with Network ID |${_static_network_id}|"
 
 ##  Create the LAB_COMPUTE Compute Profile inside Era ##
 log "Create the LAB_COMPUTE Compute Profile"
@@ -2099,7 +2174,7 @@ log "Ceating MSSQL_19_SYNCED Now Complete"
 
 log "Era Config Cluster 2 Complete"
 
-#set +x
+set +x
 
 }
 
