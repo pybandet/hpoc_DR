@@ -660,6 +660,11 @@ function era_network_configure() {
       acli "  net.add_dhcp_pool ${NW2_NAME} start=${NW2_DHCP_START} end=${NW2_DHCP_END}"
     fi
 
+    if [[ ! -z "${NW3_NAME}" ]]; then
+      log "Create EraManaged network: Name: ${NW3_NAME}, VLAN: ${NW3_VLAN}"
+      acli "net.create ${NW3_NAME} vlan=${NW2_VLAN}"
+    fi
+
   fi
 }
 

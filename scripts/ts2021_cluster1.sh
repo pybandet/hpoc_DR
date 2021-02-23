@@ -28,6 +28,8 @@ case ${1} in
     export NW2_SUBNET="${IPV4_PREFIX}.128"
     export NW2_DHCP_START="${IPV4_PREFIX}.132"
     export NW2_DHCP_END="${IPV4_PREFIX}.210"
+    export NW3_START="${IPV4_PREFIX}.211"
+    export NW3_END="${IPV4_PREFIX}.253"
 
     args_required 'PE_HOST PC_LAUNCH'
     ssh_pubkey & # non-blocking, parallel suitable

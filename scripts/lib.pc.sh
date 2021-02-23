@@ -1365,7 +1365,7 @@ log "Create ${NW3_NAME} Static Network"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-    "name": "${NW2_NAME}",
+    "name": "${NW3_NAME}",
     "type": "Static",
     "ipPools": [
         {
@@ -1384,7 +1384,7 @@ HTTP_JSON_BODY=$(cat <<EOF
         },
         {
             "name": "VLAN_SUBNET_MASK",
-            "value": "${NW2_GATEWAY}"
+            "value": "${NW3_NETMASK}"
         },
         {
     		"name": "VLAN_DNS_DOMAIN",
@@ -1397,7 +1397,7 @@ EOF
 
   _static_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-log "Created ${NW2_NAME} Network with Network ID |${_static_network_id}|"
+log "Created ${NW3_NAME} Network with Network ID |${_static_network_id}|"
 
 ##  Create the Primary-MSSQL-NETWORK Network Profile inside Era ##
 log "Create the Primary-MSSQL-NETWORK Network Profile"
