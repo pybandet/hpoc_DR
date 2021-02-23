@@ -358,7 +358,7 @@ case "${OCTET[0]}.${OCTET[1]}" in
     AUTOAD_REPOS=(\
     'http://10.42.95.45/AutoAD.qcow2' \
     )
-    PC_DATA='http://10.42.95.45/seedPC.zip'
+    PC_DATA="http://10.42.95.45/${SeedPC}"
     BLUEPRINT_URL='http://10.42.95.45/CalmBlueprints/'
     DNS_SERVERS='10.55.251.10,10.55.251.11'
     ERA_PRIMARY_DNS='10.55.251.10'
@@ -396,7 +396,7 @@ case "${OCTET[0]}.${OCTET[1]}" in
     AUTOAD_REPOS=(\
     'http://10.42.95.45/AutoAD.qcow2' \
     )
-    PC_DATA='http://10.42.95.45/seedPC.zip'
+    PC_DATA="http://10.42.95.45/${SeedPC}"
     BLUEPRINT_URL='http://10.42.95.45/CalmBlueprints/'
     DNS_SERVERS='10.42.196.10,10.42.194.10'
     ERA_PRIMARY_DNS='10.42.196.10'
@@ -434,7 +434,7 @@ case "${OCTET[0]}.${OCTET[1]}" in
     AUTOAD_REPOS=(\
     'http://10.42.95.45/AutoAD.qcow2' \
     )
-    PC_DATA='http://10.42.95.45/seedPC.zip'
+    PC_DATA="http://10.42.95.45/${SeedPC}"
     BLUEPRINT_URL='http://10.42.95.45/CalmBlueprints/'
     DNS_SERVERS="10.42.196.10,10.42.194.10"
     ERA_PRIMARY_DNS='10.42.196.10'
@@ -474,7 +474,7 @@ case "${OCTET[0]}.${OCTET[1]}" in
     AUTOAD_REPOS=(\
      'http://10.136.239.13/workshop_staging/AutoAD.qcow2' \
     )
-    PC_DATA='http://10.136.239.13/workshop_staging/seedPC.zip'
+    PC_DATA="http://10.136.239.13/workshop_staging/${SeedPC}"
     BLUEPRINT_URL='http:/10.136.239.13/workshop_staging/CalmBlueprints/'
     DNS_SERVERS='10.136.239.10,10.136.239.11'
     ERA_PRIMARY_DNS='10.136.239.10'

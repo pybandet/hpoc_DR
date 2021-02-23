@@ -2321,10 +2321,10 @@ log "-----------------------------------------"
   log "Downloading ${BLUEPRINT} | BLUEPRINT_URL ${BLUEPRINT_URL}|${DOWNLOAD_BLUEPRINTS}"
 
   # ensure the directory that contains the blueprints to be imported is not empty
-  if [[ $(ls -l "$DIRECTORY"/*.json) == *"No such file or directory"* ]]; then
-      echo "There are no .json files found in the directory provided."
-      exit 0
-  fi
+  #if [[ $(ls -l "$DIRECTORY"/*.json) == *"No such file or directory"* ]]; then
+  #    echo "There are no .json files found in the directory provided."
+  #    exit 0
+  #fi
 
   if [ $CALM_PROJECT != 'none' ]; then
 
@@ -2632,10 +2632,10 @@ DOWNLOAD_BLUEPRINTS=$(curl -L ${BLUEPRINT_URL}${BLUEPRINT} -o ${DIRECTORY}/${BLU
 log "Downloading ${BLUEPRINT} | BLUEPRINT_URL ${BLUEPRINT_URL}|${DOWNLOAD_BLUEPRINTS}"
 
   # ensure the directory that contains the blueprints to be imported is not empty
-  if [[ $(ls -l "$DIRECTORY"/*.json) == *"No such file or directory"* ]]; then
-      echo "There are no .json files found in the directory provided."
-      exit 0
-  fi
+  #if [[ $(ls -l "$DIRECTORY"/*.json) == *"No such file or directory"* ]]; then
+  #    echo "There are no .json files found in the directory provided."
+  #    exit 0
+  #fi
 
   if [ $CALM_PROJECT != 'none' ]; then
 
@@ -3027,10 +3027,10 @@ log "-----------------------------------------"
   log "Downloading ${BLUEPRINT} | BLUEPRINT_URL ${BLUEPRINT_URL}|${DOWNLOAD_BLUEPRINTS}"
 
   # ensure the directory that contains the blueprints to be imported is not empty
-  if [[ $(ls -l "$DIRECTORY"/*.json) == *"No such file or directory"* ]]; then
-      echo "There are no .json files found in the directory provided."
-      exit 0
-  fi
+  #if [[ $(ls -l "$DIRECTORY"/*.json) == *"No such file or directory"* ]]; then
+  #    echo "There are no .json files found in the directory provided."
+  #    exit 0
+  #fi
 
   if [ $CALM_PROJECT != 'none' ]; then
 
@@ -3347,10 +3347,10 @@ DOWNLOAD_BLUEPRINTS=$(curl -L ${BLUEPRINT_URL}${BLUEPRINT} -o ${DIRECTORY}/${BLU
 log "Downloading ${BLUEPRINT} | BLUEPRINT_URL ${BLUEPRINT_URL}|${DOWNLOAD_BLUEPRINTS}"
 
   # ensure the directory that contains the blueprints to be imported is not empty
-  if [[ $(ls -l "$DIRECTORY"/*.json) == *"No such file or directory"* ]]; then
-      echo "There are no .json files found in the directory provided."
-      exit 0
-  fi
+  #if [[ $(ls -l "$DIRECTORY"/*.json) == *"No such file or directory"* ]]; then
+  #    echo "There are no .json files found in the directory provided."
+  #    exit 0
+  #fi
 
   if [ $CALM_PROJECT != 'none' ]; then
 
