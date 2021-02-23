@@ -636,6 +636,8 @@ function secondary_network_SNC(){
 function era_network_configure() {
   local _network_name="${NW1_NAME}"
 
+set -x
+
   if [[ ! -z "${NW2_NAME}" ]]; then
     #TODO: accommodate for X networks!
     _network_name="${NW2_NAME}"
@@ -670,6 +672,9 @@ function era_network_configure() {
     fi
 
   fi
+
+set +x
+
 }
 
 

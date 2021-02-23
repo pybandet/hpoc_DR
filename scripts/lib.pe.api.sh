@@ -12,13 +12,10 @@ function era_network_configure_api() {
   local _network1_name="${NW1_NAME}"
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
-set -x
+  set -x
 
   log "--------------------------------------"
-
-  NW1_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .status.name' | tr -d \")
-
-  log "Primary NETWORK Check = |${NW1_NAME_CHECK}|"
+  log "Remove RX-Automation-Network"
 
   RX_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Rx-Automation-Network""}' | jq -r '.entities[] | .status.name' | tr -d \")
 
@@ -27,45 +24,86 @@ set -x
   log "RX NETWORK Check = |${RX_NAME_CHECK}|"
   log "RX NETWORK UUID = |${RX_NETWORK_UUID}|"
 
+  log "Remove Rx-Automation-Network now..."
+
+  RX_NETWORK_DELETE=$(curl ${CURL_HTTP_OPTS} --request DELETE "https://${PE_HOST}:9440/api/nutanix/v3/subnets/${RX_NETWORK_UUID}|" --user ${PRISM_ADMIN}:${PE_PASSWORD})
+
+  log "RX-Automation-Network Removed"
+
+  log "--------------------------------------"
+  log "Create Primary Network"
+
+  NW1_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .status.name' | tr -d \")
+
+  log "Primary NETWORK Check = |${NW1_NAME_CHECK}|"
 
   log "Creating ${NW1_NAME} Network"
-
-    if [[ ! -z $(${NW1_NAME_CHECK} == ${NW1_NAME}) ]]; then
-      log "IDEMPOTENCY: ${NW1_NAME} network set, skip."
-    else
-      args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
-
-      if [[ ! -z $(${RX_NAME_CHECK} == 'Rx-Automation-Network') ]]; then
-        log "Remove Rx-Automation-Network..."
-        RX_NETWORK_DELETE=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/${RX_NETWORK_UUID}|" --user ${PRISM_ADMIN}:${PE_PASSWORD})
-      fi
-
-  log "---------------------------------------------"
   log "Create primary network: Name: ${NW1_NAME}, VLAN: ${NW1_VLAN}, Subnet: ${NW1_SUBNET}, Domain: ${AUTH_DOMAIN}, Pool: ${NW1_DHCP_START} to ${NW1_DHCP_END}"
-  NW1_subnet_correct=${NW1_SUBNET%????}"0"
+
   dns_array=(${DNS_SERVERS//,/ }) # To split the DNS servers into array elements
-  dhcp_scope=${NW1_DHCP_START}" "${NW1_DHCP_END}
-HTTP_JSON_BODY='{"spec":{"name": "'${NW1_NAME}'","resources":{"subnet_type": "VLAN","ip_config":{"default_gateway_ip":"'${NW1_GATEWAY}'","pool_list":[{"range":"'${dhcp_scope}'"}],"prefix_length":25,"subnet_ip":"'${NW1_subnet_correct}'","dhcp_options":{"domain_name_server_list":["'${AUTH_HOST}'","'${dns_array[0]}'","'${dns_array[1]}'"],"domain_search_list":["'${AUTH_FQDN}'"],"domain_name":"'${AUTH_FQDN}'"}},"vlan_id":'${NW1_VLAN}'}},"metadata":{"kind":"subnet"},"api_version": "3.1.0"}'
+
+  NW1_subnet_correct=${NW1_SUBNET%????}"0"
+  #dhcp_scope=${NW1_DHCP_START}" "${NW1_DHCP_END}
+  dhcp_scope="${NW1_DHCP_START} ${NW1_DHCP_END}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "name": "${NW1_NAME}",
+        "resources": {
+            "subnet_type": "VLAN",
+            "ip_config": {
+                "default_gateway_ip": "${NW1_GATEWAY}",
+                "pool_list": [
+                    {
+                        "range": "${dhcp_scope}"
+                    }
+                ],
+                "prefix_length": 25,
+                "subnet_ip": "${NW1_subnet_correct}",
+                "dhcp_options": {
+                    "domain_name_server_list": [
+                        "${AUTH_HOST}",
+                        "${dns_array[0]}",
+                        "${dns_array[1]}"
+                    ],
+                    "domain_search_list": [
+                        "${AUTH_FQDN}"
+                    ],
+                    "domain_name": "${AUTH_FQDN}"
+                }
+            },
+            "vlan_id": ${NW1_VLAN}
+        }
+    },
+    "metadata": {
+        "kind": "subnet"
+    },
+    "api_version": "3.1.0"
+}
+EOF
+  )
 
   _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/subnets" | jq -r '.status.execution_context.task_uuid' | tr -d \")
   loop ${_task_id} ${PE_HOST}
   fi
 
   log "Primary Network Created"
+
   log "--------------------------------------"
+  log "Create Secondary Network"
 
   NW2_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Secondary"}' | jq -r '.entities[] | .status.name' | tr -d \")
 
-  log "Primary NETWORK Check = |${NW2_NAME_CHECK}|"
+  log "Secondary NETWORK Check = |${NW2_NAME_CHECK}|"
 
-      # so we do not need DHCP
-      if [[ ! -z $(${NW2_NAME_CHECK} == ${NW2_NAME}) ]]; then
-        log "IDEMPOTENCY: ${NW2_NAME} network set, skip."
-      else
-        args_required 'AUTH_DOMAIN IPV4_PREFIX AUTH_HOST'
-
+  log "Create ${NW2_NAME} Network"
   log "Create secondary network: Name: ${NW2_NAME}, VLAN: ${NW2_VLAN}, Subnet: ${NW2_SUBNET}"
+
   NW2_subnet_correct=${NW2_SUBNET%????}8
+  #dhcp_scope=${NW2_DHCP_START}" "${NW2_DHCP_END}
+  dhcp_scope="${NW2_DHCP_START} ${NW2_DHCP_END}"
+
 HTTP_JSON_BODY=$(cat <<EOF
 {
     "spec": {
@@ -76,7 +114,7 @@ HTTP_JSON_BODY=$(cat <<EOF
                 "default_gateway_ip": "${NW2_GATEWAY}",
                 "pool_list": [
                     {
-                        "range": "${NW2_DHCP_START} ${NW2_DHCP_END}"
+                        "range": "${dhcp_scope}"
                     }
                 ],
                 "prefix_length": 25,
@@ -108,11 +146,42 @@ EOF
   loop ${_task_id} ${PE_HOST}
 
   log "Secondary Network Created"
+
   log "--------------------------------------"
+  log "Create EraManaged Network"
 
-      fi
+  NW3_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==EraManaged"}' | jq -r '.entities[] | .status.name' | tr -d \")
 
-set +x
+  log "EraManaged NETWORK Check = |${NW3_NAME_CHECK}|"
+
+  log "Create ${NW3_NAME} Network"
+  log "Create secondary network: Name: ${NW3_NAME}, VLAN: ${NW2_VLAN}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "name": "${NW3_NAME}",
+        "resources": {
+            "subnet_type": "VLAN",
+            "vlan_id": ${NW2_VLAN}
+        }
+    },
+    "metadata": {
+        "kind": "subnet"
+    },
+    "api_version": "3.1.0"
+}
+EOF
+  )
+
+    _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/subnets" | jq -r '.status.execution_context.task_uuid' | tr -d \")
+    loop ${_task_id} ${PE_HOST}
+
+    log "EraManaged Network Created"
+
+    log "--------------------------------------"
+
+  set +x
 
 }
 
