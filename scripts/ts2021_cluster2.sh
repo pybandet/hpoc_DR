@@ -39,9 +39,9 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     && pe_license_api \
     && pe_init_api \
     #&& create_era_container_api \
+    && cluster_check \
     && era_network_configure_api \
     && pe_auth_api \
-    && configure_era_cluster_1 \
+    && configure_era_cluster_2 \
     && deploy_api_mssql_2019 \
-    && deploy_api_citrix_gold_image_vm \
-    && cluster_check
+    && deploy_api_citrix_gold_image_vm
