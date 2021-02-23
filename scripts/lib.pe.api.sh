@@ -12,7 +12,7 @@ function era_network_configure_api() {
   local _network1_name="${NW1_NAME}"
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
-  set -x
+  #set -x
 
   log "--------------------------------------"
   log "Remove RX-Automation-Network"
@@ -181,7 +181,7 @@ EOF
 
     log "--------------------------------------"
 
-  set +x
+  #set +x
 
 }
 

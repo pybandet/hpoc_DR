@@ -1333,7 +1333,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     "properties": [
         {
             "name": "ERA_STORAGE_CONTAINER",
-            "value": "${STORAGE_ERA}"
+            "value": "${STORAGE_DEFAULT}"
         }
     ]
 }
@@ -1347,7 +1347,7 @@ log "Era Cluster ID: |${_era_cluster_id}|"
 ##  Update EraCluster ##
 log "Updating Era Cluster ID: |${_era_cluster_id}|"
 
-ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_ERA}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
+ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_DEFAULT}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
 
 echo $ClusterJSON > cluster.json
 
