@@ -396,8 +396,6 @@ function pe_license_api() {
   log "IDEMPOTENCY: Checking PC API responds, curl failures are acceptable..."
   prism_check 'PC' 2 0
 
-  e
-
   if (( $? == 0 )) ; then
     log "IDEMPOTENCY: PC API responds, skip"
   else
