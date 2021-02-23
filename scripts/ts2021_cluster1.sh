@@ -41,14 +41,6 @@ case ${1} in
     && authentication_source \
     && pe_auth_api \
     && prism_pro_server_deploy \
-    && files_install \
-    && sleep 30 \
-    && create_file_server "${NW1_NAME}" "${NW1_NAME}" \
-    && sleep 30 \
-    && file_analytics_install \
-    && sleep 30 \
-    && create_file_analytics_server \
-    && sleep 30 \
     && deploy_era \
     && deploy_api_mssql_2019 \
     && deploy_windows_tools_vm \
