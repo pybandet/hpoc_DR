@@ -1354,11 +1354,11 @@ echo $ClusterJSON > cluster.json
   _task_id=$(curl -k -H 'Content-Type: multipart/form-data' -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/${_era_cluster_id}/json" -F file="@"cluster.json)
 
 ##  Add the Secondary Network inside Era ##
-#log "Create ${NW2_NAME} DHCP/IPAM Network"
-#
-#  _dhcp_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data '{"name": "'${NW2_NAME}'","type": "DHCP"}' | jq -r '.id' | tr -d \")
-#
-#log "Created ${NW2_NAME} Network with Network ID |${_dhcp_network_id}|"
+log "Create ${NW2_NAME} DHCP/IPAM Network"
+
+  _dhcp_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data '{"name": "'${NW2_NAME}'","type": "DHCP"}' | jq -r '.id' | tr -d \")
+
+log "Created ${NW2_NAME} Network with Network ID |${_dhcp_network_id}|"
 
 ##  Create the EraManaged network inside Era ##
 log "Create ${NW3_NAME} Static Network"
