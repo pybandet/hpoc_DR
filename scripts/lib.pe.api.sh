@@ -220,7 +220,7 @@ log "Adding Role"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-    "directoryName": "${AUTH_DOMAIN},
+    "directoryName": "${AUTH_DOMAIN}",
     "role": "ROLE_CLUSTER_ADMIN",
     "entityType": "GROUP",
     "entityValues": [
