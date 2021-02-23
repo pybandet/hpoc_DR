@@ -42,7 +42,7 @@ function era_network_configure_api() {
 
   dns_array=(${DNS_SERVERS//,/ }) # To split the DNS servers into array elements
 
-  NW1_subnet_correct="${NW1_SUBNET%??}0"
+  NW1_subnet_correct="${NW1_SUBNET%??}.0"
   #dhcp_scope=${NW1_DHCP_START}" "${NW1_DHCP_END}
   dhcp_scope="${NW1_DHCP_START} ${NW1_DHCP_END}"
 
@@ -100,7 +100,7 @@ EOF
   log "Create ${NW2_NAME} Network"
   log "Create secondary network: Name: ${NW2_NAME}, VLAN: ${NW2_VLAN}, Subnet: ${NW2_SUBNET}"
 
-  NW2_subnet_correct="${NW2_SUBNET%??}128"
+  NW2_subnet_correct="${NW2_SUBNET%??}.128"
   #dhcp_scope=${NW2_DHCP_START}" "${NW2_DHCP_END}
   dhcp_scope="${NW2_DHCP_START} ${NW2_DHCP_END}"
 
