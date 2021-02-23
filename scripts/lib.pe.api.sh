@@ -26,7 +26,7 @@ function era_network_configure_api() {
 
   log "Remove Rx-Automation-Network now..."
 
-  RX_NETWORK_DELETE=$(curl ${CURL_HTTP_OPTS} --request DELETE "https://${PE_HOST}:9440/api/nutanix/v3/subnets/${RX_NETWORK_UUID}|" --user ${PRISM_ADMIN}:${PE_PASSWORD})
+  RX_NETWORK_DELETE=$(curl ${CURL_HTTP_OPTS} --request DELETE "https://${PE_HOST}:9440/api/nutanix/v3/subnets/${RX_NETWORK_UUID}" --user ${PRISM_ADMIN}:${PE_PASSWORD})
 
   log "RX-Automation-Network Removed"
 
