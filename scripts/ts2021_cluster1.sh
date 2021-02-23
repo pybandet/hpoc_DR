@@ -42,7 +42,6 @@ case ${1} in
     && pe_auth_api \
     && prism_pro_server_deploy \
     && deploy_era \
-    && deploy_api_mssql_2019 \
     && deploy_windows_tools_vm \
     && deploy_api_citrix_gold_image_vm
 

@@ -1782,7 +1782,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable-multicluster" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
 
   # Call the wait function
   waitloop
