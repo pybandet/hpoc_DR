@@ -29,6 +29,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
 
     export AUTH_SERVER='AutoAD'
     export NW1_NAME='User VM Subnet'
+    export STORAGE_ERA='SelfServiceContainer'
     # Networking needs for Era Bootcamp
 	  #export NW2_NAME='EraManaged'
     #export NW1_DHCP_START="${IPV4_PREFIX}.10"
@@ -46,8 +47,8 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
 
     dependencies 'install' 'sshpass' && dependencies 'install' 'jq' \
     && pe_license_api \
-    && update_aws_cluster_info_api \
-    && pe_init_api \
+    #&& update_aws_cluster_info_api \
+    && pe_init_aws_api \
     && pe_auth_api \
     && cluster_check \
     && deploy_api_mssql_2019 \

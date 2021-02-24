@@ -1333,7 +1333,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     "properties": [
         {
             "name": "ERA_STORAGE_CONTAINER",
-            "value": "${STORAGE_DEFAULT}"
+            "value": "${STORAGE_ERA}"
         }
     ]
 }
@@ -1347,7 +1347,7 @@ log "Era Cluster ID: |${_era_cluster_id}|"
 ##  Update EraCluster ##
 log "Updating Era Cluster ID: |${_era_cluster_id}|"
 
-ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_DEFAULT}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
+ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_ERA}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
 
 echo $ClusterJSON > cluster.json
 
@@ -1880,20 +1880,51 @@ log "Register ${CLUSTER_NAME} with Era"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-    "name": "AWSCluster",
-    "description": "AWS Bootcamp Cluster",
-    "ip": "${PE_HOST}",
-    "username": "${PRISM_ADMIN}",
-    "password": "${PE_PASSWORD}",
-    "status": "UP",
-    "version": "v2",
-    "cloudType": "NTNX",
-    "properties": [
-        {
-            "name": "ERA_STORAGE_CONTAINER",
-            "value": "${STORAGE_DEFAULT}"
-        }
-    ]
+  "clusterName": "AWSCluster",
+  "clusterDescription": "AWS Bootcamp Cluster",
+  "clusterIP": "${PE_HOST}",
+  "storageContainer": "${STORAGE_ERA}",
+  "agentVMPrefix": "EraAgent",
+  "port": 9440,
+  "protocol": "https",
+  "clusterType": "NTNX",
+  "version": "v2",
+  "credentialsInfo": [
+    {
+      "name": "username",
+      "value": "admin"
+    },
+    {
+      "name": "password",
+      "value": "${PE_PASSWORD}"
+    }
+  ],
+  "agentNetworkInfo": [
+    {
+      "name": "vlanName",
+      "value": "${NW1_NAME}"
+    },
+    {
+      "name": "dns",
+      "value": "10.210.40.10,10.55.4.41"
+    },
+    {
+      "name": "staticIP",
+      "value": "10.210.40.211"
+    },
+    {
+      "name": "gateway",
+      "value": "10.210.40.129"
+    },
+    {
+      "name": "subnet",
+      "value": "255.255.255.128"
+    },
+    {
+      "name": "ntp",
+      "value": "169.254.169.123,0.us.pool.ntp.org,1.us.pool.ntp.org,2.us.pool.ntp.org,3.us.pool.ntp.org"
+    }
+  ]
 }
 EOF
 )

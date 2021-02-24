@@ -20,6 +20,7 @@ case ${1} in
     . lib.pe.api.sh
 
     export AUTH_SERVER='AutoAD'
+    export STORAGE_ERA='SelfServiceContainer'
     # Networking needs for Era Bootcamp
 	  #export NW2_NAME='EraManaged'
     export NW1_SUBNET="${IPV4_PREFIX}.0"

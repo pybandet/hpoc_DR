@@ -388,7 +388,140 @@ function pe_init_api() {
 
 }
 
+###############################################################################################################################################################################
+# Routine set PE's initial configuration
+###############################################################################################################################################################################
+function pe_init_aws_api() {
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+  args_required 'DATA_SERVICE_IP EMAIL \
+    SMTP_SERVER_ADDRESS SMTP_SERVER_FROM SMTP_SERVER_PORT \
+    STORAGE_DEFAULT STORAGE_POOL STORAGE_IMAGES \
+    SLEEP ATTEMPTS'
 
+#set -x
+
+  #log "Prism Central: |${PC_HOST}|"
+  #log "Prism Element: |${PE_HOST}|"
+
+  # Set the AWS IP address to PE_HOST
+  AWScluster=$PE_HOST
+
+  #############################################################
+  # Set the Cluster Name
+  #############################################################
+  log "--------------------------------------"
+  log "Updating AWS Cluster Info"
+  log "--------------------------------------"
+
+  log "Prism Central: |${PC_HOST}|"
+  log "Prism Element: |${PE_HOST}|"
+  log "AutoAD: |${AUTH_HOST}|"
+
+  log "Getting Cluster Info"
+
+  cluster_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.id' | tr -d \")
+  cluster_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.uuid' | tr -d \")
+  cluster_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.clusterExternalIPAddress' | tr -d \")
+  cluster_dns=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.nameServers[]' | tr -d \")
+
+  log "Cluster ID: |${cluster_id}|"
+  log "Cluster UUID: |${cluster_uuid}|"
+  log "Cluster Name: |${cluster_name}|"
+  log "Cluster IP: |${cluster_ip}|"
+  log "Cluster DataServices IP: |${DATA_SERVICE_IP}|"
+  log "Cluster DNS: |${cluster_dns}|"
+
+  log "--------------------------------------"
+  log "Updating Cluster Info"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "id": "${cluster_id}",
+    "uuid": "${cluster_uuid}",
+    "name": "${cluster_name}",
+    "clusterExternalIPAddress": "${cluster_ip}",
+    "clusterExternalDataServicesIPAddress": "${DATA_SERVICE_IP}",
+    "nameServers": [
+        "${AUTH_HOST}",
+        "${cluster_dns}"
+    ]
+}
+EOF
+  )
+
+  _value=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.value' | tr -d \")
+
+  log "Update Value: |${_value}|"
+
+  log "--------------------------------------"
+  log "AWS Cluster Info Updated"
+  log "--------------------------------------"
+
+  #############################################################
+  # Set the SMTP server
+  #############################################################
+  log "Configure SMTP"
+  payload='{"address":"mxb-002c1b01.gslb.pphosted.com","port":"25","username":null,"password":null,"secureMode":"NONE","fromEmailAddress":"NutanixHostedPOC@nutanix.com","emailStatus":null}'
+  return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d $payload https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/smtp | jq '.address'| tr -d \")
+  if [ ! -z "$return_code" ]
+  then
+      log "SMTP sever was set..."
+      # Sending the email
+      cluster_name=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster | jq '.name' | tr -d \")
+      payload='{"recipients":["'$EMAIL'"],"subject":"TEST-'$cluster_name'","text":"TEST-'$cluster_name'"}'
+      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/send_email | jq '.emailSent'| tr -d \")
+      if [ ${return_code} ]
+      then
+          log "Email sent to $EMAIL..."
+      else
+          log "Email not sent to $EMAIL..."
+      fi
+  else
+      log "SMTP sever was not set..."
+  fi
+
+
+  #############################################################
+  # Set the NTP servers
+  #############################################################
+  log "Configure NTP servers"
+  ntp_arr=('0.us.pool.ntp.org' '1.us.pool.ntp.org' '2.us.pool.ntp.org' '3.us.pool.ntp.org')
+  for ntp_server in ${ntp_arr[@]}
+  do
+      payload='{"value":"'$ntp_server'"}'
+      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/api/nutanix/v2.0/cluster/ntp_servers" | jq '.value' | tr -d \")
+      if [ ${return_code} ]
+      then
+        log "NTP server $ntp_server has been added"
+      else
+        log "NTP server $ntp_server has not been added"
+      fi
+  done
+
+
+  #############################################################
+  # Check to see if there is a container named Images. If not, create it
+  #############################################################
+  log "Check if there is a container named ${STORAGE_IMAGES}, if not create one"
+  cont_arr=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[].name' | tr -d \"))
+  if [[ " ${cont_arr[@]} " =~ "Images" ]]
+  then
+      log "Found the Images container.."
+  else
+      log "Creating the container..."
+      payload='{"name":"Images","marked_for_removal":false,"replication_factor":2,"oplog_replication_factor":2,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":false,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
+      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
+      if [ ${return_code} ]
+      then
+          log "Container Images has been created..."
+      else
+          log "Container Images has not been created..."
+          exit 10
+      fi
+  fi
+
+
+}
 
 ###############################################################################################################################################################################
 # Routine to accept the EULA and disable pulse API based
