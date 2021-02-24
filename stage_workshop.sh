@@ -71,7 +71,7 @@ function stage_clusters() {
     _pe_launch='ts2021_cluster1.sh'
     _pc_launch=${_pe_launch}
   fi
-  if (( $(echo ${_workshop} | grep -i "^TS2021 Cluster2 - AWS" | wc ${WC_ARG}) > 0 )); then
+  if (( $(echo ${_workshop} | grep -i "^GTS2021 Cluster2 - AWS" | wc ${WC_ARG}) > 0 )); then
     _libraries+='lib.pe.sh lib.pe.api.sh lib.pc.sh'
     _pe_launch='ts2021_cluster2.sh'
     _pc_launch=${_pe_launch}
