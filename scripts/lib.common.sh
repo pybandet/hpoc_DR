@@ -821,6 +821,7 @@ function remote_exec() {
   local _password="${PE_PASSWORD}"
   local  _pw_init="${NTNX_INIT_PASSWORD}"
   local    _sleep=${SLEEP}
+  local _wc_arg=${WC_ARG}
   local     _test=0
 
   args_required 'SSH_OPTS'
@@ -853,7 +854,7 @@ function remote_exec() {
   fi
 
 
-if (($(echo ${3} | grep -i "ts2021_cluster2.sh")=='ts2021_cluster2.sh')); then
+if (($(echo ${3} | grep -i "ts2021_cluster2.sh" | wc ${WC_ARG}) > 0 )); then
 
   while true ; do
     (( _loop++ ))
