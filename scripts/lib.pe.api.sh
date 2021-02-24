@@ -516,7 +516,7 @@ EOF
 function deploy_api_mssql_2019() {
     local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
 
-#set -x
+set -x
 
 log "--------------------------------------"
 log "Uploading ${MSSQL19_SourceVM_Image1}"
@@ -540,7 +540,7 @@ EOF
   )
 
 _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images" | jq -r '.status.execution_context.task_uuid' | tr -d \")
-loop ${_task_id}
+loop ${_task_id} ${PE_HOST}
 
 log "--------------------------------------"
 log "Uploading ${MSSQL19_SourceVM_Image2}"
