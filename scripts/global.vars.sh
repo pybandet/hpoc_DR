@@ -10,6 +10,7 @@ FILE_ANALYTICS_VERSION='3.0.0'
 NTNX_INIT_PASSWORD='nutanix/4u'
 PRISM_ADMIN='admin'
 SSH_PUBKEY="${HOME}/.ssh/id_rsa.pub"
+SSH_PEM='/root/sshKey-reservationID-gts2021.pem'
 STORAGE_POOL='SP01'
 STORAGE_DEFAULT='Default'
 STORAGE_IMAGES='Images'

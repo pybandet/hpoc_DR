@@ -852,6 +852,54 @@ function remote_exec() {
        _sleep=0
   fi
 
+
+if (($_pe_launch == 'ts2021_cluster2.sh')); then
+
+  while true ; do
+    (( _loop++ ))
+    case "${1}" in
+      'SSH' | 'ssh')
+       #DEBUG=1; if [[ ${DEBUG} ]]; then log "_test will perform ${_account}@${_host} ${3}..."; fi
+        ssh -x -i ${SSH_PEM} ${SSH_OPTS} ${_account}@${_host} "${3}"
+        _test=$?
+        ;;
+      'SCP' | 'scp')
+        #DEBUG=1; if [[ ${DEBUG} ]]; then log "_test will perform scp ${3} ${_account}@${_host}:"; fi
+        scp -r -i ${SSH_PEM} ${SSH_OPTS} ${3} ${_account}@${_host}:
+        _test=$?
+        ;;
+      *)
+        log "Error ${_error}: improper first argument, should be ssh or scp."
+        exit ${_error}
+        ;;
+    esac
+
+    if (( ${_test} > 0 )) && [[ -z ${4} ]]; then
+      _error=22
+      log "Error ${_error}: pwd=$(pwd), _test=${_test}, _host=${_host}"
+      exit ${_error}
+    fi
+
+    if (( ${_test} == 0 )); then
+      if [[ ${DEBUG} ]]; then log "${3} executed properly."; fi
+      return 0
+    elif (( ${_loop} == ${_attempts} )); then
+      if [[ -z ${4} ]]; then
+        _error=11
+        log "Error ${_error}: giving up after ${_loop} tries."
+        exit ${_error}
+      else
+        log "Optional: giving up."
+        break
+      fi
+    else
+      log "${_loop}/${_attempts}: _test=$?|${_test}| SLEEP ${_sleep}..."
+      sleep ${_sleep}
+    fi
+  done
+
+else
+
   while true ; do
     (( _loop++ ))
     case "${1}" in
@@ -894,6 +942,7 @@ function remote_exec() {
       sleep ${_sleep}
     fi
   done
+fi
 }
 
 ##################################################################################
