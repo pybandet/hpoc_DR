@@ -853,7 +853,7 @@ function remote_exec() {
   fi
 ## Added If/Else to accomodate for the AWS KeyFile/PEM ##
 if [[ ${_pe_launch} == "ts2021_cluster2.sh"]]; then
-
+  SSH_PEM='/root/sshKey-reservationID-gts2021.pem'
   while true ; do
     (( _loop++ ))
     case "${1}" in

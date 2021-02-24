@@ -20,7 +20,6 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     . lib.pc.sh
 
     export AUTH_SERVER='AutoAD'
-    export SSH_PEM='/root/sshKey-reservationID-gts2021.pem'
     # Networking needs for Era Bootcamp
 	  #export NW2_NAME='EraManaged'
     #export NW1_DHCP_START="${IPV4_PREFIX}.10"
