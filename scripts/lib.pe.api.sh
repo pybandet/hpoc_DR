@@ -195,6 +195,9 @@ function pe_auth_api() {
 
 #set -x
 
+log "Prism Central: |${PC_HOST}|"
+log "Prism Element: |${PE_HOST}|"
+
 log "--------------------------------------"
 log "Adding ${AUTH_HOST} Directory"
 
@@ -248,6 +251,9 @@ function pe_init_api() {
     SMTP_SERVER_ADDRESS SMTP_SERVER_FROM SMTP_SERVER_PORT \
     STORAGE_DEFAULT STORAGE_POOL STORAGE_IMAGES \
     SLEEP ATTEMPTS'
+
+  log "Prism Central: |${PC_HOST}|"
+  log "Prism Element: |${PE_HOST}|"
 
   # Set the AWS IP address to PE_HOST
   AWScluster=$PE_HOST
@@ -392,6 +398,8 @@ function pe_license_api() {
   #set -x
 
   echo ${PE_HOST}
+  log "Prism Central: |${PC_HOST}|"
+  log "Prism Element: |${PE_HOST}|"
 
   log "IDEMPOTENCY: Checking PC API responds, curl failures are acceptable..."
   prism_check 'PC' 2 0
@@ -457,22 +465,27 @@ function update_aws_cluster_info_api() {
   log "Updating AWS Cluster Info"
   log "--------------------------------------"
 
-  log "Getting Cliuster Info"
+  log "Prism Central: |${PC_HOST}|"
+  log "Prism Element: |${PE_HOST}|"
+  log "AutoAD: |${AUTH_HOST}|"
+
+  log "Getting Cluster Info"
 
   cluster_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.id' | tr -d \")
   cluster_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.uuid' | tr -d \")
   cluster_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.clusterExternalIPAddress' | tr -d \")
-  #cluster_dsip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.clusterExternalDataServicesIPAddress' | tr -d \")
+  cluster_dsip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.clusterExternalDataServicesIPAddress' | tr -d \")
   cluster_dns=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.nameServers[]' | tr -d \")
 
-  Log "Clusetr ID: |${cluster_id}|"
-  Log "Clusetr UUID: |${cluster_uuid}|"
-  Log "Clusetr IP: |${cluster_ip}|"
-  #Log "Clusetr DataServices IP: |${cluster_dsip}|"
-  Log "Clusetr DNS: |${cluster_dns}|"
+  Log "Cluster ID: |${cluster_id}|"
+  Log "Cluster UUID: |${cluster_uuid}|"
+  Log "Cluster Name: |${cluster_name}|"
+  Log "Cluster IP: |${cluster_ip}|"
+  Log "Cluster DataServices IP: |${cluster_dsip}|"
+  Log "Cluster DNS: |${cluster_dns}|"
 
   log "--------------------------------------"
-  log "Updating Cliuster Info"
+  log "Updating Cluster Info"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
