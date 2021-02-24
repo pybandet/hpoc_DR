@@ -460,7 +460,7 @@ function create_era_container_api() {
 function update_aws_cluster_info_api() {
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
   local cluster_name="AWS-Cluster"
-  #set -x
+  set -x
 
   log "--------------------------------------"
   log "Updating AWS Cluster Info"
@@ -505,7 +505,7 @@ EOF
   log "AWS Cluster Info Updated"
   log "--------------------------------------"
 
-  #set +x
+  set +x
 
 }
 
