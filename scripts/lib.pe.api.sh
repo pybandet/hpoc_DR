@@ -444,6 +444,61 @@ function create_era_container_api() {
 
 }
 
+###################################################################################################################################################
+# Routine create the Era Storage container for the Era Bootcamps API Based
+###################################################################################################################################################
+
+function update_aws_cluster_info_api() {
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+  local cluster_name="AWS-Cluster"
+  set -x
+
+  log "--------------------------------------"
+  log "Updating AWS Cluster Info"
+  log "--------------------------------------"
+
+  log "Getting Cliuster Info"
+
+  cluster_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.id' | tr -d \")
+
+  Log "Clusetr ID: |${cluster_id}|"
+
+  cluster_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.uuid' | tr -d \")
+
+  Log "Clusetr UUID: |${cluster_uuid}|"
+
+  cluster_dns=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.nameServers[]' | tr -d \")
+
+  Log "Clusetr UUID: |${cluster_dns}|"
+
+  log "--------------------------------------"
+  log "Updating Cliuster Info"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "id": "${cluster_id}",
+    "clusterUuid": "${cluster_uuid}",
+    "name": "${cluster_name}",
+    "nameServers": [
+        "${AUTH_HOST}",
+        "${cluster_dns}"
+    ]
+}
+EOF
+  )
+
+  _value=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.value' | tr -d \")
+
+  Log "Update Value: |${_value}|"
+
+  log "--------------------------------------"
+  log "AWS Cluster Info Updated"
+  log "--------------------------------------"
+
+  set +x
+
+}
+
 #########################################################################################################################################
 # Routine to Create Era Bootcamp PreProvisioned MSSQL Server 2019
 #########################################################################################################################################

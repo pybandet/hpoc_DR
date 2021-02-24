@@ -37,6 +37,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
 
     dependencies 'install' 'sshpass' && dependencies 'install' 'jq' \
     && pe_license_api \
+    && update_aws_cluster_info_api \
     && pe_init_api \
     #&& create_era_container_api \
     && cluster_check \
