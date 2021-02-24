@@ -488,14 +488,7 @@ function update_aws_cluster_info_api() {
   log "--------------------------------------"
   log "Updating Cluster Info"
 
-HTTP_JSON_BODY=$(cat <<EOF
-{
-    [
-        "${AUTH_HOST}"
-    ]
-}
-EOF
-  )
+  HTTP_JSON_BODY='{["'${AUTH_HOST}'"]}'
 
   _value=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/name_servers/add_list" | jq '.value' | tr -d \")
 
