@@ -181,7 +181,7 @@ EOF
 
     log "--------------------------------------"
 
-  #set +x
+  set +x
 
 }
 
@@ -193,7 +193,7 @@ function pe_auth_api() {
   local _directory_url="ldap://${AUTH_HOST}:${LDAP_PORT}"
   local         _error=45
 
-#set -x
+set -x
 
 log "Prism Central: |${PC_HOST}|"
 log "Prism Element: |${PE_HOST}|"
@@ -251,6 +251,8 @@ function pe_init_api() {
     SMTP_SERVER_ADDRESS SMTP_SERVER_FROM SMTP_SERVER_PORT \
     STORAGE_DEFAULT STORAGE_POOL STORAGE_IMAGES \
     SLEEP ATTEMPTS'
+
+#set -x
 
   log "Prism Central: |${PC_HOST}|"
   log "Prism Element: |${PE_HOST}|"
@@ -427,8 +429,7 @@ function pe_license_api() {
     log "Disable Pulse in PE: _test=|${_test}|"
 
   fi
-
-#set +x
+# set +x
 
 }
 
@@ -489,20 +490,14 @@ function update_aws_cluster_info_api() {
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-    "id": "${cluster_id}",
-    "uuid": "${cluster_uuid}",
-    "name": "${cluster_name}",
-    "clusterExternalIPAddress": "${cluster_ip}",
-    "clusterExternalDataServicesIPAddress": "${DATA_SERVICE_IP}",
-    "nameServers": [
-        "${AUTH_HOST}",
-        "${cluster_dns}"
+    [
+        "${AUTH_HOST}"
     ]
 }
 EOF
   )
 
-  _value=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.value' | tr -d \")
+  _value=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/name_servers/add_list" | jq '.value' | tr -d \")
 
   Log "Update Value: |${_value}|"
 
