@@ -824,6 +824,8 @@ function remote_exec() {
   local _wc_arg=${WC_ARG}
   local     _test=0
 
+set -x
+
   args_required 'SSH_OPTS'
 
   # shellcheck disable=SC2153
@@ -946,6 +948,9 @@ else
     fi
   done
 fi
+
+set +x
+
 }
 
 ##################################################################################
