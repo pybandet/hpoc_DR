@@ -856,7 +856,7 @@ set -x
   fi
 
 
-if (($(echo ${3} | grep -i "ts2021_cluster2.sh" | wc ${WC_ARG}) > 0 )); then
+if (($(echo ${_host} | grep -i "10.210" | wc ${WC_ARG}) > 0 )); then
 
   while true ; do
     (( _loop++ ))
