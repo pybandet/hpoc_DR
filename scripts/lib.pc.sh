@@ -2015,9 +2015,6 @@ EOF
 
 log "MSSQLSource VM IP: |${_mssqlsource_vm_ip}|"
 
-# Register User01-MSSQLSource Database VM needs the Cluster UID of the AWS CLuster
-
-_cluster_uuid_aws=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} 'https://localhost:9440/PrismGateway/services/rest/v1/cluster' | jq '.clusterUuid' | tr -d \")
 
 log "Registering MSSQLSourceVM"
 
@@ -2046,7 +2043,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     }
   ],
   "vmIp": "${_mssqlsource_vm_ip}",
-  "nxClusterUuid": "${_cluster_uuid_aws}",
+  "nxClusterUuid": "{_era_aws_cluster_id}",
   "databaseType": "sqlserver_database",
   "forcedInstall": true,
   "workingDirectory": "c:\\\\",
