@@ -1867,6 +1867,8 @@ set -x
 log "Starting Era Config Cluster 2"
 
 ERA_HOST="${ERA_HOST_Cluster1}"
+ERA_AGENT_IP="${IPV4_PREFIX}.209"
+ERA_AGENT_GATEWAY="${IPV4_PREFIX}.129"
 
 # Get eraCluster ID again
 _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[0].id' | tr -d \")
@@ -1880,10 +1882,10 @@ log "Register ${CLUSTER_NAME} with Era"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-  "clusterName": "AWSCluster",
+  "clusterName": "AWS-Cluster",
   "clusterDescription": "AWS Bootcamp Cluster",
   "clusterIP": "${PE_HOST}",
-  "storageContainer": "${STORAGE_ERA}",
+  "storageContainer": "Images",
   "agentVMPrefix": "EraAgent",
   "port": 9440,
   "protocol": "https",
@@ -1906,19 +1908,19 @@ HTTP_JSON_BODY=$(cat <<EOF
     },
     {
       "name": "dns",
-      "value": "10.210.40.10,10.55.4.41"
+      "value": "${AUTH_HOST}"
     },
     {
       "name": "staticIP",
-      "value": "10.210.40.211"
+      "value": "${ERA_AGENT_IP}"
     },
     {
       "name": "gateway",
-      "value": "10.210.40.129"
+      "value": "${ERA_AGENT_GATEWAY}"
     },
     {
       "name": "subnet",
-      "value": "255.255.255.128"
+      "value": "${SUBNET_MASK}"
     },
     {
       "name": "ntp",
@@ -1929,18 +1931,18 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-_era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+_era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-log "Era Cluster ID: |${_era_cluster_id}|"
+log "Era Cluster ID: |${_era_aws_cluster_id}|"
 
 ##  Update EraCluster ##
-log "Updating Era Cluster ID: |${_era_cluster_id}|"
+log "Updating Era Cluster ID: |${_era_aws_cluster_id}|"
 
 ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_DEFAULT}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
 
 echo $ClusterJSON > cluster.json
 
-  _task_id=$(curl -k -H 'Content-Type: multipart/form-data' -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/${_era_cluster_id}/json" -F file="@"cluster.json)
+  _task_id=$(curl -k -H 'Content-Type: multipart/form-data' -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/${_era_aws_cluster_id}/json" -F file="@"cluster.json)
 
 
 ##  Create the EraManaged network inside Era ##
