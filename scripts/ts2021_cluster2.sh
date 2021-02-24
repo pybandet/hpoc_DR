@@ -29,7 +29,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
 
     export AUTH_SERVER='AutoAD'
     export NW1_NAME='User VM Subnet'
-    export STORAGE_ERA='SelfServiceContainer'
+    export STORAGE_ERA='Images'
     # Networking needs for Era Bootcamp
 	  #export NW2_NAME='EraManaged'
     #export NW1_DHCP_START="${IPV4_PREFIX}.10"
