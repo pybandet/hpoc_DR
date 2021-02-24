@@ -475,14 +475,13 @@ function update_aws_cluster_info_api() {
   cluster_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.id' | tr -d \")
   cluster_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.uuid' | tr -d \")
   cluster_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.clusterExternalIPAddress' | tr -d \")
-  cluster_dsip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.clusterExternalDataServicesIPAddress' | tr -d \")
   cluster_dns=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.nameServers[]' | tr -d \")
 
   log "Cluster ID: |${cluster_id}|"
   log "Cluster UUID: |${cluster_uuid}|"
   log "Cluster Name: |${cluster_name}|"
   log "Cluster IP: |${cluster_ip}|"
-  log "Cluster DataServices IP: |${cluster_dsip}|"
+  log "Cluster DataServices IP: |${DATA_SERVICE_IP}|"
   log "Cluster DNS: |${cluster_dns}|"
 
   log "--------------------------------------"
@@ -498,6 +497,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     "nameServers": [
         "${AUTH_HOST}",
         "${cluster_dns}"
+    ]
 }
 EOF
   )
