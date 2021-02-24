@@ -40,7 +40,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     && pe_init_api \
     #&& create_era_container_api \
     && cluster_check \
-    && era_network_configure_api \
+    #&& era_network_configure_api \
     && pe_auth_api \
     && configure_era_cluster_2 \
     && deploy_api_mssql_2019 \
