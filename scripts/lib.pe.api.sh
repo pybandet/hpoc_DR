@@ -193,7 +193,7 @@ function pe_auth_api() {
   local _directory_url="ldap://${AUTH_HOST}:${LDAP_PORT}"
   local         _error=45
 
-set -x
+#set -x
 
 log "Prism Central: |${PC_HOST}|"
 log "Prism Element: |${PE_HOST}|"
@@ -460,7 +460,7 @@ function create_era_container_api() {
 function update_aws_cluster_info_api() {
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
   local cluster_name="AWS-Cluster"
-  #set -x
+  set -x
 
   log "--------------------------------------"
   log "Updating AWS Cluster Info"
@@ -488,9 +488,21 @@ function update_aws_cluster_info_api() {
   log "--------------------------------------"
   log "Updating Cluster Info"
 
-  HTTP_JSON_BODY='["'${AUTH_HOST}'"]'
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "id": "${cluster_id}",
+    "uuid": "${cluster_uuid}",
+    "name": "${cluster_name}",
+    "clusterExternalIPAddress": "${cluster_ip}",
+    "clusterExternalDataServicesIPAddress": "${DATA_SERVICE_IP}",
+    "nameServers": [
+        "${AUTH_HOST}",
+        "${cluster_dns}"
+}
+EOF
+  )
 
-  _value=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/name_servers/add_list" | jq '.value' | tr -d \")
+  _value=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.value' | tr -d \")
 
   log "Update Value: |${_value}|"
 
@@ -498,7 +510,7 @@ function update_aws_cluster_info_api() {
   log "AWS Cluster Info Updated"
   log "--------------------------------------"
 
-  #set +x
+  set +x
 
 }
 
@@ -750,7 +762,7 @@ HTTP_JSON_BODY=$(cat <<EOF
             "num_threads_per_core": 1,
             "num_vcpus_per_socket": 1,
             "num_sockets": 4,
-            "memory_size_mib": 8192,
+            "memory_size_mib": 4096,
             "disk_list": [
                 {
                     "data_source_reference": {
