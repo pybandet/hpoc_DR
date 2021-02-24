@@ -14,29 +14,6 @@ WORKSHOPS=(\
 "GTS2021 Cluster1 - HPOC (AOS 5.18.x/AHV PC 2020.11) = Stable" \
 "GTS2021 Cluster2 - AWS (AOS 5.18.x/AHV PC 2020.11) = Stable" \
 "GTS2021 Calm Test (AOS 5.18.x/AHV PC 2020.11) = Stable" \
-#"XReady Era Bootcamp (AOS 5.18.x/AHV PC 2021.1) = Development" \
-#"Basic / API Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Private Cloud Bootcamp (AOS AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Leap Add-On Bootcamp (AOS AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Databases Era with MSSQL Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Databases Era with Oracle Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Databases Era with Postgres Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Databases Era -Stage All- Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Consolidated Storage Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Files Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Objects Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Calm IaaS Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Calm Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Karbon Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Frame Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Citrix Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Private Cloud Splunk on AHV with Objects Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Stage-All Bootcamps (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Cloud Native Application Modernization Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"Cloud Native CI/CD with Calm and Karbon Bootcamp (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"SE POC Guide (AHV) Staging (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-#"In Development Bootcamp Staging (AOS 5.15.x|5.16.x|5.17.x|5.18.x/AHV PC 2020.9) = Development" \
-
 ) # Adjust function stage_clusters, below, for file/script mappings as needed
 
 function stage_clusters() {
@@ -81,116 +58,7 @@ function stage_clusters() {
     _pe_launch='ts2021_calmBPs.sh'
     _pc_launch=${_pe_launch}
   fi
-  if (( $(echo ${_workshop} | grep -i "^Stage-All Bootcamps" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='all_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Consolidated Storage Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='Consolidated_Storage_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Basic / API Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='basic_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Private Cloud" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='privatecloud_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Leap Add-On" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='leap_addon_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Databases Era - Stage All- Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='era_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Databases Era with MSSQL Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='era_mssql_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Databases Era with Oracle Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='era_oracle_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Databases Era with Postgres Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='era_postgres_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^XReady Era Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='era_xready_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Files" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='files_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Objects" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='objects_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Calm Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='calm_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Calm IaaS" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='calm_iaas_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Karbon Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='karbon_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Citrix" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='citrix_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Frame" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='frame_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Private Cloud Splunk on AHV with Objects Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='splunk_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Cloud Native Application Modernization Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='app_modernization_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^Cloud Native CI/CD with Calm and Karbon Bootcamp" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='cicd_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^SE POC Guide (AHV) Staging" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='poc_workshop_base_staging.sh'
-    _pc_launch=${_pe_launch}
-  fi
-  if (( $(echo ${_workshop} | grep -i "^In Development Bootcamp Staging" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
-    _pe_launch='dev_privatecloud_bootcamp.sh'
-    _pc_launch=${_pe_launch}
-  fi
+
 
   dependencies 'install' 'sshpass'
 
