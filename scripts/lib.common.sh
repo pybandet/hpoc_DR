@@ -864,13 +864,13 @@ if (($(echo ${_host} | grep -i "10.210" | wc ${WC_ARG}) > 0 )); then
       'SSH' | 'ssh')
        #DEBUG=1; if [[ ${DEBUG} ]]; then log "_test will perform ${_account}@${_host} ${3}..."; fi
         #ssh -x -i ${SSH_PEM} ${SSH_OPTS} ${_account}@${_host} "${3}"
-        ssh -x -i ${SSH_PEM} ${_account}@${_host} "${3}"
+        ssh -x -i ${SSH_PEM} ${SSH_OPTS} ${_account}@${_host} "${3}"
         _test=$?
         ;;
       'SCP' | 'scp')
         #DEBUG=1; if [[ ${DEBUG} ]]; then log "_test will perform scp ${3} ${_account}@${_host}:"; fi
         #scp -r -i ${SSH_PEM} ${SSH_OPTS} ${3} ${_account}@${_host}:
-        scp -r -i ${SSH_PEM} ${3} ${_account}@${_host}:
+        scp -r -i ${SSH_PEM} ${SSH_OPTS} ${3} ${_account}@${_host}:
         _test=$?
         ;;
       *)
