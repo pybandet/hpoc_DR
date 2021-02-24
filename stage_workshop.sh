@@ -90,7 +90,7 @@ function stage_clusters() {
 
       pe_configuration_args "${_pc_launch}"
 
-      . scripts/global.vars.sh # re-import for relative settings
+    #  . scripts/global.vars.sh # re-import for relative settings
 
       cat <<EoM
 ______Warning -- curl time out indicates either:
@@ -191,6 +191,7 @@ EOM
 
     done
   fi
+
   finish
 
   exit
