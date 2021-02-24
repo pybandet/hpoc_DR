@@ -1913,7 +1913,7 @@ log "Create ${NW3_NAME} Static Network"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-    "name": "${NW3_NAME}",
+    "name": "${NW1_NAME}",
     "type": "Static",
     "ipPools": [
         {
