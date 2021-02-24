@@ -852,7 +852,6 @@ function remote_exec() {
        _sleep=0
   fi
 
-
   while true ; do
     (( _loop++ ))
     case "${1}" in
@@ -895,7 +894,6 @@ function remote_exec() {
       sleep ${_sleep}
     fi
   done
-#fi
 }
 
 ##################################################################################
