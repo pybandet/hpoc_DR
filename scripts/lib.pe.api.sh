@@ -569,7 +569,7 @@ EOF
   )
 
 _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images" | jq -r '.status.execution_context.task_uuid' | tr -d \")
-loop ${_task_id}
+loop ${_task_id} ${PE_HOST}
 
 log "--------------------------------------"
 log "Getting UUIDs for Create VM Payload"
@@ -678,7 +678,7 @@ EOF
   )
 
 _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/vms" | jq -r '.status.execution_context.task_uuid' | tr -d \")
-loop ${_task_id}
+loop ${_task_id} ${PE_HOST}
 
 log "${MSSQL19_SourceVM} VM Created"
 
