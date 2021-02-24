@@ -3,15 +3,19 @@
 
 #__main()__________
 
-# Temp Safing the PC_HOST as we got it from the parameters
+# Temp Safing aome needed params as we got it from the parameters
 PC_HOST_AWS=${PC_HOST}
+AUTO_AD_AWS=${AUTH_HOST}
+
 # Source Nutanix environment (PATH + aliases), then common routines + global variables
 . /etc/profile.d/nutanix_env.sh
 . lib.common.sh
 . global.vars.sh
 begin
-# Rereading the PC_HOST_AWS as we have overwritten it by .global.vars.sh
+
+# Rereading the temp stored params as we have overwritten it by .global.vars.sh
 PC_HOST=${PC_HOST_AWS}
+AUTH_HOST=${AUTO_AD_AWS}
 
 args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
 
