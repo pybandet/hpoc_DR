@@ -460,7 +460,7 @@ function create_era_container_api() {
 function update_aws_cluster_info_api() {
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
   local cluster_name="AWS-Cluster"
-  set -x
+  #set -x
 
   log "--------------------------------------"
   log "Updating AWS Cluster Info"
@@ -497,7 +497,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
   )
 
-  _value=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/name_servers/add_list" | jq '.value' | tr -d \")
+  _value=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/name_servers/add_list" | jq '.value' | tr -d \")
 
   Log "Update Value: |${_value}|"
 
@@ -505,7 +505,7 @@ EOF
   log "AWS Cluster Info Updated"
   log "--------------------------------------"
 
-  set +x
+  #set +x
 
 }
 
@@ -606,7 +606,7 @@ log "-----------------------------------------"
 log "--------------------------------------"
 log "Getting Network UUID"
 
-  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==User VM Subnet"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 log "NETWORK UUID = |${NETWORK_UUID}|"
 
@@ -740,7 +740,7 @@ log "-----------------------------------------"
 log "--------------------------------------"
 log "Getting Network UUID"
 
-  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==User VM Subnet"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 log "NETWORK UUID = |${NETWORK_UUID}|"
 
