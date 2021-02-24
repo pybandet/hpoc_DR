@@ -20,6 +20,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     . lib.pc.sh
 
     export AUTH_SERVER='AutoAD'
+    export SSH_PUBKEY='/root/sshKey-reservationID-gts2021.pem'
     # Networking needs for Era Bootcamp
 	  #export NW2_NAME='EraManaged'
     #export NW1_DHCP_START="${IPV4_PREFIX}.10"
@@ -46,3 +47,5 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     && configure_era_cluster_2 \
     && deploy_api_mssql_2019 \
     && deploy_api_citrix_gold_image_vm
+
+    finish
