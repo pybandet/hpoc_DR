@@ -321,10 +321,12 @@ EOM
 
       fi
 
-  done
-fi
+    done
+  fi
   finish
+
   exit
+
 }
 
 function pe_configuration_args() {
@@ -344,6 +346,10 @@ function validate_clusters() {
         _fields=(${_cluster//|/ })
         PE_HOST=${_fields[0]}
     PE_PASSWORD=${_fields[1]}
+          EMAIL=${_fields[2]}
+        PC_HOST=${_fields[3]}
+      AUTH_HOST=${_fields[4]}
+SNOWInstanceURL=${_fields[5]}
 
     prism_check 'PE'
     if (( $? == 0 )) ; then
