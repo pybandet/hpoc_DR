@@ -1908,37 +1908,17 @@ echo $ClusterJSON > cluster.json
 
   _task_id=$(curl -k -H 'Content-Type: multipart/form-data' -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/${_era_cluster_id}/json" -F file="@"cluster.json)
 
+
 ##  Create the EraManaged network inside Era ##
 log "Create ${NW3_NAME} Static Network"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
     "name": "${NW1_NAME}",
-    "type": "Static",
-    "ipPools": [
-        {
-            "startIP": "${NW3_START}",
-            "endIP": "${NW3_END}"
-        }
-    ],
-    "properties": [
-        {
-            "name": "VLAN_GATEWAY",
-            "value": "${NW2_GATEWAY}"
-        },
-        {
-            "name": "VLAN_PRIMARY_DNS",
-            "value": "${AUTH_HOST}"
-        },
-        {
-            "name": "VLAN_SUBNET_MASK",
-            "value": "${NW3_NETMASK}"
-        },
-        {
-    		"name": "VLAN_DNS_DOMAIN",
-    		"value": "ntnxlab.local"
-    	  }
-    ]
+    "type": "DHCP",
+    "ipPools": [],
+    "properties": [],
+    "clusterId": "${_era_cluster_id}"
 }
 EOF
 )
