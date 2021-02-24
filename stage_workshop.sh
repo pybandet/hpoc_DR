@@ -67,17 +67,17 @@ function stage_clusters() {
   # Map workshop to staging script(s) and libraries,
   # _pe_launch will be executed on PE
   if (( $(echo ${_workshop} | grep -i "^GTS2021 Cluster1 - HPOC" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
+    _libraries+='lib.pe.sh lib.pe.api.sh lib.pc.sh'
     _pe_launch='ts2021_cluster1.sh'
     _pc_launch=${_pe_launch}
   fi
   if (( $(echo ${_workshop} | grep -i "^TS2021 Cluster2 - AWS" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
+    _libraries+='lib.pe.sh lib.pe.api.sh lib.pc.sh'
     _pe_launch='ts2021_cluster2.sh'
     _pc_launch=${_pe_launch}
   fi
   if (( $(echo ${_workshop} | grep -i "^GTS2021 Calm Test" | wc ${WC_ARG}) > 0 )); then
-    _libraries+='lib.pe.sh lib.pc.sh'
+    _libraries+='lib.pe.sh lib.pe.api.sh lib.pc.sh'
     _pe_launch='ts2021_calmBPs.sh'
     _pc_launch=${_pe_launch}
   fi
