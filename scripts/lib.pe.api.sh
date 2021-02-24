@@ -477,6 +477,7 @@ function update_aws_cluster_info_api() {
 HTTP_JSON_BODY=$(cat <<EOF
 {
     "id": "${cluster_id}",
+    "uuid": "${cluster_uuid}",
     "name": "${cluster_name}",
     "clusterExternalIPAddress": "${cluster_ip}",
     "clusterExternalDataServicesIPAddress": "${DATA_SERVICE_IP}",

@@ -330,7 +330,7 @@ fi
 function pe_configuration_args() {
   local _pc_launch="${1}"
 
-  PE_CONFIGURATION="EMAIL=${EMAIL} PRISM_ADMIN=${PRISM_ADMIN} PE_PASSWORD=${PE_PASSWORD} PE_HOST=${PE_HOST} PC_LAUNCH=${_pc_launch} PC_VERSION=${PC_VERSION}"
+  PE_CONFIGURATION="EMAIL=${EMAIL} PRISM_ADMIN=${PRISM_ADMIN} PE_PASSWORD=${PE_PASSWORD} PE_HOST=${PE_HOST} PC_LAUNCH=${_pc_launch} PC_VERSION=${PC_VERSION} PC_HOST=${PC_HOST} AUTH_HOST=${AUTH_HOST} SNOWInstanceURL=${SNOWInstanceURL}"
 }
 
 function validate_clusters() {
