@@ -853,7 +853,7 @@ function remote_exec() {
   fi
 
 
-if (($(echo $_pe_launch)=='ts2021_cluster2.sh')); then
+if (($(echo $_pe_launch | grep -i "ts2021_cluster2" | wc ${WC_ARG}) > 0 )); then
 
   while true ; do
     (( _loop++ ))
