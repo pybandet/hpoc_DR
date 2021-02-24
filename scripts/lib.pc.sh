@@ -3420,7 +3420,7 @@ sleep 30
 # Getting Network UUID
 log "Getting Network UUID"
 
-  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Secondary}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Secondary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 log "NETWORK UUID = |$NETWORK_UUID|"
 log "-----------------------------------------"
