@@ -463,13 +463,13 @@ function update_aws_cluster_info_api() {
 
   Log "Clusetr ID: |${cluster_id}|"
 
-  cluster_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.uuid' | tr -d \")
+  #cluster_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.uuid' | tr -d \")
 
-  Log "Clusetr UUID: |${cluster_uuid}|"
+  #Log "Clusetr UUID: |${cluster_uuid}|"
 
   cluster_dns=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.nameServers[]' | tr -d \")
 
-  Log "Clusetr UUID: |${cluster_dns}|"
+  Log "Clusetr DNS: |${cluster_dns}|"
 
   log "--------------------------------------"
   log "Updating Cliuster Info"
@@ -477,7 +477,6 @@ function update_aws_cluster_info_api() {
 HTTP_JSON_BODY=$(cat <<EOF
 {
     "id": "${cluster_id}",
-    "clusterUuid": "${cluster_uuid}",
     "name": "${cluster_name}",
     "nameServers": [
         "${AUTH_HOST}",
