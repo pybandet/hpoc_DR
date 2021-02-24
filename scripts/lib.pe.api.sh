@@ -478,12 +478,12 @@ function update_aws_cluster_info_api() {
   cluster_dsip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.clusterExternalDataServicesIPAddress' | tr -d \")
   cluster_dns=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.nameServers[]' | tr -d \")
 
-  Log "Cluster ID: |${cluster_id}|"
-  Log "Cluster UUID: |${cluster_uuid}|"
-  Log "Cluster Name: |${cluster_name}|"
-  Log "Cluster IP: |${cluster_ip}|"
-  Log "Cluster DataServices IP: |${cluster_dsip}|"
-  Log "Cluster DNS: |${cluster_dns}|"
+  log "Cluster ID: |${cluster_id}|"
+  log "Cluster UUID: |${cluster_uuid}|"
+  log "Cluster Name: |${cluster_name}|"
+  log "Cluster IP: |${cluster_ip}|"
+  log "Cluster DataServices IP: |${cluster_dsip}|"
+  log "Cluster DNS: |${cluster_dns}|"
 
   log "--------------------------------------"
   log "Updating Cluster Info"
@@ -492,7 +492,7 @@ function update_aws_cluster_info_api() {
 
   _value=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster/name_servers/add_list" | jq '.value' | tr -d \")
 
-  Log "Update Value: |${_value}|"
+  log "Update Value: |${_value}|"
 
   log "--------------------------------------"
   log "AWS Cluster Info Updated"
