@@ -22,7 +22,7 @@ SeedPC='seedPC202011.zip'
 BasicUnattend='basic_unattend.xml'
 CALM_RSA_KEY_FILE='calm_rsa_key.env'
 
-SNOWInstanceURL="dev78274.service-now.com"
+#SNOWInstanceURL="dev78274.service-now.com"
 
 Citrix_Blueprint='CitrixBootcampInfra.json'
 Citrix_Blueprint_Name='CitrixBootcampInfra'
