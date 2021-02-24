@@ -1478,33 +1478,33 @@ EOF
 log "Created Primary_ORACLE_NETWORK Network Profile with ID |${_oracle_network_profile_id}|"
 
 ##  Create the ERAMANAGED_MSSQL_NETWORK Network Profile inside Era ##
-log "Create the ERAMANAGED_MSSQL_NETWORK Network Profile"
+#log "Create the ERAMANAGED_MSSQL_NETWORK Network Profile"
+#
+#HTTP_JSON_BODY=$(cat <<EOF
+#{
+#  "engineType": "sqlserver_database",
+#  "type": "Network",
+#  "topology": "ALL",
+#  "dbVersion": "ALL",
+#  "systemProfile": false,
+#  "properties": [
+#    {
+#      "name": "VLAN_NAME",
+#      "value": "${ERA_NETWORK}",
+#      "description": "Name of the vLAN"
+#    }
+#  ],
+#  "name": "ERAMANAGED_MSSQL_NETWORK"
+#}
+#EOF
+#)
 
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "engineType": "sqlserver_database",
-  "type": "Network",
-  "topology": "ALL",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "VLAN_NAME",
-      "value": "${ERA_NETWORK}",
-      "description": "Name of the vLAN"
-    }
-  ],
-  "name": "ERAMANAGED_MSSQL_NETWORK"
-}
-EOF
-)
+#  _eramanagaed_network_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-  _eramanagaed_network_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created ERAMANAGED_MSSQL_NETWORK Network Profile with ID |${_eramanagaed_network_profile_id}|"
+#log "Created ERAMANAGED_MSSQL_NETWORK Network Profile with ID |${_eramanagaed_network_profile_id}|"
 
 ##  Create the CUSTOM_EXTRA_SMALL Compute Profile inside Era ##
-log "Create the CUSTOM_EXTRA_SMALL Compute Profile"
+#log "Create the CUSTOM_EXTRA_SMALL Compute Profile"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
