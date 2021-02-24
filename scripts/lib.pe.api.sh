@@ -778,7 +778,7 @@ HTTP_JSON_BODY=$(cat <<EOF
                     }
                 }
             ],
-            "power_state": "ON",
+            "power_state": "OFF",
             "nic_list": [
                 {
                     "nic_type": "NORMAL_NIC",
