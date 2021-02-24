@@ -1868,6 +1868,9 @@ log "Starting Era Config Cluster 2"
 
 ERA_HOST="${ERA_HOST_Cluster1}"
 
+# Get eraCluster ID again
+_era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[0].id' | tr -d \")
+
 log "PE Cluster IP |${PE_HOST}|"
 log "EraServer IP |${ERA_HOST}|"
 log "Era Cluster ID: |${_era_cluster_id}|"
@@ -1895,7 +1898,7 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-  _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+_era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
 log "Era Cluster ID: |${_era_cluster_id}|"
 
