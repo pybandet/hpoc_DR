@@ -692,6 +692,9 @@ function cluster_check() {
   local    _test_exit
   local CURL_HTTP_OPTS=' --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure '
 
+  log "Prism Central: |${PC_HOST}|"
+  log "Prism Element: |${PE_HOST}|"
+
   log "PC is installed, registering the PE to PC"
    # Enable the PE to PC registration
    _json_data="{\"ipAddresses\":[\"${PC_HOST}\"],\"username\":\"${PRISM_ADMIN}\",\"password\":\"${PE_PASSWORD}\",\"port\":null}"

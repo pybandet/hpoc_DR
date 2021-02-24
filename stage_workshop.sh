@@ -216,9 +216,9 @@ function stage_clusters() {
           PE_HOST=${_fields[0]}
       PE_PASSWORD=${_fields[1]}
             EMAIL=${_fields[2]}
-          #PC_HOST=${_fields[3]}
-        #AUTH_HOST=${_fields[4]}
-  #SNOWInstanceURL=${_fields[5]}
+          PC_HOST=${_fields[3]}
+        AUTH_HOST=${_fields[4]}
+  SNOWInstanceURL=${_fields[5]}
 
       pe_configuration_args "${_pc_launch}"
 
