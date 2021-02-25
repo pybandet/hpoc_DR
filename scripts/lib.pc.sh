@@ -1715,6 +1715,36 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
+## While True loop for Checking if the Cluster is "UP""
+
+loop=90
+
+  _era_cluster_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+
+log "Era AWS-Cluster registration: |Started|"
+
+# Checking routine to see that the registration in Era worked
+counter=1
+while [[ $counter -le $loop ]]
+do
+  ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+  if [[ $ops_status != "UP" ]]
+  then
+      ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+      log "Operation still in progress, it is $ops_status... Sleep for 60 seconds before retrying.. ($counter/$loop)"
+      counter=$((counter+1))
+      sleep 60
+      if [[ $counter -ge $loop ]]
+      then
+        log "We have tried for "$loop" minutes to register the MariaDB server and Database, but were not successful. Please look at the Era GUI to see if anything has happened... Exiting the scrip with error 23.."
+        exit 23
+      fi
+  else
+      log "AWS_Cluster is UP in Era... Proceeding"
+      break
+  fi
+done
+
 #As we now have two era clusters, we need to grab id of the AWS-Cluster....
 _era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
@@ -1805,40 +1835,6 @@ EOF
   _mssqlsource_vm_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms/list' | jq --arg VM "${VM_NAME}" '.entities[]|select (.spec.name==$VM)| .spec.resources.nic_list[] | .ip_endpoint_list[] | .ip' | tr -d \")
 
 log "MSSQLSource VM IP: |${_mssqlsource_vm_ip}|"
-
-## While True loop for Checking if the Cluster is "UP""
-
-loop=90
-
-  _era_cluster_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
-
-log "Era AWS-Cluster registration: |Started|"
-
-counter=1
-# Checking routine to see that the registration in Era worked
-while [[ $counter -le $loop ]]
-do
-    ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
-    if [[ $ops_status == "DOWN" ]]
-    then
-        ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
-        if [[ $ops_status == "UP" ]]
-        then
-            log "AWS_Cluster is UP in Era... Proceeding"
-            break
-        else
-          log "Operation still in progress, it is $ops_status... Sleep for 60 seconds before retrying.. ($counter/$loop)"
-          sleep 60
-        fi
-      counter=$((counter+1))
-    fi
-  if [[ $counter -ge $loop ]]
-  then
-    log "We have tried for "$loop" minutes to register the MariaDB server and Database, but were not successful. Please look at the Era GUI to see if anything has happened... Exiting the scrip with error 23.."
-    exit 23
-  fi
-done
-
 
 log "Registering MSSQLSourceVM"
 
