@@ -1871,11 +1871,10 @@ ERA_AGENT_IP="${IPV4_PREFIX}.209"
 ERA_AGENT_GATEWAY="${IPV4_PREFIX}.129"
 
 # Get eraCluster ID again
-_era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[0].id' | tr -d \")
+#_era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[0].id' | tr -d \")
 
 log "PE Cluster IP |${PE_HOST}|"
 log "EraServer IP |${ERA_HOST}|"
-log "Era Cluster ID: |${_era_cluster_id}|"
 
 ##  Register Cluster  ##
 log "Register ${CLUSTER_NAME} with Era"
@@ -1932,7 +1931,9 @@ EOF
 )
 
 #As we now have two era clusters, we need to grab id of the AWS-Cluster....
-_era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.[] | select (.name=="AWS-Cluster") .id' | tr -d \")
+_era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+_era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.[] | select (.name=="AWS-Cluster") .id' | tr -d \")
 
 log "Era Cluster ID: |${_era_aws_cluster_id}|"
 
