@@ -511,7 +511,7 @@ EOF
       log "Found the Images container.."
   else
       log "Creating the container..."
-      payload='{"name":"Images","marked_for_removal":false,"replication_factor":2,"oplog_replication_factor":2,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":false,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
+      payload='{"name":"Images","marked_for_removal":false,"replication_factor":1,"oplog_replication_factor":1,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":false,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
       return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
       if [ ${return_code} ]
       then
@@ -544,7 +544,7 @@ function pe_license_api() {
       "companyName": "Nutanix",
       "jobTitle": "SE"
     }' "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/eulas/accept")
-  
+
   log "Validate EULA on PE: _test=|${_test}|"
 
   # Disable pulse
