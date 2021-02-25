@@ -1724,7 +1724,7 @@ EOF
 
 loop=90
 
-  _era_cluster_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+  _era_cluster_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name=="AWS-Cluster") | .status' | tr -d \")
 
 log "Era AWS-Cluster registration: |Started|"
 
@@ -1732,10 +1732,10 @@ log "Era AWS-Cluster registration: |Started|"
 counter=1
 while [[ $counter -le $loop ]]
 do
-  ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+  ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name=="AWS-Cluster") | .status' | tr -d \")
   if [[ $ops_status != "UP" ]]
   then
-      ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+      ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name=="AWS-Cluster") | .status' | tr -d \")
       log "Operation still in progress, it is $ops_status... Sleep for 60 seconds before retrying.. ($counter/$loop)"
       counter=$((counter+1))
       sleep 60
