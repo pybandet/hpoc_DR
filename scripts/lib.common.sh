@@ -1154,7 +1154,7 @@ function loop_era(){
 
 function waitloop {
   #op_answer="$1"
-  loop=20
+  loop=30
   # Get the op_id from the task
   #op_id=$(echo $op_answer | jq '.operationId' | tr -d \")
 
@@ -1183,7 +1183,7 @@ function waitloop {
             fi
         else
             echo "Operation still in progress, it is at $ops_status %... Sleep for 30 seconds before retrying.. ($counter/$loop)"
-            sleep 30
+            sleep 60
         fi
         counter=$((counter+1))
     done
