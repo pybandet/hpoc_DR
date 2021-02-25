@@ -41,7 +41,7 @@ Banner_Text="GTSX21"
 
 # Curl and SSH settings
 CURL_OPTS='--insecure --silent --show-error' # --verbose'
-CURL_POST_OPTS="${CURL_OPTS} --max-time 25 --header Content-Type:application/json --header Accept:application/json --output /dev/null"
+CURL_POST_OPTS="${CURL_OPTS} --max-time 25 --header Content-Type:application/json --header Accept:application/json"
 CURL_HTTP_OPTS="${CURL_POST_OPTS} --write-out %{http_code}"
 SSH_OPTS='-o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null'
 SSH_OPTS+=' -q' # -v'

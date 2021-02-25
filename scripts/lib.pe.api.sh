@@ -538,32 +538,29 @@ function pe_license_api() {
   log "Prism Central: |${PC_HOST}|"
   log "Prism Element: |${PE_HOST}|"
 
-  log "IDEMPOTENCY: Checking PC API responds, curl failures are acceptable..."
-  prism_check 'PC' 2 0
-
-  if (( $? == 0 )) ; then
-    log "IDEMPOTENCY: PC API responds, skip"
-  else
-    _test=$(curl ${CURL_POST_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{
+  # Accept the EULA
+  _test=$(curl ${CURL_POST_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{
       "username": "SE with $(basename ${0})",
       "companyName": "Nutanix",
       "jobTitle": "SE"
     }' "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/eulas/accept")
-    log "Validate EULA on PE: _test=|${_test}|"
+  
+  log "Validate EULA on PE: _test=|${_test}|"
 
-    _test=$(curl ${CURL_POST_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT --data '{
-      "defaultNutanixEmail": null,
-      "emailContactList": null,
-      "enable": false,
-      "enableDefaultNutanixEmail": false,
-      "isPulsePromptNeeded": false,
-      "nosVersion": null,
-      "remindLater": null,
-      "verbosityType": null
-    }' "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/pulse")
-    log "Disable Pulse in PE: _test=|${_test}|"
+  # Disable pulse
+  _test=$(curl ${CURL_POST_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT --data '{
+    "defaultNutanixEmail": null,
+    "emailContactList": null,
+    "enable": false,
+    "enableDefaultNutanixEmail": false,
+    "isPulsePromptNeeded": false,
+    "nosVersion": null,
+    "remindLater": null,
+    "verbosityType": null
+  }' "https://${PE_HOST}:9440/PrismGateway/services/rest/v1/pulse")
 
-  fi
+  log "Disable Pulse in PE: _test=|${_test}|"
+
 # set +x
 
 }
