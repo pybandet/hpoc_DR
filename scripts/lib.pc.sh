@@ -1723,7 +1723,15 @@ log "Get the two Era Cluster IDs"
 
 _era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/clusters" --data '{}' | jq -r '.[] | select (.name=="AWS-Cluster") .id' | tr -d \")
 
+# IF we don;t have the Era UUID of the AWS CLuster, exit as this is a crucial part of the script!
+
 _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name=="EraCluster") .id' | tr -d \")
+
+if [ -z _era_aws_cluster_id ]
+then  
+  log "We didn't succeed to register the AWS Cluster to the Era instance and ${ERA_HOST}. Exit 24..."
+  exit 24
+fi
 
 log "Era AWS-Cluster ID: |${_era_aws_cluster_id}|"
 log "Era EraCluster ID: |${_era_cluster_id}|"
