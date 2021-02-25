@@ -20,7 +20,7 @@ case ${1} in
     . lib.pe.api.sh
 
     export AUTH_SERVER='AutoAD'
-    export STORAGE_ERA='Images'
+    export STORAGE_ERA='SelfServiceContainer'
     # Networking needs for Era Bootcamp
 	  #export NW2_NAME='EraManaged'
     export NW1_SUBNET="${IPV4_PREFIX}.0"
@@ -142,7 +142,6 @@ case ${1} in
     && flow_enable \
     && pc_cluster_img_import \
     && configure_era \
-    && configure_era_cluster_1 \
     && create_categories \
     && upload_citrix_calm_blueprint \
     && upload_snow_calm_blueprint \

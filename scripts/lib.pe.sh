@@ -934,11 +934,11 @@ function pe_init() {
     default_sp=$(ncli storagepool ls | grep 'Name' | cut -d ':' -f 2 | sed s/' '//g)
     ncli sp edit name="${default_sp}" new-name="${STORAGE_POOL}"
 
-    log "Check if there is a container named ${STORAGE_IMAGES}, if not create one"
-    (ncli container ls | grep -P '^(?!.*VStore Name).*Name' \
-      | cut -d ':' -f 2 | sed s/' '//g | grep "^${STORAGE_IMAGES}" > /dev/null 2>&1) \
-      && log "Container ${STORAGE_IMAGES} exists" \
-      || ncli container create name="${STORAGE_IMAGES}" sp-name="${STORAGE_POOL}"
+    #log "Check if there is a container named ${STORAGE_IMAGES}, if not create one"
+    #(ncli container ls | grep -P '^(?!.*VStore Name).*Name' \
+    #  | cut -d ':' -f 2 | sed s/' '//g | grep "^${STORAGE_IMAGES}" > /dev/null 2>&1) \
+    #  && log "Container ${STORAGE_IMAGES} exists" \
+    #  || ncli container create name="${STORAGE_IMAGES}" sp-name="${STORAGE_POOL}"
 
     # Set external IP address:
     #ncli cluster edit-params external-ip-address=${PE_HOST}

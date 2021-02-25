@@ -347,23 +347,23 @@ function pe_init_api() {
   #############################################################
   # Check to see if there is a container named Images. If not, create it
   #############################################################
-  log "Check if there is a container named ${STORAGE_IMAGES}, if not create one"
-  cont_arr=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[].name' | tr -d \"))
-  if [[ " ${cont_arr[@]} " =~ "Images" ]]
-  then
-      log "Found the Images container.."
-  else
-      log "Creating the container..."
-      payload='{"name":"Images","marked_for_removal":false,"replication_factor":2,"oplog_replication_factor":2,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":false,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
-      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
-      if [ ${return_code} ]
-      then
-          log "Container Images has been created..."
-      else
-          log "Container Images has not been created..."
-          exit 10
-      fi
-  fi
+  #log "Check if there is a container named ${STORAGE_IMAGES}, if not create one"
+  #cont_arr=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[].name' | tr -d \"))
+  #if [[ " ${cont_arr[@]} " =~ "Images" ]]
+  #then
+  #    log "Found the Images container.."
+  #else
+  #    log "Creating the container..."
+  #   payload='{"name":"Images","marked_for_removal":false,"replication_factor":2,"oplog_replication_factor":2,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":false,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
+  #    return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
+  #    if [ ${return_code} ]
+  #    then
+  #        log "Container Images has been created..."
+  #    else
+  #        log "Container Images has not been created..."
+  #        exit 10
+  #    fi
+  #fi
 
   #############################################################
   # Set dataservices IP address:

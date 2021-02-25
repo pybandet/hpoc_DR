@@ -1353,19 +1353,13 @@ echo $ClusterJSON > cluster.json
 
   _task_id=$(curl -k -H 'Content-Type: multipart/form-data' -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/${_era_cluster_id}/json" -F file="@"cluster.json)
 
-##  Add the Secondary Network inside Era ##
-log "Create ${NW2_NAME} DHCP/IPAM Network"
-
-  _dhcp_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data '{"name": "'${NW2_NAME}'","type": "DHCP"}' | jq -r '.id' | tr -d \")
-
-log "Created ${NW2_NAME} Network with Network ID |${_dhcp_network_id}|"
 
 ##  Create the EraManaged network inside Era ##
-log "Create ${NW3_NAME} Static Network"
+log "Create ${NW2_NAME} Static Network"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-    "name": "${NW3_NAME}",
+    "name": "${NW2_NAME}",
     "type": "Static",
     "ipPools": [
         {
@@ -1384,7 +1378,7 @@ HTTP_JSON_BODY=$(cat <<EOF
         },
         {
             "name": "VLAN_SUBNET_MASK",
-            "value": "${NW3_NETMASK}"
+            "value": "${NW2_NETMASK}"
         },
         {
     		"name": "VLAN_DNS_DOMAIN",
@@ -1397,14 +1391,14 @@ EOF
 
   _static_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-log "Created ${NW3_NAME} Network with Network ID |${_static_network_id}|"
+log "Created ${NW2_NAME} Network with Network ID |${_static_network_id}|"
 
 ##  Create the Primary-MSSQL-NETWORK Network Profile inside Era ##
 log "Create the Primary-MSSQL-NETWORK Network Profile"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
-  "engineType": "sqlserver_database",
+  "engineType": "mariadb_database",
   "type": "Network",
   "topology": "ALL",
   "dbVersion": "ALL",
@@ -1412,11 +1406,11 @@ HTTP_JSON_BODY=$(cat <<EOF
   "properties": [
     {
       "name": "VLAN_NAME",
-      "value": "${ERA_NETWORK}",
-      "description": "Name of the vLAN"
+      "value": "${NW2_NAME}",
+      "description": "Era Managed VLAN""
     }
   ],
-  "name": "Primary-MSSQL-NETWORK"
+  "name": "Era_Managed_MariaDB"
 }
 EOF
 )
@@ -1425,86 +1419,8 @@ EOF
 
 log "Created Primary-MSSQL-NETWORK Network Profile with ID |${_primary_network_profile_id}|"
 
-##  Create the Primary_ORACLE_NETWORKNetwork Profile inside Era ##
-log "Create the Primary_PGSQL_NETWORK Network Profile"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "engineType": "postgres_database",
-  "type": "Network",
-  "topology": "ALL",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "VLAN_NAME",
-      "value": "${ERA_NETWORK}",
-      "description": "Name of the vLAN"
-    }
-  ],
-  "name": "Primary-PGSQL-NETWORK"
-}
-EOF
-)
-
-  _postgres_network_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created Primary_PGSQL_NETWORK Network Profile with ID |${_postgres_network_profile_id}|"
-
-##  Create the Primary_ORACLE_NETWORKNetwork Profile inside Era ##
-log "Create the Primary_ORACLE_NETWORK Network Profile"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "engineType": "oracle_database",
-  "type": "Network",
-  "topology": "single",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "VLAN_NAME",
-      "value": "${ERA_NETWORK}",
-      "description": "Name of the vLAN"
-    }
-  ],
-  "name": "Primary_ORACLE_NETWORK"
-}
-EOF
-)
-
-  _oracle_network_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created Primary_ORACLE_NETWORK Network Profile with ID |${_oracle_network_profile_id}|"
-
-##  Create the ERAMANAGED_MSSQL_NETWORK Network Profile inside Era ##
-#log "Create the ERAMANAGED_MSSQL_NETWORK Network Profile"
-#
-#HTTP_JSON_BODY=$(cat <<EOF
-#{
-#  "engineType": "sqlserver_database",
-#  "type": "Network",
-#  "topology": "ALL",
-#  "dbVersion": "ALL",
-#  "systemProfile": false,
-#  "properties": [
-#    {
-#      "name": "VLAN_NAME",
-#      "value": "${ERA_NETWORK}",
-#      "description": "Name of the vLAN"
-#    }
-#  ],
-#  "name": "ERAMANAGED_MSSQL_NETWORK"
-#}
-#EOF
-#)
-
-#  _eramanagaed_network_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-#log "Created ERAMANAGED_MSSQL_NETWORK Network Profile with ID |${_eramanagaed_network_profile_id}|"
-
 ##  Create the CUSTOM_EXTRA_SMALL Compute Profile inside Era ##
-#log "Create the CUSTOM_EXTRA_SMALL Compute Profile"
+log "Create the CUSTOM_EXTRA_SMALL Compute Profile"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
@@ -1538,8 +1454,8 @@ EOF
 
 log "Created CUSTOM_EXTRA_SMALL Compute Profile with ID |${_xs_compute_profile_id}|"
 
-##  Create the ORACLE_SMALL Compute Profile inside Era ##
-log "Create the ORACLE_SMALL Compute Profile"
+##  Create the LAB_COMPUTE Compute Profile inside Era ##
+log "Create the LAB_COMPUTE Compute Profile"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
@@ -1550,28 +1466,28 @@ HTTP_JSON_BODY=$(cat <<EOF
   "properties": [
     {
       "name": "CPUS",
-      "value": "1",
+      "value": "4",
       "description": "Number of CPUs in the VM"
     },
     {
       "name": "CORE_PER_CPU",
-      "value": 4,
+      "value": "1",
       "description": "Number of cores per CPU in the VM"
     },
     {
       "name": "MEMORY_SIZE",
-      "value": 8,
+      "value": 5,
       "description": "Total memory (GiB) for the VM"
     }
   ],
-  "name": "ORACLE_SMALL"
+  "name": "LAB_COMPUTE"
 }
 EOF
 )
 
-  _oracle_small_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+  _lab_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-log "Created ORACLE_SMALL Compute Profile with ID |${_oracle_small_compute_profile_id}|"
+log "Created LAB_COMPUTE Compute Profile with ID |${_lab_compute_profile_id}|"
 
 ##  Create the NTNXLAB Domain Profile inside Era ##
 log "Create the NTNXLAB Domain Profile"
@@ -1666,76 +1582,6 @@ EOF
 
 log "Created NTNXLAB Domain Profile with ID |${_ntnxlab_domain_profile_id}|"
 
-##  Create the ORACLE_SMALL_PARAMS Parameters Profile inside Era ##
-log "Create the ORACLE_SMALL_PARAMS Parameters Profile"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "engineType": "oracle_database",
-  "type": "Database_Parameter",
-  "topology": "ALL",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "MEMORY_TARGET",
-      "value": 4096,
-      "description": "Total Memory (MiB): Total memory (AKA MEMORY_TARGET) specifies the Oracle systemwide usable memory. The database tunes memory to the total memory value, reducing or enlarging the SGA and PGA as needed."
-    },
-    {
-      "name": "SGA_TARGET",
-      "value": "",
-      "description": "SGA (MiB): Provide a value here to disable automatic shared memory management. Providing a value enables you to determine how the SGA memory is distributed among the SGA memory components."
-    },
-    {
-      "name": "PGA_AGGREGATE_TARGET",
-      "value": "",
-      "description": "PGA (MiB): Provide a value here to disable automatic shared memory management. Providing a value enables you to determine how the PGA memory is distributed among the PGA memory components."
-    },
-    {
-      "name": "SHARED_SERVERS",
-      "value": "0",
-      "description": "Number of shared servers: Specify this number when the connection mode is set to 'shared'"
-    },
-    {
-      "name": "DB_BLOCK_SIZE",
-      "value": "8",
-      "description": "Block Size (KiB): Oracle Database data is stored in data blocks of the size specified. One data block corresponds to a specific number of bytes of physical space on the disk. Selecting a block size other than the default 8 kilobytes (KiB) value requires advanced knowledge and should be done only when absolutely required."
-    },
-    {
-      "name": "PROCESSES",
-      "value": "300",
-      "description": "Number of processes: Specify the maximum number of processes that can simultaneously connect to the database. Enter a number or accept the default value of 300. The default value for this parameter is appropriate for many environments. The value you select should allow for all background processes, user processes, and parallel execution processes."
-    },
-    {
-      "name": "TEMP_TABLESPACE",
-      "value": "256",
-      "description": "Temp Tablespace (MiB)"
-    },
-    {
-      "name": "UNDO_TABLESPACE",
-      "value": 256,
-      "description": "Undo Tablespace (MiB)"
-    },
-    {
-      "name": "NLS_LANGUAGE",
-      "value": "AMERICAN",
-      "description": "Default Language: The default language determines how the database supports locale-sensitive information such as day and month abbreviations, default sorting sequence for character data, and reading direction (left to right ir right to left)."
-    },
-    {
-      "name": "NLS_TERRITORY",
-      "value": "AMERICA",
-      "description": "Default Territory: Select the name of the territory whose conventions are to be followed for day and week numbering or accept the default. The default territory also establishes the default date format, the default decimal character and group separator, and the default International Standardization Organization (ISO) and local currency symbols."
-    }
-  ],
-  "name": "ORACLE_SMALL_PARAMS"
-}
-EOF
-)
-
-  _oracle_param_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created ORACLE_SMALL_PARAMS Parameters Profile with ID |${_oracle_param_profile_id}|"
 
 ## Get the Super Admin Role ID ##
 log "Getting the Super Admin Role ID"
@@ -1777,7 +1623,7 @@ log "Enable Era Multi-Cluster"
 HTTP_JSON_BODY=$(cat <<EOF
 {
   "agentVMPrefix": "EraAgent",
-  "vlanName": "${NW3_NAME}"
+  "vlanName": "${NW2_NAME}"
 }
 EOF
 )
@@ -1798,64 +1644,6 @@ log "Era Config Complete"
 }
 
 #########################################################################################################################################
-# Routine to configure era cluster 1
-#########################################################################################################################################
-
-function configure_era_cluster_1() {
-  local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
-
-#set -x
-
-log "Starting Era Config Cluster 1"
-
-log "PE Cluster IP |${PE_HOST}|"
-log "EraServer IP |${ERA_HOST}|"
-log "Era Cluster ID: |${_era_cluster_id}|"
-
-##  Create the LAB_COMPUTE Compute Profile inside Era ##
-log "Create the LAB_COMPUTE Compute Profile"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "type": "Compute",
-  "topology": "ALL",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "CPUS",
-      "value": "4",
-      "description": "Number of CPUs in the VM"
-    },
-    {
-      "name": "CORE_PER_CPU",
-      "value": "1",
-      "description": "Number of cores per CPU in the VM"
-    },
-    {
-      "name": "MEMORY_SIZE",
-      "value": 5,
-      "description": "Total memory (GiB) for the VM"
-    }
-  ],
-  "name": "LAB_COMPUTE"
-}
-EOF
-)
-
-  _lab_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created LAB_COMPUTE Compute Profile with ID |${_lab_compute_profile_id}|"
-
-log "--------------------------------------"
-
-log "Era Config Cluster 1 Complete"
-
-#set +x
-
-}
-
-#########################################################################################################################################
 # Routine to configure era cluster 2
 #########################################################################################################################################
 
@@ -1870,9 +1658,6 @@ ERA_HOST="${ERA_HOST_Cluster1}"
 ERA_AGENT_IP="${IPV4_PREFIX}.209"
 ERA_AGENT_GATEWAY="${IPV4_PREFIX}.129"
 
-# Get eraCluster ID again
-#_era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[0].id' | tr -d \")
-
 log "PE Cluster IP |${PE_HOST}|"
 log "EraServer IP |${ERA_HOST}|"
 
@@ -1884,7 +1669,7 @@ HTTP_JSON_BODY=$(cat <<EOF
   "clusterName": "AWS-Cluster",
   "clusterDescription": "AWS Bootcamp Cluster",
   "clusterIP": "${PE_HOST}",
-  "storageContainer": "Images",
+  "storageContainer": "${STORAGE_ERA}",
   "agentVMPrefix": "EraAgent",
   "port": 9440,
   "protocol": "https",
@@ -1933,16 +1718,22 @@ EOF
 #As we now have two era clusters, we need to grab id of the AWS-Cluster....
 #_era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
+# Get EraCluster IDs
+log "Get the two Era Cluster IDs"
+
 _era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/clusters" --data '{}' | jq -r '.[] | select (.name=="AWS-Cluster") .id' | tr -d \")
 
-log "Era Cluster ID: |${_era_aws_cluster_id}|"
+_era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name=="EraCluster") .id' | tr -d \")
+
+log "Era AWS-Cluster ID: |${_era_aws_cluster_id}|"
+log "Era EraCluster ID: |${_era_cluster_id}|"
 
 ##  Update EraCluster ##
 log "Updating Era Cluster ID: |${_era_aws_cluster_id}|"
 
 # Don't we need to change the Container to Images???
 #ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_DEFAULT}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
-ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "Images","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
+ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_ERA}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
 
 echo $ClusterJSON > cluster.json
 
@@ -1950,12 +1741,13 @@ echo $ClusterJSON > cluster.json
 
 
 ##  Create the EraManaged network inside Era ##
-log "Create ${NW3_NAME} Static Network"
+log "Create ${NW1_NAME} Static Network"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
     "name": "${NW1_NAME}",
     "type": "Static",
+    "clusterId": "${_era_aws_cluster_id}",
     "ipPools": [
         {
             "startIP": "${NW3_START}",
@@ -1976,7 +1768,7 @@ HTTP_JSON_BODY=$(cat <<EOF
             "value": "${SUBNET_MASK}"
         },
         {
-    		"name": "VLAN_DNS_DOMAIN",
+        "name": "VLAN_DNS_DOMAIN",
     		"value": "ntnxlab.local"
     	  }
     ]
@@ -1984,9 +1776,10 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
+
   _static_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-log "Created ${NW3_NAME} Network with Network ID |${_static_network_id}|"
+log "Created ${NW1_NAME} Network with Network ID |${_static_network_id}|"
 
 
 # Get User01-MSSQLSource VM IP
@@ -2007,13 +1800,14 @@ log "MSSQLSource VM IP: |${_mssqlsource_vm_ip}|"
 
 ## While True loop for Checking if the Cluster is "UP""
 
+loop=90
 
-
-    _era_cluster_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+  _era_cluster_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
 
 log "Era Cluster Status: |${_era_cluster_status}|"
 
-
+# Checking on error. if we have received an error, show it and exit 1
+if (($(echo ${_era_cluster_status} | grep -i "UP" | wc ${WC_ARG}) > 0 ));then
 
 log "Registering MSSQLSourceVM"
 
@@ -2058,7 +1852,32 @@ EOF
 # Call the wait function
 waitloop
 
-log "MSSQLSourceVM has been Registered"
+else
+  counter=1
+  # Checking routine to see that the registration in Era worked
+  while [[ $counter -le $loop ]]
+  do
+      ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+      if [[ $ops_status == "DOWN" ]]
+      then
+          ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+          if [[ $ops_status == "UP" ]]
+          then
+             echo "AWS_Clusteris UP in Era..."
+             break
+          else
+          echo "Operation still in progress, it is at $ops_status %... Sleep for 30 seconds before retrying.. ($counter/$loop)"
+          sleep 60
+          fi
+      counter=$((counter+1))
+    fi
+  if [[ $counter -ge $loop ]]
+  then
+    echo "We have tried for "$(expr $loop / 2)" minutes to register the MariaDB server and Database, but were not successful. Please look at the Era GUI to see if anything has happened..."
+  fi
+done
+fi
+
 
 # Get DB Server ID
 log "Getting DB Server ID"
@@ -2113,7 +1932,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     }
   ],
   "availableClusterIds": [
-    "${_era_cluster_id}"
+    "${_era_aws_cluster_id}"
   ],
   "name": "MSSQL_19_${_user}"
 }
@@ -2171,6 +1990,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     }
   ],
   "availableClusterIds": [
+    "${_era_aws_cluster_id}",
     "${_era_cluster_id}"
   ],
   "name": "MSSQL_19_SYNCED"
@@ -2183,7 +2003,8 @@ EOF
 # Call the wait function
 waitloop
 
-log "Ceating MSSQL_19_SYNCED Now Complete"
+log "MSSQL_19_SYNCED Now Complete"
+
 
 
 log "Era Config Cluster 2 Complete"
