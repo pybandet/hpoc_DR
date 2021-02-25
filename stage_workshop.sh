@@ -80,17 +80,17 @@ function stage_clusters() {
     do
       set -f
       # shellcheck disable=2206
-          _fields=(${_cluster//|/ })
-          PE_HOST=${_fields[0]}
+      _fields=(${_cluster//|/ })
+      PE_HOST=${_fields[0]}
       PE_PASSWORD=${_fields[1]}
-            EMAIL=${_fields[2]}
-          PC_HOST=${_fields[3]}
-        AUTH_HOST=${_fields[4]}
-  SNOWInstanceURL=${_fields[5]}
+      EMAIL=${_fields[2]}
+      PC_HOST=${_fields[3]}
+      AUTH_HOST=${_fields[4]}
+      SNOWInstanceURL=${_fields[5]}
 
-      pe_configuration_args "${_pc_launch}"
+      #pe_configuration_args "${_pc_launch}"
+      PE_CONFIGURATION="EMAIL=${EMAIL} PRISM_ADMIN=${PRISM_ADMIN} PE_PASSWORD=${PE_PASSWORD} PE_HOST=${PE_HOST} PC_LAUNCH=${_pc_launch} PC_VERSION=${PC_VERSION} PC_HOST=${PC_HOST} AUTH_HOST=${AUTH_HOST} SNOWInstanceURL=${SNOWInstanceURL}"
 
-    #  . scripts/global.vars.sh # re-import for relative settings
 
       cat <<EoM
 ______Warning -- curl time out indicates either:
