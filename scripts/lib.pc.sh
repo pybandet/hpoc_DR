@@ -1889,7 +1889,7 @@ waitloop
 # Get DB Server ID
 log "Getting DB Server ID"
 
-  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data '{}' | jq '.[] | select(.name == "MSSQLSourceVM") | .id' | tr -d \")
+  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data '{}' | jq '.[] | select(.name == "MSSQL19-ProfileSource") | .id' | tr -d \")
 
 log "Era DB Server ID: |${_era_db_server_id}|"
 
