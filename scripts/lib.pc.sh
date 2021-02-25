@@ -2018,6 +2018,15 @@ EOF
 
 log "MSSQLSource VM IP: |${_mssqlsource_vm_ip}|"
 
+## While True loop for Checking if the Cluster is "UP""
+
+
+
+    _era_cluster_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+
+log "Era Cluster Status: |${_era_cluster_status}|"
+
+
 
 log "Registering MSSQLSourceVM"
 

@@ -424,8 +424,8 @@ function pe_init_aws_api() {
   cluster_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.clusterExternalIPAddress' | tr -d \")
   cluster_dns=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.nameServers[]' | tr -d \")
   cluster_name="AWS-Cluster"
-  
-  
+
+
   log "Cluster ID: |${cluster_id}|"
   log "Cluster UUID: |${cluster_uuid}|"
   log "Cluster Name: |${cluster_name}|"
@@ -880,7 +880,15 @@ log "-----------------------------------------"
 log "--------------------------------------"
 log "Getting Network UUID"
 
-  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==User VM Subnet"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"subnet",
+  "filter": "name==${NW1_NAME}"
+}
+EOF
+)
+
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data "${HTTP_JSON_BODY}" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 log "NETWORK UUID = |${NETWORK_UUID}|"
 
