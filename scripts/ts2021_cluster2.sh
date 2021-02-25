@@ -36,7 +36,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     #export NW1_DHCP_END="${IPV4_PREFIX}.125" # Need to understand the NETMASK for this!!! Changed to 125 as the original Cluster staging script
     #export NW3_NAME='EraManaged'
     #export NW3_NETMASK='255.255.255.128'
-    export NW3_START="${IPV4_PREFIX}.209"
+    export NW3_START="${IPV4_PREFIX}.210"
     export NW3_END="${IPV4_PREFIX}.253"
     OCTET_Cluster2=(${PC_HOST//./ }) # zero index
     IPV4_PREFIX_Cluster2=${OCTET_Cluster2[0]}.${OCTET_Cluster2[1]}.${OCTET_Cluster2[2]}

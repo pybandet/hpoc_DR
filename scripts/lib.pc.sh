@@ -1955,20 +1955,6 @@ log "Create ${NW3_NAME} Static Network"
 HTTP_JSON_BODY=$(cat <<EOF
 {
     "name": "${NW1_NAME}",
-    "type": "DHCP",
-    "ipPools": [],
-    "properties": [],
-    "clusterId": "${_era_aws_cluster_id}"
-}
-EOF
-)
-
-##  Create the EraManaged network inside Era ##
-log "Create ${NW3_NAME} Static Network"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-    "name": "${NW1_NAME}",
     "type": "Static",
     "ipPools": [
         {
@@ -2001,41 +1987,6 @@ EOF
   _static_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
 log "Created ${NW3_NAME} Network with Network ID |${_static_network_id}|"
-
-##  Create the LAB_COMPUTE Compute Profile inside Era ##
-log "Create the LAB_COMPUTE Compute Profile"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "type": "Compute",
-  "topology": "ALL",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "CPUS",
-      "value": "4",
-      "description": "Number of CPUs in the VM"
-    },
-    {
-      "name": "CORE_PER_CPU",
-      "value": "1",
-      "description": "Number of cores per CPU in the VM"
-    },
-    {
-      "name": "MEMORY_SIZE",
-      "value": 5,
-      "description": "Total memory (GiB) for the VM"
-    }
-  ],
-  "name": "LAB_COMPUTE"
-}
-EOF
-)
-
-  _lab_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created LAB_COMPUTE Compute Profile with ID |${_lab_compute_profile_id}|"
 
 
 # Get User01-MSSQLSource VM IP
