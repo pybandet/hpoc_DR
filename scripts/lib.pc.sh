@@ -1715,6 +1715,11 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+
+  # Call the wait function
+  waitloop
+
 ## While True loop for Checking if the Cluster is "UP""
 
 loop=90
@@ -1758,7 +1763,7 @@ _era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X G
 _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name=="EraCluster") .id' | tr -d \")
 
 if [ -z _era_aws_cluster_id ]
-then  
+then
   log "We didn't succeed to register the AWS Cluster to the Era instance and ${ERA_HOST}. Exit 24..."
   exit 24
 fi
