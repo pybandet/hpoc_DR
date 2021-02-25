@@ -147,39 +147,39 @@ EOF
 
   log "Secondary Network Created"
 
-  log "--------------------------------------"
-  log "Create EraManaged Network"
-
-  NW3_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==EraManaged"}' | jq -r '.entities[] | .status.name' | tr -d \")
-
-  log "EraManaged NETWORK Check = |${NW3_NAME_CHECK}|"
-
-  log "Create ${NW3_NAME} Network"
-  log "Create secondary network: Name: ${NW3_NAME}, VLAN: ${NW2_VLAN}"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-    "spec": {
-        "name": "${NW3_NAME}",
-        "resources": {
-            "subnet_type": "VLAN",
-            "vlan_id": ${NW2_VLAN}
-        }
-    },
-    "metadata": {
-        "kind": "subnet"
-    },
-    "api_version": "3.1.0"
-}
-EOF
-  )
-
-    _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/subnets" | jq -r '.status.execution_context.task_uuid' | tr -d \")
-    loop ${_task_id} ${PE_HOST}
-
-    log "EraManaged Network Created"
-
-    log "--------------------------------------"
+#  log "--------------------------------------"
+#  log "Create EraManaged Network"
+#
+#  NW3_NAME_CHECK=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==EraManaged"}' | jq -r '.entities[] | .status.name' | tr -d \")
+#
+#  log "EraManaged NETWORK Check = |${NW3_NAME_CHECK}|"
+#
+#  log "Create ${NW3_NAME} Network"
+#  log "Create secondary network: Name: ${NW3_NAME}, VLAN: ${NW2_VLAN}"
+#
+#HTTP_JSON_BODY=$(cat <<EOF
+#{
+#    "spec": {
+#        "name": "${NW3_NAME}",
+#        "resources": {
+#            "subnet_type": "VLAN",
+#            "vlan_id": ${NW2_VLAN}
+#        }
+#    },
+#    "metadata": {
+#        "kind": "subnet"
+#    },
+#    "api_version": "3.1.0"
+#}
+#EOF
+#  )
+#
+#    _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/subnets" | jq -r '.status.execution_context.task_uuid' | tr -d \")
+#    loop ${_task_id} ${PE_HOST}
+#
+#    log "EraManaged Network Created"
+#
+#    log "--------------------------------------"
 
   set +x
 
@@ -504,23 +504,23 @@ EOF
   #############################################################
   # Check to see if there is a container named Images. If not, create it
   #############################################################
-  log "Check if there is a container named ${STORAGE_IMAGES}, if not create one"
-  cont_arr=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[].name' | tr -d \"))
-  if [[ " ${cont_arr[@]} " =~ "Images" ]]
-  then
-      log "Found the Images container.."
-  else
-      log "Creating the container..."
-      payload='{"name":"Images","marked_for_removal":false,"replication_factor":1,"oplog_replication_factor":1,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":false,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
-      return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
-      if [ ${return_code} ]
-      then
-          log "Container Images has been created..."
-      else
-          log "Container Images has not been created..."
-          exit 10
-      fi
-  fi
+  #log "Check if there is a container named ${STORAGE_IMAGES}, if not create one"
+  #cont_arr=($(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.entities[].name' | tr -d \"))
+  #if [[ " ${cont_arr[@]} " =~ "Images" ]]
+  #then
+  #    log "Found the Images container.."
+  #else
+  #    log "Creating the container..."
+  #    payload='{"name":"Images","marked_for_removal":false,"replication_factor":1,"oplog_replication_factor":1,"nfs_whitelist":[],"nfs_whitelist_inherited":true,"erasure_code":"off","prefer_higher_ecfault_domain":null,"erasure_code_delay_secs":null,"finger_print_on_write":"off","on_disk_dedup":"OFF","compression_enabled":false,"compression_delay_in_secs":null,"is_nutanix_managed":null,"enable_software_encryption":false,"encrypted":null}'
+  #    return_code=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -d $payload "https://$PE_HOST:9440/PrismGateway/services/rest/v2.0/storage_containers" | jq '.value' | tr -d \")
+  #    if [ ${return_code} ]
+  #    then
+  #        log "Container Images has been created..."
+  #    else
+  #        log "Container Images has not been created..."
+  #        exit 10
+  #    fi
+  #fi
 
 
 }
