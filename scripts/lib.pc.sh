@@ -1963,6 +1963,41 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
+##  Create the EraManaged network inside Era ##
+log "Create ${NW3_NAME} Static Network"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "name": "${NW1_NAME}",
+    "type": "Static",
+    "ipPools": [
+        {
+            "startIP": "${NW3_START}",
+            "endIP": "${NW3_END}"
+        }
+    ],
+    "properties": [
+        {
+            "name": "VLAN_GATEWAY",
+            "value": "${ERA_AGENT_GATEWAY}"
+        },
+        {
+            "name": "VLAN_PRIMARY_DNS",
+            "value": "${AUTH_HOST}"
+        },
+        {
+            "name": "VLAN_SUBNET_MASK",
+            "value": "${SUBNET_MASK}"
+        },
+        {
+    		"name": "VLAN_DNS_DOMAIN",
+    		"value": "ntnxlab.local"
+    	  }
+    ]
+}
+EOF
+)
+
   _static_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
 log "Created ${NW3_NAME} Network with Network ID |${_static_network_id}|"
