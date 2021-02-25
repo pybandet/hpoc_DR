@@ -1378,7 +1378,7 @@ HTTP_JSON_BODY=$(cat <<EOF
         },
         {
             "name": "VLAN_SUBNET_MASK",
-            "value": "${NW2_NETMASK}"
+            "value": "${SUBNET_MASK}"
         },
         {
     		"name": "VLAN_DNS_DOMAIN",
