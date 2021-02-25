@@ -1939,7 +1939,9 @@ log "Era Cluster ID: |${_era_aws_cluster_id}|"
 ##  Update EraCluster ##
 log "Updating Era Cluster ID: |${_era_aws_cluster_id}|"
 
-ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_DEFAULT}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
+# Don't we need to change the Container to Images???
+#ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_DEFAULT}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
+ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "Images","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
 
 echo $ClusterJSON > cluster.json
 
@@ -1955,7 +1957,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     "type": "DHCP",
     "ipPools": [],
     "properties": [],
-    "clusterId": "${_era_cluster_id}"
+    "clusterId": "${_era_aws_cluster_id}"
 }
 EOF
 )
