@@ -1804,10 +1804,33 @@ loop=90
 
   _era_cluster_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
 
-log "Era Cluster Status: |${_era_cluster_status}|"
+log "Era AWS-Cluster registration: |Started|"
 
-# Checking on error. if we have received an error, show it and exit 1
-if (($(echo ${_era_cluster_status} | grep -i "UP" | wc ${WC_ARG}) > 0 ));then
+counter=1
+# Checking routine to see that the registration in Era worked
+while [[ $counter -le $loop ]]
+do
+    ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+    if [[ $ops_status == "DOWN" ]]
+    then
+        ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
+        if [[ $ops_status == "UP" ]]
+        then
+            log "AWS_Cluster is UP in Era... Proceeding"
+            break
+        else
+          log "Operation still in progress, it is $ops_status... Sleep for 60 seconds before retrying.. ($counter/$loop)"
+          sleep 60
+        fi
+      counter=$((counter+1))
+    fi
+  if [[ $counter -ge $loop ]]
+  then
+    log "We have tried for "$loop" minutes to register the MariaDB server and Database, but were not successful. Please look at the Era GUI to see if anything has happened... Exiting the scrip with error 23.."
+    exit 23
+  fi
+done
+
 
 log "Registering MSSQLSourceVM"
 
@@ -1852,31 +1875,6 @@ EOF
 # Call the wait function
 waitloop
 
-else
-  counter=1
-  # Checking routine to see that the registration in Era worked
-  while [[ $counter -le $loop ]]
-  do
-      ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
-      if [[ $ops_status == "DOWN" ]]
-      then
-          ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name==“AWS-Cluster”) | .status' | tr -d \")
-          if [[ $ops_status == "UP" ]]
-          then
-             echo "AWS_Clusteris UP in Era..."
-             break
-          else
-          echo "Operation still in progress, it is at $ops_status %... Sleep for 30 seconds before retrying.. ($counter/$loop)"
-          sleep 60
-          fi
-      counter=$((counter+1))
-    fi
-  if [[ $counter -ge $loop ]]
-  then
-    echo "We have tried for "$(expr $loop / 2)" minutes to register the MariaDB server and Database, but were not successful. Please look at the Era GUI to see if anything has happened..."
-  fi
-done
-fi
 
 
 # Get DB Server ID
