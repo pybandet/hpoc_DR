@@ -1931,7 +1931,8 @@ HTTP_JSON_BODY=$(cat <<EOF
 EOF
 )
 
-_era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+#As we now have two era clusters, we need to grab id of the AWS-Cluster....
+_era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r jq '.[] | select (.name=="AWS-Cluster") .id' | tr -d \")
 
 log "Era Cluster ID: |${_era_aws_cluster_id}|"
 
