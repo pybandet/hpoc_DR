@@ -2799,7 +2799,7 @@ function upload_fiesta_mssql_blueprint() {
   local PE_IP=${PE_HOST}
   local ERA_IP=${ERA_HOST}
   local CVM_NETWORK=${NW1_NAME}
-  local NETWORK_NAME=${NW1_NAME}
+  local NETWORK_NAME=${NW2_NAME}
   local VLAN_NAME=${NW1_VLAN}
   local PRISM_ADMIN_PASSWORD="${PE_PASSWORD}"
   local ROOT_PASSWORD="nutanix/4u"
@@ -2932,7 +2932,7 @@ sleep 30
 # Getting Network UUID
 log "Getting Network UUID"
 
-  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Primary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST 'https://localhost:9440/api/nutanix/v3/subnets/list' --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==Secondary"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
 
 log "NETWORK UUID = |$NETWORK_UUID|"
 log "-----------------------------------------"
