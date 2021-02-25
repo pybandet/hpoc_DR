@@ -1154,7 +1154,7 @@ function loop_era(){
 
 function waitloop {
   #op_answer="$1"
-  loop=30
+  loop=180
   # Get the op_id from the task
   #op_id=$(echo $op_answer | jq '.operationId' | tr -d \")
 

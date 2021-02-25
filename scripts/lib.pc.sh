@@ -1722,7 +1722,7 @@ EOF
 
 ## While True loop for Checking if the Cluster is "UP""
 
-loop=90
+loop=180
 
   _era_cluster_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name=="AWS-Cluster") | .status' | tr -d \")
 
