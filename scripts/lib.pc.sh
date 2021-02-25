@@ -2043,7 +2043,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     }
   ],
   "vmIp": "${_mssqlsource_vm_ip}",
-  "nxClusterUuid": "{_era_aws_cluster_id}",
+  "nxClusterUuid": "${_era_aws_cluster_id}",
   "databaseType": "sqlserver_database",
   "forcedInstall": true,
   "workingDirectory": "c:\\\\",
