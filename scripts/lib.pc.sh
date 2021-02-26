@@ -1305,7 +1305,7 @@ log "EraServer IP |${ERA_HOST}|"
 
 ### Hotfix Era due to Replication issue of ALL profiles. 
 log "Applying HotFIX..."
-ERA_PASSWORD='Nutanix.1'
+PASSWD_ERA='Nutanix.1'
 # Getting the hotfix in the CVM
 # Get sshpass installed
 curl --silent ${QCOW2_REPOS}\sshpass-1.06-2.el7.x86_64.rpm
@@ -1316,7 +1316,7 @@ curl --silent ${QCOW2_REPOS}\Era_HF\era.tar.gz -O
 curl --silent ${QCOW2_REPOS}\Era_HF\copy_era_war.sh -O
 
 # Run the hotfix from the CVM in the Era installation
-bash copy_era_war.sh ${ERA_HOST} ${ERA_PASSWORD} /home/nutanix 
+bash copy_era_war.sh ${ERA_HOST} ${PASSWD_ERA} /home/nutanix 
 
 # Remove the files from the CVM
 #/usr/bin/rm era.tar.gz
