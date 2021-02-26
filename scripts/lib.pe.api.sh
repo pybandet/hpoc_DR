@@ -421,7 +421,7 @@ function pe_init_aws_api() {
   cluster_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.clusterExternalIPAddress' | tr -d \")
   cluster_dns=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.nameServers[]' | tr -d \")
   cluster_name_tmp=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.name' | tr -d \")
-  
+
   # Set the name of the AWS Cluster to AWS-Cluster-xxxx by stripping the Cluster-HPOC from its original name
   cluster_name="${cluster_name_tmp:0:4}Cluster${cluster_name_tmp:16}"
 
@@ -645,14 +645,14 @@ EOF
 
 }
 
+
+
 #########################################################################################################################################
 # Routine to Create Era Bootcamp PreProvisioned MSSQL Server 2019
 #########################################################################################################################################
 
-function deploy_api_mssql_2019() {
+function deploy_api_mssql_2019_image() {
     local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
-
-set -x
 
 log "--------------------------------------"
 log "Uploading ${MSSQL19_SourceVM_Image1}"
@@ -738,6 +738,53 @@ EOF
 log "${MSSQL19_SourceVM_Image2} UUID = |${MSSQL19_SourceVM_Image2_UUID}|"
 log "-----------------------------------------"
 
+
+}
+#########################################################################################################################################
+# Routine to Create Era Bootcamp PreProvisioned MSSQL Server 2019
+#########################################################################################################################################
+
+function deploy_api_mssql_2019_user() {
+    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
+
+#set -x
+
+log "--------------------------------------"
+log "Getting UUIDs for Create VM Payload"
+
+# Getting Image UUIDs
+log "--------------------------------------"
+log "Getting ${MSSQL19_SourceVM_Image1} UUID"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"image",
+  "filter": "name==${MSSQL19_SourceVM_Image1}"
+}
+EOF
+)
+
+      MSSQL19_SourceVM_Image1_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images/list" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "${MSSQL19_SourceVM_Image1} UUID = |${MSSQL19_SourceVM_Image1_UUID}|"
+log "-----------------------------------------"
+
+log "--------------------------------------"
+log "Getting ${MSSQL19_SourceVM_Image2} UUID"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"image",
+  "filter": "name==${MSSQL19_SourceVM_Image2}"
+}
+EOF
+)
+
+      MSSQL19_SourceVM_Image2_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images/list" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "${MSSQL19_SourceVM_Image2} UUID = |${MSSQL19_SourceVM_Image2_UUID}|"
+log "-----------------------------------------"
+
 # Getting Network UUID
 log "--------------------------------------"
 log "Getting Network UUID"
@@ -749,12 +796,12 @@ log "NETWORK UUID = |${NETWORK_UUID}|"
 
 
 log "--------------------------------------"
-log "Creating ${MSSQL19_SourceVM} VM"
+log "Creating ${MSSQL19_USER_SourceVM} VM"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
     "spec": {
-        "name": "${MSSQL19_SourceVM}",
+        "name": "${MSSQL19_USER_SourceVM}",
         "resources": {
             "num_threads_per_core": 1,
             "num_vcpus_per_socket": 1,
@@ -811,7 +858,131 @@ EOF
 _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/vms" | jq -r '.status.execution_context.task_uuid' | tr -d \")
 loop ${_task_id} ${PE_HOST}
 
-log "${MSSQL19_SourceVM} VM Created"
+log "${MSSQL19_USER_SourceVM} VM Created"
+
+#set +x
+
+}
+
+#########################################################################################################################################
+# Routine to Create Era Bootcamp PreProvisioned MSSQL Server 2019
+#########################################################################################################################################
+
+function deploy_api_mssql_2019_sync() {
+    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
+
+#set -x
+
+log "--------------------------------------"
+log "Getting UUIDs for Create VM Payload"
+
+# Getting Image UUIDs
+log "--------------------------------------"
+log "Getting ${MSSQL19_SourceVM_Image1} UUID"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"image",
+  "filter": "name==${MSSQL19_SourceVM_Image1}"
+}
+EOF
+)
+
+      MSSQL19_SourceVM_Image1_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images/list" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "${MSSQL19_SourceVM_Image1} UUID = |${MSSQL19_SourceVM_Image1_UUID}|"
+log "-----------------------------------------"
+
+log "--------------------------------------"
+log "Getting ${MSSQL19_SourceVM_Image2} UUID"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"image",
+  "filter": "name==${MSSQL19_SourceVM_Image2}"
+}
+EOF
+)
+
+      MSSQL19_SourceVM_Image2_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images/list" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "${MSSQL19_SourceVM_Image2} UUID = |${MSSQL19_SourceVM_Image2_UUID}|"
+log "-----------------------------------------"
+
+# Getting Network UUID
+log "--------------------------------------"
+log "Getting Network UUID"
+
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data '{"kind":"subnet","filter": "name==User VM Subnet"}' | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "NETWORK UUID = |${NETWORK_UUID}|"
+
+
+
+log "--------------------------------------"
+log "Creating ${MSSQL19_SYNC_SourceVM} VM"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "name": "${MSSQL19_SYNC_SourceVM}",
+        "resources": {
+            "num_threads_per_core": 1,
+            "num_vcpus_per_socket": 1,
+            "num_sockets": 4,
+            "memory_size_mib": 8192,
+            "disk_list": [
+                {
+                    "data_source_reference": {
+                        "kind": "image",
+                        "uuid": "${MSSQL19_SourceVM_Image1_UUID}"
+                    },
+                    "device_properties": {
+                        "device_type": "DISK",
+                        "disk_address": {
+                            "adapter_type": "SCSI",
+                            "device_index": 0
+                        }
+                    }
+                },
+                {
+                    "data_source_reference": {
+                        "kind": "image",
+                        "uuid": "${MSSQL19_SourceVM_Image2_UUID}"
+                    },
+                    "device_properties": {
+                        "device_type": "DISK",
+                        "disk_address": {
+                            "adapter_type": "SCSI",
+                            "device_index": 1
+                        }
+                    }
+                }
+            ],
+            "power_state": "ON",
+            "nic_list": [
+                {
+                    "nic_type": "NORMAL_NIC",
+                    "subnet_reference": {
+                        "kind": "subnet",
+                        "uuid": "${NETWORK_UUID}"
+                    }
+                }
+            ]
+        }
+    },
+    "api_version": "3.1.0",
+    "metadata": {
+        "kind": "vm"
+    }
+}
+EOF
+  )
+
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/vms" | jq -r '.status.execution_context.task_uuid' | tr -d \")
+loop ${_task_id} ${PE_HOST}
+
+log "${MSSQL19_SYNC_SourceVM} VM Created"
 
 #set +x
 
@@ -942,6 +1113,6 @@ loop ${_task_id}
 
 log "${CitrixGoldImageVM} VM Created"
 
-set +x
+#set +x
 
 }

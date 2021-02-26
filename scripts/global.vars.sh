@@ -92,7 +92,8 @@ MSSQL_SourceVM="MSSQLSourceVM"
 MSSQL_SourceVM_Image1="MSSQL_1"
 MSSQL_SourceVM_Image2="MSSQL_2"
 
-MSSQL19_SourceVM="MSSQL19-ProfileSource"
+MSSQL19_USER_SourceVM="MSSQL19-USER-Profile"
+MSSQL19_SYNC_SourceVM="MSSQL19-SYNC-Profile"
 MSSQL19_SourceVM_Image1="MSSQL19-Profile-Disk1"
 MSSQL19_SourceVM_Image2="MSSQL19-Profile-Disk2"
 

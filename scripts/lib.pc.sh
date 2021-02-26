@@ -1394,7 +1394,7 @@ EOF
 log "Created ${NW2_NAME} Network with Network ID |${_static_network_id}|"
 
 ##  Create the Primary-MSSQL-NETWORK Network Profile inside Era ##
-log "Create the Primary-MSSQL-NETWORK Network Profile"
+log "Create the MariaDB Network Profile"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
@@ -1407,7 +1407,8 @@ HTTP_JSON_BODY=$(cat <<EOF
     {
       "name": "VLAN_NAME",
       "value": "${NW2_NAME}",
-      "description": "Era Managed VLAN""
+      "secure": false,
+      "description": "Era Managed VLAN"
     }
   ],
   "name": "Era_Managed_MariaDB"
@@ -1824,11 +1825,161 @@ EOF
 
 log "Created ${NW1_NAME} Network with Network ID |${_static_network_id}|"
 
+log "---------------------------------------------------------------------------------------------------------------------------------"
+log "Adding ${MSSQL19_SYNC_SourceVM}, and then Creating Software Profile."
+log "---------------------------------------------------------------------------------------------------------------------------------"
 
 # Get User01-MSSQLSource VM IP
 log "Getting MSSQLSource VM IP"
 
-VM_NAME="${MSSQL19_SourceVM}"
+VM_NAME="${MSSQL19_SYNC_SourceVM}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "kind": "vm"
+}
+EOF
+)
+
+  _mssqlsource_sync_vm_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms/list' | jq --arg VM "${VM_NAME}" '.entities[]|select (.spec.name==$VM)| .spec.resources.nic_list[] | .ip_endpoint_list[] | .ip' | tr -d \")
+
+log "MSSQLSource VM IP: |${_mssqlsource_sync_vm_ip}|"
+
+log "Registering MSSQLSourceVM"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "actionArguments": [
+    {
+      "name": "same_as_admin",
+      "value": true
+    },
+    {
+      "name": "sql_login_used",
+      "value": false
+    },
+    {
+      "name": "sysadmin_username_win",
+      "value": "Administrator"
+    },
+    {
+      "name": "sysadmin_password_win",
+      "value": "Nutanix/4u"
+    },
+    {
+      "name": "instance_name",
+      "value": "MSSQLSERVER"
+    }
+  ],
+  "vmIp": "${_mssqlsource_sync_vm_ip}",
+  "nxClusterUuid": "${_era_aws_cluster_id}",
+  "databaseType": "sqlserver_database",
+  "forcedInstall": true,
+  "workingDirectory": "c:\\\\",
+  "username": "Administrator",
+  "password": "Nutanix/4u",
+  "eraDeployBase": "c:\\\\"
+}
+EOF
+)
+
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
+
+# Call the wait function
+waitloop
+
+# Get DB Server ID
+log "Getting DB Server ID"
+
+  _era_sync_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data '{}' | jq '.[] | select(.name == "MSSQL19-SYNC-Profile") | .id' | tr -d \")
+
+log "Era DB Server ID: |${_era_sync_db_server_id}|"
+
+# Create MSSQL_19_SYNCED Software profiles
+log "Creating MSSQL_19_SYNCED Software Profiles Now"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "engineType": "sqlserver_database",
+  "type": "Software",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "SOURCE_DBSERVER_ID",
+      "value": "${_era_sync_db_server_id}",
+      "secure": false,
+      "description": "ID of the database server that should be used as a reference to create the software profile"
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_NAME",
+      "value": "MSSQL_19_SYNCED (1.0)",
+      "secure": false,
+      "description": "Name of the base profile version."
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_DESCRIPTION",
+      "value": "",
+      "secure": false,
+      "description": "Description of the base profile version."
+    },
+    {
+      "name": "OS_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Notes or description for the Operating System."
+    },
+    {
+      "name": "DB_SOFTWARE_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Description of the SQL Server database software."
+    }
+  ],
+  "availableClusterIds": [
+    "${_era_aws_cluster_id}",
+    "${_era_cluster_id}"
+  ],
+  "name": "MSSQL_19_SYNCED"
+}
+EOF
+)
+
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
+
+# Call the wait function
+waitloop
+
+log "MSSQL_19_SYNCED Created"
+
+#log "MSSQL_19_SYNCED Created, Adding EraCluster Now"
+
+#HTTP_JSON_BODY=$(cat <<EOF
+#{
+#  "availableClusterIds": [
+#    "${_era_aws_cluster_id}",
+#    "${_era_cluster_id}"
+#  ],
+#  "updateClusterAvailability": true,
+#  "name": "MSSQL_19_SYNCED",
+#  "description": ""
+#}
+#EOF
+#)
+
+#  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X PUT "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
+
+# Call the wait function
+#waitloop
+
+log "---------------------------------------------------------------------------------------------------------------------------------"
+log "Adding ${MSSQL19_USER_SourceVM}, and then Creating Software Profile."
+log "---------------------------------------------------------------------------------------------------------------------------------"
+
+# Get User01-MSSQLSource VM IP
+log "Getting MSSQLSource VM IP"
+
+VM_NAME="${MSSQL19_USER_SourceVM}"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
@@ -1884,12 +2035,10 @@ EOF
 # Call the wait function
 waitloop
 
-
-
 # Get DB Server ID
 log "Getting DB Server ID"
 
-  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data '{}' | jq '.[] | select(.name == "MSSQL19-ProfileSource") | .id' | tr -d \")
+  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data '{}' | jq '.[] | select(.name == "MSSQL19-USER-Profile") | .id' | tr -d \")
 
 log "Era DB Server ID: |${_era_db_server_id}|"
 
@@ -1954,65 +2103,6 @@ waitloop
 log "Ceating MSSQL_19_${_user} Now Complete"
 
 done
-
-# Create MSSQL_19_SYNCED Software profiles
-log "Creating MSSQL_19_SYNCED Software Profiles Now"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "engineType": "sqlserver_database",
-  "type": "Software",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "SOURCE_DBSERVER_ID",
-      "value": "${_era_db_server_id}",
-      "secure": false,
-      "description": "ID of the database server that should be used as a reference to create the software profile"
-    },
-    {
-      "name": "BASE_PROFILE_VERSION_NAME",
-      "value": "MSSQL_19_SYNCED (1.0)",
-      "secure": false,
-      "description": "Name of the base profile version."
-    },
-    {
-      "name": "BASE_PROFILE_VERSION_DESCRIPTION",
-      "value": "",
-      "secure": false,
-      "description": "Description of the base profile version."
-    },
-    {
-      "name": "OS_NOTES",
-      "value": "",
-      "secure": false,
-      "description": "Notes or description for the Operating System."
-    },
-    {
-      "name": "DB_SOFTWARE_NOTES",
-      "value": "",
-      "secure": false,
-      "description": "Description of the SQL Server database software."
-    }
-  ],
-  "availableClusterIds": [
-    "${_era_aws_cluster_id}",
-    "${_era_cluster_id}"
-  ],
-  "name": "MSSQL_19_SYNCED"
-}
-EOF
-)
-
-  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
-
-# Call the wait function
-waitloop
-
-log "MSSQL_19_SYNCED Now Complete"
-
-
 
 log "Era Config Cluster 2 Complete"
 
