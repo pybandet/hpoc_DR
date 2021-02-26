@@ -330,42 +330,43 @@ AUTH_ADMIN_GROUP='SSP Admins'
 case "${OCTET[0]}.${OCTET[1]}" in
 
   10.55 ) # HPOC us-east = DUR
-    PC_DEV_METAURL='http://10.55.251.38/workshop_staging/pcdeploy-pc.2021.1.json'
-    PC_DEV_URL='http://10.55.251.38/workshop_staging/pc.2021.1.tar'
-    PC_CURRENT_METAURL='http://10.55.251.38/workshop_staging/pcdeploy-pc.2020.11.json'
-    PC_CURRENT_URL='http://10.55.251.38/workshop_staging/pc.2020.11.tar'
-    PC_STABLE_METAURL='http://10.55.251.38/workshop_staging/pcdeploy-pc.2020.9.json'
-    PC_STABLE_URL='http://10.55.251.38/workshop_staging/pc.2020.9.tar'
-    FILES_METAURL='http://10.55.251.38/workshop_staging/afs-3.8.0.json'
-    FILES_URL='http://10.55.251.38/workshop_staging/nutanix-afs-el7.3-release-afs-3.8.0-stable.qcow2'
-    FILE_ANALYTICS_METAURL='http://10.55.251.38/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0-metadata.json'
-    FILE_ANALYTICS_URL='http://10.55.251.38/workshop_staging/nutanix-file_analytics-el7.7-release-3.0.0.qcow2'
+    PC_DEV_METAURL='http://10.55.5.72/pcdeploy-pc.2021.1.json'
+    PC_DEV_URL='http://10.55.5.72/pc.2021.1.tar'
+    PC_CURRENT_METAURL='http://10.55.5.72/pcdeploy-pc.2020.11.json'
+    PC_CURRENT_URL='http://10.55.5.72/pc.2020.11.tar'
+    PC_STABLE_METAURL='http://10.55.5.72/pcdeploy-pc.2020.9.json'
+    PC_STABLE_URL='http://10.55.5.72/pc.2020.9.tar'
+    FILES_METAURL='http://10.55.5.72/afs-3.8.0.json'
+    FILES_URL='http://10.55.5.72/nutanix-afs-el7.3-release-afs-3.8.0-stable.qcow2'
+    FILE_ANALYTICS_METAURL='http://10.55.5.72/nutanix-file_analytics-el7.7-release-3.0.0-metadata.json'
+    FILE_ANALYTICS_URL='http://10.55.5.72/nutanix-file_analytics-el7.7-release-3.0.0.qcow2'
     JQ_REPOS=(\
-         'http://10.55.251.38/workshop_staging/jq-linux64.dms' \
+         'http://10.55.5.72/jq-linux64.dms' \
          #'http://10.55.251.38/workshop_staging/jq-linux64.dms' \
          #'https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64' \
    )
     SSHPASS_REPOS=(\
-       'http://10.55.251.38/workshop_staging/sshpass-1.06-2.el7.x86_64.rpm' \
+       'http://10.55.5.72/sshpass-1.06-2.el7.x86_64.rpm' \
+       #'http://10.55.251.38/workshop_staging/sshpass-1.06-2.el7.x86_64.rpm' \
        #'http://10.55.251.38/workshop_staging/sshpass-1.06-2.el7.x86_64.rpm' \
        #'http://mirror.centos.org/centos/7/extras/x86_64/Packages/sshpass-1.06-2.el7.x86_64.rpm' \
     )
     QCOW2_REPOS=(\
-       'http://10.55.251.38/workshop_staging/' \
+       'http://10.55.5.72/' \
        #'http://10.55.251.38/workshop_staging/' \
     )
     AUTODC_REPOS=(\
-     'http://10.55.251.38/workshop_staging/AutoDC2.qcow2' \
+     'http://10.55.5.72/AutoDC2.qcow2' \
     )
     AUTOAD_REPOS=(\
-    'http://10.55.251.38/workshop_staging/AutoAD.qcow2' \
+    'http://10.55.5.72/AutoAD.qcow2' \
     )
-    PC_DATA="http://10.55.251.38/workshop_staging/${SeedPC}"
-    BLUEPRINT_URL='http://10.55.251.38/workshop_staging/CalmBlueprints/'
+    PC_DATA="http://10.55.5.72/${SeedPC}"
+    BLUEPRINT_URL='http://10.55.5.72/CalmBlueprints/'
     DNS_SERVERS='10.55.251.10,10.55.251.11'
     ERA_PRIMARY_DNS='10.55.251.10'
     ERA_SECONDARY_DNS='10.55.251.11'
-	  OBJECTS_OFFLINE_REPO='http://10.55.251.38/workshop_staging/objects'
+	  OBJECTS_OFFLINE_REPO='http://10.55.5.72/objects'
     ;;
   10.42 ) # HPOC us-west = PHX
     PC_DEV_METAURL='http://10.42.95.45/pcdeploy-pc.2021.1.json'
