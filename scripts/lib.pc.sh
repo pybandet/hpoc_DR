@@ -1307,14 +1307,21 @@ log "EraServer IP |${ERA_HOST}|"
 log "Applying HotFIX..."
 ERA_PASSWORD='Nutanix.1'
 # Getting the hotfix in the CVM
-curl --silent http:\\${QCOW2_REPOS}\Era_HF\era.tar.gz -O
-curl --silent http:\\${QCOW2_REPOS}\Era_HF\copy_era_war.sh -O
+# Get sshpass installed
+curl --silent ${QCOW2_REPOS}\sshpass-1.06-2.el7.x86_64.rpm
+sudo yum update -y sshpass-1.06-2.el7.x86_64.rpm
+
+# Get the HF files
+curl --silent ${QCOW2_REPOS}\Era_HF\era.tar.gz -O
+curl --silent ${QCOW2_REPOS}\Era_HF\copy_era_war.sh -O
+
 # Run the hotfix from the CVM in the Era installation
 bash copy_era_war.sh ${ERA_HOST} ${ERA_PASSWORD} /home/nutanix 
 
 # Remove the files from the CVM
 #/usr/bin/rm era.tar.gz
 #/usr/bin/rm copy_era_war.sh
+#/usr/bin/rm sshpass-1.06-2.el7.x86_64.rpm
 
 ##  Create the EraManaged network inside Era ##
 log "Reset Default Era Password"
