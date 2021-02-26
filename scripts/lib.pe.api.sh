@@ -423,7 +423,7 @@ function pe_init_aws_api() {
   cluster_name_tmp=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X GET -d '{}' "https://$PE_HOST:9440/PrismGateway/services/rest/v1/cluster" | jq '.name' | tr -d \")
 
   # Set the name of the AWS Cluster to AWS-Cluster-xxxx by stripping the Cluster-HPOC from its original name
-  cluster_name="${cluster_name_tmp:0:4}Cluster${cluster_name_tmp:16}"
+  cluster_name="${cluster_name_tmp:0:4}Cluster${cluster_name_tmp:13}"
 
   log "Cluster ID: |${cluster_id}|"
   log "Cluster UUID: |${cluster_uuid}|"
