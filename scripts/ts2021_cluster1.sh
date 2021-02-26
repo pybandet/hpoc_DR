@@ -44,8 +44,6 @@ case ${1} in
     && prism_pro_server_deploy \
     && deploy_era \
     && deploy_windows_tools_vm \
-    && deploy_api_mssql_2019_image \
-    && deploy_api_mssql_2019_sync \
     && deploy_api_citrix_gold_image_vm
 
     if (( $? == 0 )) ; then
