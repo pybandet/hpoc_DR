@@ -52,7 +52,6 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     && pe_auth_api \
     && cluster_check \
     && deploy_api_mssql_2019_image \
-    && deploy_api_mssql_2019_sync \
     && deploy_api_mssql_2019_user \
     && configure_era_cluster_2 \
     && deploy_api_citrix_gold_image_vm
