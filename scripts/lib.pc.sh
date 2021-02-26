@@ -1296,12 +1296,25 @@ EOF
 function configure_era() {
   local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
 
-#set -x
+set -x
 
 log "Starting Era Config"
 
 log "PE Cluster IP |${PE_HOST}|"
 log "EraServer IP |${ERA_HOST}|"
+
+### Hotfix Era due to Replication issue of ALL profiles. 
+log "Applying HotFIX..."
+ERA_PASSWORD='Nutanix.1'
+# Getting the hotfix in the CVM
+curl --silent http:\\${QCOW2_REPOS}\Era_HF\era.tar.gz -O
+curl --silent http:\\${QCOW2_REPOS}\Era_HF\copy_era_war.sh -O
+# Run the hotfix from the CVM in the Era installation
+bash copy_era_war.sh ${ERA_HOST} ${ERA_PASSWORD} /home/nutanix 
+
+# Remove the files from the CVM
+#/usr/bin/rm era.tar.gz
+#/usr/bin/rm copy_era_war.sh
 
 ##  Create the EraManaged network inside Era ##
 log "Reset Default Era Password"
@@ -1418,7 +1431,7 @@ EOF
 
   _primary_network_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
 
-log "Created Primary-MSSQL-NETWORK Network Profile with ID |${_primary_network_profile_id}|"
+log "Created Era_Managed_MariaDB Network Profile with ID |${_primary_network_profile_id}|"
 
 ##  Create the CUSTOM_EXTRA_SMALL Compute Profile inside Era ##
 log "Create the CUSTOM_EXTRA_SMALL Compute Profile"
