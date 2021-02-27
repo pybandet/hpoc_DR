@@ -1340,6 +1340,9 @@ curl --silent ${QCOW2_REPOS}Era_HF/copy_era_war.sh -O
 # Run the hotfix from the CVM in the Era installation
 bash copy_era_war.sh ${ERA_HOST} ${PASSWD_ERA} /home/nutanix
 
+# letting it sleep to calm down #
+sleep 120
+
 # Remove the files from the CVM
 #/usr/bin/rm era.tar.gz
 #/usr/bin/rm copy_era_war.sh
