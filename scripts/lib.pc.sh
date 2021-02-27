@@ -1303,6 +1303,28 @@ log "Starting Era Config"
 log "PE Cluster IP |${PE_HOST}|"
 log "EraServer IP |${ERA_HOST}|"
 
+log "---------------------------------------"
+log " Changing Password and Axccepting EULA"
+log "---------------------------------------"
+
+##  Create the EraManaged network inside Era ##
+log "Reset Default Era Password"
+
+  _reset_passwd=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_Default_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/auth/update" --data '{ "password": "'${ERA_PASSWORD}'"}' | jq -r '.status' | tr -d \")
+
+log "Password Reset |${_reset_passwd}|"
+
+##  Accept EULA ##
+log "Accept Era EULA"
+
+  _accept_eula=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/auth/validate" --data '{ "eulaAccepted": true }' | jq -r '.status' | tr -d \")
+
+log "Accept EULA |${_accept_eula}|"
+
+log "---------------------------------------"
+log " Applying the ENG Hotfix for vGTS"
+log "---------------------------------------"
+
 ### Hotfix Era due to Replication issue of ALL profiles.
 log "Applying HotFIX..."
 PASSWD_ERA='Nutanix.1'
@@ -1323,19 +1345,9 @@ bash copy_era_war.sh ${ERA_HOST} ${PASSWD_ERA} /home/nutanix
 #/usr/bin/rm copy_era_war.sh
 #/usr/bin/rm sshpass-1.06-2.el7.x86_64.rpm
 
-##  Create the EraManaged network inside Era ##
-log "Reset Default Era Password"
-
-  _reset_passwd=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_Default_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/auth/update" --data '{ "password": "'${ERA_PASSWORD}'"}' | jq -r '.status' | tr -d \")
-
-log "Password Reset |${_reset_passwd}|"
-
-##  Accept EULA ##
-log "Accept Era EULA"
-
-  _accept_eula=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/auth/validate" --data '{ "eulaAccepted": true }' | jq -r '.status' | tr -d \")
-
-log "Accept EULA |${_accept_eula}|"
+log "---------------------------------------"
+log " Registering Cluster to Era"
+log "---------------------------------------"
 
 ##  Register Cluster  ##
 log "Register ${CLUSTER_NAME} with Era"
