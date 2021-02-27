@@ -2018,7 +2018,7 @@ HTTP_JSON_BODY=$(cat <<EOF
   "properties": [
     {
       "name": "SOURCE_DBSERVER_ID",
-      "value": "${_era_sync_db_server_id}",
+      "value": "${_era_db_server_id}",
       "secure": false,
       "description": "ID of the database server that should be used as a reference to create the software profile"
     },
