@@ -31,7 +31,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     export NW1_NAME='User VM Subnet'
     export STORAGE_ERA='SelfServiceContainer'
     export ERA_NETWORK="User VM Subnet"
-    export QCOW2_REPOS='https://gts2021.s3-us-west-2.amazonaws.com/'
+    export QCOW2_REPOS='https://gts2021.s3-us-west-2.amazonaws.com'
     # Networking needs for Era Bootcamp
 	  #export NW2_NAME='EraManaged'
     #export NW1_DHCP_START="${IPV4_PREFIX}.10"
