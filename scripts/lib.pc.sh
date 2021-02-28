@@ -1330,7 +1330,7 @@ log "Applying HotFIX..."
 PASSWD_ERA='Nutanix.1'
 # Getting the hotfix in the CVM
 # Get sshpass installed
-curl --silent ${QCOW2_REPOS}sshpass-1.06-2.el7.x86_64.rpm
+curl --silent ${QCOW2_REPOS}sshpass-1.06-2.el7.x86_64.rpm -O
 sudo yum install -y sshpass-1.06-2.el7.x86_64.rpm
 
 # Get the HF files
