@@ -458,6 +458,78 @@ EOF
   log "AWS Cluster Info Updated"
   log "--------------------------------------"
 
+  log "--------------------------------------"
+  log "Updating AWS Network DNS"
+  log "--------------------------------------"
+
+  # Getting Network UUID
+  log "--------------------------------------"
+  log "Getting Network UUID"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"subnet",
+  "filter": "name==${NW1_NAME}"
+}
+EOF
+)
+
+    NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data "${HTTP_JSON_BODY}" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+  log "NETWORK UUID = |${NETWORK_UUID}|"
+
+  log "--------------------------------------"
+  log "Updating Cluster Info"
+
+NW1_subnet_correct="${NW2_SUBNET%????}.128"
+dhcp_scope="${NW1_DHCP_START} ${NW1_DHCP_END}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "name": "${NW1_NAME}"",
+        "resources": {
+            "subnet_type": "VLAN",
+            "ip_config": {
+                "default_gateway_ip": "${NW2_GATEWAY}",
+                "pool_list": [
+                    {
+                        "range": "${dhcp_scope}"
+                    }
+                ],
+                "prefix_length": 25,
+                "subnet_ip": "${NW1_subnet_correct}",
+                "dhcp_options": {
+                    "domain_name_server_list": [
+                        "${AUTH_HOST}""
+                    ],
+                    "domain_search_list": [
+                        "${AUTH_HOST}"
+                    ],
+                    "domain_name": "${AUTH_FQDN}"
+                }
+            },
+            "vlan_id": 1
+        }
+    },
+    "metadata": {
+        "kind": "subnet",
+        "spec_version": 0
+    },
+    "api_version": "3.1.0"
+}
+EOF
+  )
+
+  _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/api/nutanix/v3/subnets/${NETWORK_UUID}" | jq '.status.execution_context.task_uuid' | tr -d \")
+
+  loop ${_task_id} ${PE_HOST}
+
+
+  log "--------------------------------------"
+  log "AWS Network DNS Updated"
+  log "--------------------------------------"
+
   #############################################################
   # Set the SMTP server
   #############################################################
