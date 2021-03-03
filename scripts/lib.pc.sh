@@ -970,6 +970,255 @@ done
   }
 
 #########################################################################################################################################
+# Routine to Create Image Placement Policy, Categories, Values, and Assign to Clusters and Image(s)
+#########################################################################################################################################
+
+function create_image_policy_categories() {
+  local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json  --insecure "
+
+  set -x
+
+
+  category_name_cluster="Clusters"
+  value_cluster="ImageSync"
+  category_name_image="Images"
+  value_image="ImageSync"
+  image_policy_name="Multi-Cluster-Sync"
+  image_name="CentOS7.qcow2"
+
+  log "-------------------------------------------"
+  log "Creating Cluster Catageory and Values"
+  log "-------------------------------------------"
+
+  log "Creating Catageory"
+
+  log "Category Name: |${category_name_cluster}|"
+  log "Value: |${value_image}|"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "api_version": "3.1.0",
+  "description": "${category_name_cluster}",
+  "name": "${category_name_cluster}"
+}
+EOF
+)
+
+  _category_uuid=$(curl ${CURL_HTTP_OPTS} -X PUT "https://localhost:9440/api/nutanix/v3/categories/${category_name_cluster}" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data "${HTTP_JSON_BODY}")
+
+  log "Creating Values"
+
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "api_version": "3.1.0",
+  "description": "${value_cluster}",
+  "value": "${value_cluster}"
+}
+EOF
+)
+
+    _category_uuid=$(curl ${CURL_HTTP_OPTS} -X PUT "https://localhost:9440/api/nutanix/v3/categories/${category_name_cluster}/${value_cluster}" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data "${HTTP_JSON_BODY}")
+
+  log "-------------------------------------------"
+  log "Creating Image Catageory and Values"
+  log "-------------------------------------------"
+
+  log "Creating Catageory"
+
+  log "Category Name: |${category_name_image}|"
+  log "Value: |${value_image}|"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "api_version": "3.1.0",
+  "description": "${category_name_image}",
+  "name": "${category_name_image}"
+}
+EOF
+)
+
+  _category_uuid=$(curl ${CURL_HTTP_OPTS} -X PUT "https://localhost:9440/api/nutanix/v3/categories/${category_name_image}" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data "${HTTP_JSON_BODY}")
+
+  log "Creating Values"
+
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "api_version": "3.1.0",
+  "description": "${value_image}",
+  "value": "${value_image}"
+}
+EOF
+)
+
+  _category_uuid=$(curl ${CURL_HTTP_OPTS} -X PUT "https://localhost:9440/api/nutanix/v3/categories/${category_name_image}/${value_image}" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data "${HTTP_JSON_BODY}")
+
+
+  log "-------------------------------------------"
+  log "Creating Image Placement Policy"
+  log "-------------------------------------------"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "api_version": "3.1.0",
+    "metadata": {
+        "kind": "image_placement_policy"
+    },
+    "spec": {
+        "name": "${image_policy_name}",
+        "description": "Multi-Cluster Sync",
+        "resources": {
+            "placement_type": "AT_LEAST",
+            "cluster_entity_filter": {
+                "type": "CATEGORIES_MATCH_ALL",
+                "params": {
+                    "${category_name_cluster}": [
+                        "${value_cluster}"
+                    ]
+                }
+            },
+            "image_entity_filter": {
+                "type": "CATEGORIES_MATCH_ALL",
+                "params": {
+                    "${category_name_image}": [
+                        "${value_image}"
+                    ]
+                }
+            }
+        }
+    }
+}
+EOF
+)
+
+  _category_uuid=$(curl ${CURL_HTTP_OPTS} -X PUT "https://localhost:9440/api/nutanix/v3/images/placement_policies" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data "${HTTP_JSON_BODY}")
+
+  log "-------------------------------------------"
+  log "Assign Category to Cluster"
+  log "-------------------------------------------"
+
+  log "Getting Cluster VAR Info"
+
+  cluster_name=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{}' "https://${PE_HOST}:9440/api/nutanix/v3/clusters/list" | jq -r '.entities[] | select (.spec.name | contains("POC"))| .spec.name' | tr -d \")
+  cluster_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{}' "https://${PE_HOST}:9440/api/nutanix/v3/clusters/list" | jq -r '.entities[] | select (.spec.name | contains("POC"))| .metadata.uuid' | tr -d \")
+  cluster_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{}' "https://${PE_HOST}:9440/api/nutanix/v3/clusters/list" | jq -r '.entities[] | select (.spec.name | contains("POC"))| .spec.resources.network.external_ip' | tr -d \")
+  cluster_dsip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data '{}' "https://${PE_HOST}:9440/api/nutanix/v3/clusters/list" | jq -r '.entities[] | select (.spec.name | contains("POC"))| .spec.resources.network.external_data_services_ip' | tr -d \")
+
+  log "-------------------------------------------"
+  log "HPOC Cluster Name = |${cluster_name}|"
+  log "HPOC Cluster UUID = |${cluster_uuid}|"
+  log "HPOC Cluster IP = |${cluster_ip}|"
+  log "HPOC Cluster Data Services IP = |${cluster_dsip}|"
+  log "HPOC Cluster DNS = |${AUTH_HOST}|"
+  log "-------------------------------------------"
+
+  log "Adding Category to Cluster"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "api_version": "3.1.0",
+    "metadata": {
+        "kind": "cluster",
+        "spec_version": 0,
+        "categories_mapping": {
+            "${category_name_cluster}": [
+                "${value_cluster}"
+            ]
+        },
+        "categories": {
+            "${category_name_cluster}": "${value_cluster}"
+        }
+    },
+    "spec": {
+        "name": "${cluster_name}",
+        "resources": {
+            "network": {
+                "ntp_server_ip_list": [
+                    "0.pool.ntp.org",
+                    "3.us.pool.ntp.org",
+                    "2.us.pool.ntp.org",
+                    "1.us.pool.ntp.org",
+                    "0.us.pool.ntp.org"
+                ],
+                "external_ip": "${cluster_ip}",
+                "external_data_services_ip": "${cluster_dsip}",
+                "name_server_ip_list": [
+                    "${AUTH_HOST}"
+                ]
+            }
+        }
+    }
+}
+EOF
+)
+
+  _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/api/nutanix/v3/clusters/${cluster_uuid}" | jq '.status.execution_context.task_uuid' | tr -d \")
+
+  loop ${_task_id} ${PE_HOST}
+
+  log "-------------------------------------------"
+  log "Assign Category to Image"
+  log "-------------------------------------------"
+
+  log "Getting Image VAR Info"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"image",
+  "filter": "name==${image_name}"
+}
+EOF
+)
+
+  image_name=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images/list" | jq -r '.entities[] | .spec.name' | tr -d \")
+  image_uuid=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images/list" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+  image_source_uri=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images/list" | jq -r '.entities[] | .spec.resources.source_uri' | tr -d \")
+
+  log "-------------------------------------------"
+  log "Image Name = |${image_name}|"
+  log "Image UUID = |${image_uuid}|"
+  log "Image_source_uri = |${image_source_uri}|"
+  log "-------------------------------------------"
+
+  log "Adding Category to Image"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "api_version": "3.1.0",
+    "metadata": {
+        "kind": "image",
+        "spec_version": 0,
+        "categories_mapping": {
+            "${category_name_image}": [
+                "${value_image}"
+            ]
+        },
+        "categories": {
+            "${category_name_image}": "${value_image}"
+        }
+    },
+    "spec": {
+        "name": "${image_name}",
+        "resources": {
+            "image_type": "DISK_IMAGE",
+            "source_uri": "${image_source_uri}",
+            "architecture": "X86_64"
+        },
+        "description": "${image_name}"
+    }
+}
+EOF
+)
+
+  _task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X PUT -d "${HTTP_JSON_BODY}" "https://$PE_HOST:9440/api/nutanix/v3/images/${image_uuid}" | jq '.status.execution_context.task_uuid' | tr -d \")
+
+  loop ${_task_id} ${PE_HOST}
+
+  set +x
+  }
+
+#########################################################################################################################################
 # Routine to Deploy VMs for POC Workshop
 #########################################################################################################################################
 

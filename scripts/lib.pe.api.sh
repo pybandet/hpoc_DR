@@ -491,7 +491,7 @@ HTTP_JSON_BODY=$(cat <<EOF
         "resources": {
             "subnet_type": "VLAN",
             "ip_config": {
-                "default_gateway_ip": "${NW2_GATEWAY}",
+                "default_gateway_ip": "${NW1_GATEWAY}",
                 "pool_list": [
                     {
                         "range": "${dhcp_scope}"

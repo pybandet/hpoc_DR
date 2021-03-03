@@ -40,6 +40,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     #export NW3_NETMASK='255.255.255.128'
     export NW1_DHCP_START="${IPV4_PREFIX}.133"
     export NW1_DHCP_END="${IPV4_PREFIX}.208"
+    export NW1_GATEWAY="${IPV4_PREFIX}.129"
     export NW3_START="${IPV4_PREFIX}.210"
     export NW3_END="${IPV4_PREFIX}.253"
     OCTET_Cluster2=(${PC_HOST//./ }) # zero index
