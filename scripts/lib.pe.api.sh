@@ -717,7 +717,134 @@ EOF
 
 }
 
+#########################################################################################################################################
+# Routine to Deploy Era
+#########################################################################################################################################
 
+function deploy_era_api() {
+    local CURL_HTTP_OPTS=" --max-time 25 --silent --header Content-Type:application/json --header Accept:application/json --insecure "
+
+#set -x
+
+log "--------------------------------------"
+log "Uploading ${ERAServerImage}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "spec": {
+      "name": "${ERAServerImage}",
+      "description": "${ERAServerImage}",
+      "resources": {
+          "image_type": "DISK_IMAGE",
+          "source_uri": "${QCOW2_REPOS}/${ERAServerImage}.qcow2"
+      }
+  },
+  "metadata": {
+      "kind": "image"
+  },
+  "api_version": "3.1.0"
+}
+EOF
+  )
+
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images" | jq -r '.status.execution_context.task_uuid' | tr -d \")
+loop ${_task_id}
+
+
+log "--------------------------------------"
+log "Getting UUIDs for Create VM Payload"
+
+# Getting Image UUIDs
+log "--------------------------------------"
+log "Getting ${ERAServerImage} UUID"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"image",
+  "filter": "name==${ERAServerImage}"
+}
+EOF
+)
+
+      ERAServerImage_UUID=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/images/list" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+
+log "${ERAServerImage} UUID = |${ERAServerImage_UUID}|"
+log "-----------------------------------------"
+
+# Getting Network UUID
+log "--------------------------------------"
+log "Getting Network UUID"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "kind":"subnet",
+  "filter": "name==${NW1_NAME}"
+}
+EOF
+)
+
+  NETWORK_UUID=$(curl ${CURL_HTTP_OPTS} --request POST "https://${PE_HOST}:9440/api/nutanix/v3/subnets/list" --user ${PRISM_ADMIN}:${PE_PASSWORD} --data "${HTTP_JSON_BODY}" | jq -r '.entities[] | .metadata.uuid' | tr -d \")
+
+log "NETWORK UUID = |${NETWORK_UUID}|"
+
+
+
+log "--------------------------------------"
+log "Creating ${ERAServerName} VM"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "spec": {
+        "name": "${ERAServerName}",
+        "resources": {
+            "num_threads_per_core": 1,
+            "num_vcpus_per_socket": 1,
+            "num_sockets": 4,
+            "memory_size_mib": 16384,
+            "disk_list": [
+                {
+                    "data_source_reference": {
+                        "kind": "image",
+                        "uuid": "${ERAServerImage_UUID}"
+                    },
+                    "device_properties": {
+                        "device_type": "DISK",
+                        "disk_address": {
+                            "adapter_type": "SCSI",
+                            "device_index": 0
+                        }
+                    }
+                }
+            ],
+            "power_state": "OFF",
+            "nic_list": [
+                {
+                    "nic_type": "NORMAL_NIC",
+                    "subnet_reference": {
+                        "kind": "subnet",
+                        "uuid": "${NETWORK_UUID}"
+                    }
+                }
+            ]
+        }
+    },
+    "api_version": "3.1.0",
+    "metadata": {
+        "kind": "vm"
+    }
+}
+EOF
+  )
+
+_task_id=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" "https://${PE_HOST}:9440/api/nutanix/v3/vms" | jq -r '.status.execution_context.task_uuid' | tr -d \")
+loop ${_task_id}
+
+log "${ERAServerName} VM Created"
+
+#set +x
+
+}
 
 #########################################################################################################################################
 # Routine to Create Era Bootcamp PreProvisioned MSSQL Server 2019

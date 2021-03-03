@@ -42,7 +42,6 @@ case ${1} in
     && authentication_source \
     && pe_auth_api \
     && prism_pro_server_deploy \
-    && deploy_era \
     && deploy_windows_tools_vm \
     && deploy_api_citrix_gold_image_vm
 
@@ -139,12 +138,10 @@ case ${1} in
     && priority_images \
     && flow_enable \
     && pc_cluster_img_import \
-    && configure_era \
     && create_categories \
     && upload_citrix_calm_blueprint \
     && upload_snow_calm_blueprint \
     && upload_fiesta_mssql_blueprint \
-    && upload_docker_fiesta_era_blueprint \
     && images \
     && seedPC \
     && prism_check 'PC'

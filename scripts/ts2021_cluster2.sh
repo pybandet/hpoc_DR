@@ -43,9 +43,19 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     export NW1_GATEWAY="${IPV4_PREFIX}.129"
     export NW3_START="${IPV4_PREFIX}.210"
     export NW3_END="${IPV4_PREFIX}.253"
-    OCTET_Cluster2=(${PC_HOST//./ }) # zero index
-    IPV4_PREFIX_Cluster2=${OCTET_Cluster2[0]}.${OCTET_Cluster2[1]}.${OCTET_Cluster2[2]}
-    ERA_HOST_Cluster1=${IPV4_PREFIX_Cluster2}.$((${OCTET_Cluster2[3]} + 4))
+    #OCTET_Cluster2=(${PC_HOST//./ }) # zero index
+    #IPV4_PREFIX_Cluster2=${OCTET_Cluster2[0]}.${OCTET_Cluster2[1]}.${OCTET_Cluster2[2]}
+    #ERA_HOST_Cluster1=${IPV4_PREFIX_Cluster2}.$((${OCTET_Cluster2[3]} + 4))
+    #export ERA_HOST="${ERA_HOST_Cluster1}"
+    #export ERA_AGENT_IP="${IPV4_PREFIX}.209"
+    #export ERA_AGENT_GATEWAY="${IPV4_PREFIX}.129"
+    export ERA_HOST="${IPV4_PREFIX}.209"
+    OCTET_Cluster1=(${PC_HOST//./ }) # zero index
+    IPV4_PREFIX_Cluster1=${OCTET_Cluster1[0]}.${OCTET_Cluster1[1]}.${OCTET_Cluster1[2]}
+    ERA_AGENT_Cluster1=${IPV4_PREFIX_Cluster1}.$((${OCTET_Cluster1[3]} + 4))
+    ERA_AGENT_GATEWAY_Cluster1="${IPV4_PREFIX_Cluster1}.1"
+    export ERA_AGENT_IP="${ERA_AGENT_Cluster1}"
+    export ERA_AGENT_GATEWAY="${ERA_AGENT_GATEWAY_Cluster1}"
 
     args_required 'PE_HOST PC_LAUNCH'
     ssh_pubkey & # non-blocking, parallel suitable
@@ -58,7 +68,9 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     && deploy_api_citrix_gold_image_vm \
     && deploy_api_mssql_2019_image \
     && deploy_api_mssql_2019 \
-    && configure_era_cluster_2
+    && deploy_era_api \
+    && configure_era_cluster_2 \
+    && upload_docker_fiesta_era_blueprint
 
 
 
