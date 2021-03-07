@@ -143,7 +143,6 @@ case ${1} in
     && upload_snow_calm_blueprint \
     && upload_fiesta_mssql_blueprint \
     && images \
-    && seedPC \
     && prism_check 'PC'
 
     log "Non-blocking functions (in development) follow."

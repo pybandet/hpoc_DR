@@ -1946,388 +1946,7 @@ log "Era Config Complete"
 function configure_era_cluster_2() {
   local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
 
-set -x
-
-log "Starting Era Config"
-
-log "PE Cluster IP |${PE_HOST}|"
-log "EraServer IP |${ERA_HOST}|"
-
-log "---------------------------------------"
-log " Changing Password and Axccepting EULA"
-log "---------------------------------------"
-
-##  Create the EraManaged network inside Era ##
-log "Reset Default Era Password"
-
-  _reset_passwd=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_Default_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/auth/update" --data '{ "password": "'${ERA_PASSWORD}'"}' | jq -r '.status' | tr -d \")
-
-log "Password Reset |${_reset_passwd}|"
-
-##  Accept EULA ##
-log "Accept Era EULA"
-
-  _accept_eula=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/auth/validate" --data '{ "eulaAccepted": true }' | jq -r '.status' | tr -d \")
-
-log "Accept EULA |${_accept_eula}|"
-
-log "---------------------------------------"
-log " Applying the ENG Hotfix for vGTS"
-log "---------------------------------------"
-
-### Hotfix Era due to Replication issue of ALL profiles.
-log "Applying HotFIX..."
-PASSWD_ERA='Nutanix.1'
-# Getting the hotfix in the CVM
-# Get sshpass installed
-curl --silent ${QCOW2_REPOS}sshpass-1.06-2.el7.x86_64.rpm -O
-sudo yum install -y sshpass-1.06-2.el7.x86_64.rpm
-
-# Get the HF files
-curl --silent ${QCOW2_REPOS}Era_HF/era.tar.gz -O
-curl --silent ${QCOW2_REPOS}Era_HF/copy_era_war.sh -O
-
-# Run the hotfix from the CVM in the Era installation
-bash copy_era_war.sh ${ERA_HOST} ${PASSWD_ERA} /home/nutanix
-
-# letting it sleep to calm down #
-sleep 120
-
-# Remove the files from the CVM
-#/usr/bin/rm era.tar.gz
-#/usr/bin/rm copy_era_war.sh
-#/usr/bin/rm sshpass-1.06-2.el7.x86_64.rpm
-
-log "---------------------------------------"
-log " Registering Cluster to Era"
-log "---------------------------------------"
-
-##  Register Cluster  ##
-log "Register ${CLUSTER_NAME} with Era"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-    "name": "EraCluster",
-    "description": "Era Bootcamp Cluster",
-    "ip": "${PE_HOST}",
-    "username": "${PRISM_ADMIN}",
-    "password": "${PE_PASSWORD}",
-    "status": "UP",
-    "version": "v2",
-    "cloudType": "NTNX",
-    "properties": [
-        {
-            "name": "ERA_STORAGE_CONTAINER",
-            "value": "${STORAGE_ERA}"
-        }
-    ]
-}
-EOF
-)
-
-  _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Era Cluster ID: |${_era_cluster_id}|"
-
-##  Update EraCluster ##
-log "Updating Era Cluster ID: |${_era_cluster_id}|"
-
-ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_ERA}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
-
-echo $ClusterJSON > cluster.json
-
-  _task_id=$(curl -k -H 'Content-Type: multipart/form-data' -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/${_era_cluster_id}/json" -F file="@"cluster.json)
-
-
-##  Create the EraManaged network inside Era ##
-log "Create ${NW2_NAME} Static Network"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-    "name": "${NW2_NAME}",
-    "type": "Static",
-    "ipPools": [
-        {
-            "startIP": "${NW3_START}",
-            "endIP": "${NW3_END}"
-        }
-    ],
-    "properties": [
-        {
-            "name": "VLAN_GATEWAY",
-            "value": "${NW2_GATEWAY}"
-        },
-        {
-            "name": "VLAN_PRIMARY_DNS",
-            "value": "${AUTH_HOST}"
-        },
-        {
-            "name": "VLAN_SUBNET_MASK",
-            "value": "${SUBNET_MASK}"
-        },
-        {
-    		"name": "VLAN_DNS_DOMAIN",
-    		"value": "ntnxlab.local"
-    	  }
-    ]
-}
-EOF
-)
-
-  _static_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created ${NW2_NAME} Network with Network ID |${_static_network_id}|"
-
-##  Create the Primary-MSSQL-NETWORK Network Profile inside Era ##
-log "Create the MariaDB Network Profile"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "engineType": "mariadb_database",
-  "type": "Network",
-  "topology": "ALL",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "VLAN_NAME",
-      "value": "${NW2_NAME}",
-      "secure": false,
-      "description": "Era Managed VLAN"
-    }
-  ],
-  "name": "Era_Managed_MariaDB"
-}
-EOF
-)
-
-  _primary_network_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created Era_Managed_MariaDB Network Profile with ID |${_primary_network_profile_id}|"
-
-##  Create the CUSTOM_EXTRA_SMALL Compute Profile inside Era ##
-log "Create the CUSTOM_EXTRA_SMALL Compute Profile"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "type": "Compute",
-  "topology": "ALL",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "CPUS",
-      "value": "1",
-      "description": "Number of CPUs in the VM"
-    },
-    {
-      "name": "CORE_PER_CPU",
-      "value": "2",
-      "description": "Number of cores per CPU in the VM"
-    },
-    {
-      "name": "MEMORY_SIZE",
-      "value": 4,
-      "description": "Total memory (GiB) for the VM"
-    }
-  ],
-  "name": "CUSTOM_EXTRA_SMALL"
-}
-EOF
-)
-
-  _xs_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created CUSTOM_EXTRA_SMALL Compute Profile with ID |${_xs_compute_profile_id}|"
-
-##  Create the LAB_COMPUTE Compute Profile inside Era ##
-log "Create the LAB_COMPUTE Compute Profile"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "type": "Compute",
-  "topology": "ALL",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "CPUS",
-      "value": "4",
-      "description": "Number of CPUs in the VM"
-    },
-    {
-      "name": "CORE_PER_CPU",
-      "value": "1",
-      "description": "Number of cores per CPU in the VM"
-    },
-    {
-      "name": "MEMORY_SIZE",
-      "value": 5,
-      "description": "Total memory (GiB) for the VM"
-    }
-  ],
-  "name": "LAB_COMPUTE"
-}
-EOF
-)
-
-  _lab_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created LAB_COMPUTE Compute Profile with ID |${_lab_compute_profile_id}|"
-
-##  Create the NTNXLAB Domain Profile inside Era ##
-log "Create the NTNXLAB Domain Profile"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "engineType": "sqlserver_database",
-  "type": "WindowsDomain",
-  "topology": "ALL",
-  "dbVersion": "ALL",
-  "systemProfile": false,
-  "properties": [
-    {
-      "name": "DOMAIN_NAME",
-      "value": "ntnxlab.local",
-      "secure": false,
-      "description": "Name of the Windows domain"
-    },
-    {
-      "name": "DOMAIN_USER_NAME",
-      "value": "Administrator@ntnxlab.local",
-      "secure": false,
-      "description": "Username with permission to join computer to domain"
-    },
-    {
-      "name": "DOMAIN_USER_PASSWORD",
-      "value": "nutanix/4u",
-      "secure": false,
-      "description": "Password for the username with permission to join computer to domain"
-    },
-    {
-      "name": "DB_SERVER_OU_PATH",
-      "value": "",
-      "secure": false,
-      "description": "Custom OU path for database servers"
-    },
-    {
-      "name": "CLUSTER_OU_PATH",
-      "value": "",
-      "secure": false,
-      "description": "Custom OU path for server clusters"
-    },
-    {
-      "name": "SQL_SERVICE_ACCOUNT_USER",
-      "value": "Administrator@ntnxlab.local",
-      "secure": false,
-      "description": "Sql service account username"
-    },
-    {
-      "name": "SQL_SERVICE_ACCOUNT_PASSWORD",
-      "value": "nutanix/4u",
-      "secure": false,
-      "description": "Sql service account password"
-    },
-    {
-      "name": "ALLOW_SERVICE_ACCOUNT_OVERRRIDE",
-      "value": false,
-      "secure": false,
-      "description": "Allow override of sql service account in provisioning workflows"
-    },
-    {
-      "name": "ERA_WORKER_SERVICE_USER",
-      "value": "Administrator@ntnxlab.local",
-      "secure": false,
-      "description": "Era worker service account username"
-    },
-    {
-      "name": "ERA_WORKER_SERVICE_PASSWORD",
-      "value": "nutanix/4u",
-      "secure": false,
-      "description": "Era worker service account password"
-    },
-    {
-      "name": "RESTART_SERVICE",
-      "value": "",
-      "secure": false,
-      "description": "Restart sql service on the dbservers"
-    },
-    {
-      "name": "UPDATE_CREDENTIALS_IN_DBSERVERS",
-      "value": "true",
-      "secure": false,
-      "description": "Update the credentials in all the dbservers"
-    }
-  ],
-  "name": "NTNXLAB"
-}
-EOF
-)
-
-  _ntnxlab_domain_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created NTNXLAB Domain Profile with ID |${_ntnxlab_domain_profile_id}|"
-
-
-## Get the Super Admin Role ID ##
-log "Getting the Super Admin Role ID"
-
-  _role_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/roles" --data '{}' | jq '.[] | select(.name == "Super Admin") | .id' | tr -d \")
-
-log "Super Admin Role ID |${_role_id}|"
-
-## Create Users with Super Admin Role ##
-log "Creating Era Users with Super Admin Role"
-
-for _user in "${USERS[@]}" ; do
-
-log "Creating l${_user}"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "internalUser": false,
-  "roles": [
-    "${_role_id}"
-  ],
-  "isExternalAuth": false,
-  "username": "${_user}",
-  "password": "${ERA_PASSWORD}",
-  "passwordExpired": true
-}
-EOF
-)
-
-  _user_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/users" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
-
-log "Created User ${_user} with ID |${_user_id}|"
-
-done
-
-log "---------------------------------------------------"
-##  Enable Multi-Cluster Era ##
-log "Enable Era Multi-Cluster"
-log "---------------------------------------------------"
-
-HTTP_JSON_BODY=$(cat <<EOF
-{
-  "agentVMPrefix": "EraAgent",
-  "vlanName": "${NW2_NAME}"
-}
-EOF
-)
-
-  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable-multicluster" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
-
-  # Call the wait function
-  waitloop
-
-log "Era Multi-Cluster Enabled"
-
-log "--------------------------------------"
-
-log "Era Config Complete"
-
-###############################################################################################################################
+#set -x
 
 log "Starting Era Config Cluster 2"
 
@@ -2685,6 +2304,789 @@ HTTP_JSON_BODY=$(cat <<EOF
   "availableClusterIds": [
     "${_era_aws_cluster_id}",
     "${_era_cluster_id}"
+  ],
+  "name": "MSSQL_19_SYNCED"
+}
+EOF
+)
+
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
+
+# Call the wait function
+waitloop
+
+log "MSSQL_19_SYNCED Created"
+
+log "Era Config Cluster 2 Complete"
+
+#set +x
+
+}
+
+#########################################################################################################################################
+# Routine to configure era cluster 2
+#########################################################################################################################################
+
+function configure_era_gts2021() {
+  local CURL_HTTP_OPTS=" --max-time 120 --header Content-Type:application/json --header Accept:application/json  --insecure "
+
+set -x
+
+log "Starting Era Config on AWS Cluster"
+
+log "PE Cluster IP |${PE_HOST}|"
+log "EraServer IP |${ERA_HOST}|"
+
+log "---------------------------------------"
+log " Changing Password and Axccepting EULA"
+log "---------------------------------------"
+
+##  Create the EraManaged network inside Era ##
+log "Reset Default Era Password"
+
+  _reset_passwd=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_Default_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/auth/update" --data '{ "password": "'${ERA_PASSWORD}'"}' | jq -r '.status' | tr -d \")
+
+log "Password Reset |${_reset_passwd}|"
+
+##  Accept EULA ##
+log "Accept Era EULA"
+
+  _accept_eula=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/auth/validate" --data '{ "eulaAccepted": true }' | jq -r '.status' | tr -d \")
+
+log "Accept EULA |${_accept_eula}|"
+
+log "---------------------------------------"
+log " Applying the ENG Hotfix for vGTS"
+log "---------------------------------------"
+
+### Hotfix Era due to Replication issue of ALL profiles.
+log "Applying HotFIX..."
+PASSWD_ERA='Nutanix.1'
+# Getting the hotfix in the CVM
+# Get sshpass installed
+curl --silent ${QCOW2_REPOS}sshpass-1.06-2.el7.x86_64.rpm -O
+sudo yum install -y sshpass-1.06-2.el7.x86_64.rpm
+
+# Get the HF files
+curl --silent ${QCOW2_REPOS}Era_HF/era.tar.gz -O
+curl --silent ${QCOW2_REPOS}Era_HF/copy_era_war.sh -O
+
+# Run the hotfix from the CVM in the Era installation
+bash copy_era_war.sh ${ERA_HOST} ${PASSWD_ERA} /home/nutanix
+
+# letting it sleep to calm down #
+sleep 120
+
+# Remove the files from the CVM
+#/usr/bin/rm era.tar.gz
+#/usr/bin/rm copy_era_war.sh
+#/usr/bin/rm sshpass-1.06-2.el7.x86_64.rpm
+
+log "---------------------------------------"
+log " Registering Cluster to Era"
+log "---------------------------------------"
+
+##  Register Cluster  ##
+log "Register ${CLUSTER_NAME} with Era"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "name": "AWS-Cluster",
+    "description": "AWS Bootcamp Cluster",
+    "ip": "${PE_HOST}",
+    "username": "${PRISM_ADMIN}",
+    "password": "${PE_PASSWORD}",
+    "status": "UP",
+    "version": "v2",
+    "cloudType": "NTNX",
+    "properties": [
+        {
+            "name": "ERA_STORAGE_CONTAINER",
+            "value": "${STORAGE_ERA}"
+        }
+    ]
+}
+EOF
+)
+
+  _era_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Era Cluster ID: |${_era_cluster_id}|"
+
+##  Update EraCluster ##
+log "Updating Era Cluster ID: |${_era_cluster_id}|"
+
+ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_ERA}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
+
+echo $ClusterJSON > cluster.json
+
+  _task_id=$(curl -k -H 'Content-Type: multipart/form-data' -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/${_era_cluster_id}/json" -F file="@"cluster.json)
+
+log "---------------------------------------"
+log " Create AWS Static Network"
+log "---------------------------------------"
+
+##  Create the EraManaged network inside Era ##
+log "Create ${NW1_NAME} Static Network"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "name": "${NW1_NAME}",
+    "type": "Static",
+    "ipPools": [
+        {
+            "startIP": "${NW3_START}",
+            "endIP": "${NW3_END}"
+        }
+    ],
+    "properties": [
+        {
+            "name": "VLAN_GATEWAY",
+            "value": "${NW1_GATEWAY}"
+        },
+        {
+            "name": "VLAN_PRIMARY_DNS",
+            "value": "${AUTH_HOST}"
+        },
+        {
+            "name": "VLAN_SUBNET_MASK",
+            "value": "${SUBNET_MASK}"
+        },
+        {
+        "name": "VLAN_DNS_DOMAIN",
+    		"value": "ntnxlab.local"
+    	  }
+    ]
+}
+EOF
+)
+
+
+  _static_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Created ${NW1_NAME} Network with Network ID |${_static_network_id}|"
+
+log "---------------------------------------"
+log "Create the CUSTOM_EXTRA_SMALL Compute Profile"
+log "---------------------------------------"
+##  Create the CUSTOM_EXTRA_SMALL Compute Profile inside Era ##
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "type": "Compute",
+  "topology": "ALL",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "CPUS",
+      "value": "1",
+      "description": "Number of CPUs in the VM"
+    },
+    {
+      "name": "CORE_PER_CPU",
+      "value": "2",
+      "description": "Number of cores per CPU in the VM"
+    },
+    {
+      "name": "MEMORY_SIZE",
+      "value": 4,
+      "description": "Total memory (GiB) for the VM"
+    }
+  ],
+  "name": "CUSTOM_EXTRA_SMALL"
+}
+EOF
+)
+
+  _xs_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Created CUSTOM_EXTRA_SMALL Compute Profile with ID |${_xs_compute_profile_id}|"
+
+log "---------------------------------------"
+log "Create the LAB_COMPUTE Compute Profile"
+log "---------------------------------------"
+##  Create the LAB_COMPUTE Compute Profile inside Era ##
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "type": "Compute",
+  "topology": "ALL",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "CPUS",
+      "value": "4",
+      "description": "Number of CPUs in the VM"
+    },
+    {
+      "name": "CORE_PER_CPU",
+      "value": "1",
+      "description": "Number of cores per CPU in the VM"
+    },
+    {
+      "name": "MEMORY_SIZE",
+      "value": 5,
+      "description": "Total memory (GiB) for the VM"
+    }
+  ],
+  "name": "LAB_COMPUTE"
+}
+EOF
+)
+
+  _lab_compute_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Created LAB_COMPUTE Compute Profile with ID |${_lab_compute_profile_id}|"
+
+##  Create the NTNXLAB Domain Profile inside Era ##
+log "---------------------------------------"
+log "Create the NTNXLAB Domain Profile"
+log "---------------------------------------"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "engineType": "sqlserver_database",
+  "type": "WindowsDomain",
+  "topology": "ALL",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "DOMAIN_NAME",
+      "value": "ntnxlab.local",
+      "secure": false,
+      "description": "Name of the Windows domain"
+    },
+    {
+      "name": "DOMAIN_USER_NAME",
+      "value": "Administrator@ntnxlab.local",
+      "secure": false,
+      "description": "Username with permission to join computer to domain"
+    },
+    {
+      "name": "DOMAIN_USER_PASSWORD",
+      "value": "nutanix/4u",
+      "secure": false,
+      "description": "Password for the username with permission to join computer to domain"
+    },
+    {
+      "name": "DB_SERVER_OU_PATH",
+      "value": "",
+      "secure": false,
+      "description": "Custom OU path for database servers"
+    },
+    {
+      "name": "CLUSTER_OU_PATH",
+      "value": "",
+      "secure": false,
+      "description": "Custom OU path for server clusters"
+    },
+    {
+      "name": "SQL_SERVICE_ACCOUNT_USER",
+      "value": "Administrator@ntnxlab.local",
+      "secure": false,
+      "description": "Sql service account username"
+    },
+    {
+      "name": "SQL_SERVICE_ACCOUNT_PASSWORD",
+      "value": "nutanix/4u",
+      "secure": false,
+      "description": "Sql service account password"
+    },
+    {
+      "name": "ALLOW_SERVICE_ACCOUNT_OVERRRIDE",
+      "value": false,
+      "secure": false,
+      "description": "Allow override of sql service account in provisioning workflows"
+    },
+    {
+      "name": "ERA_WORKER_SERVICE_USER",
+      "value": "Administrator@ntnxlab.local",
+      "secure": false,
+      "description": "Era worker service account username"
+    },
+    {
+      "name": "ERA_WORKER_SERVICE_PASSWORD",
+      "value": "nutanix/4u",
+      "secure": false,
+      "description": "Era worker service account password"
+    },
+    {
+      "name": "RESTART_SERVICE",
+      "value": "",
+      "secure": false,
+      "description": "Restart sql service on the dbservers"
+    },
+    {
+      "name": "UPDATE_CREDENTIALS_IN_DBSERVERS",
+      "value": "true",
+      "secure": false,
+      "description": "Update the credentials in all the dbservers"
+    }
+  ],
+  "name": "NTNXLAB"
+}
+EOF
+)
+
+  _ntnxlab_domain_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Created NTNXLAB Domain Profile with ID |${_ntnxlab_domain_profile_id}|"
+
+
+## Get the Super Admin Role ID ##
+log "---------------------------------------"
+log "Getting the Super Admin Role ID"
+log "---------------------------------------"
+
+  _role_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/roles" --data '{}' | jq '.[] | select(.name == "Super Admin") | .id' | tr -d \")
+
+log "Super Admin Role ID |${_role_id}|"
+
+## Create Users with Super Admin Role ##
+log "Creating Era Users with Super Admin Role"
+
+for _user in "${USERS[@]}" ; do
+
+log "Creating l${_user}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "internalUser": false,
+  "roles": [
+    "${_role_id}"
+  ],
+  "isExternalAuth": false,
+  "username": "${_user}",
+  "password": "${ERA_PASSWORD}",
+  "passwordExpired": true
+}
+EOF
+)
+
+  _user_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/users" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Created User ${_user} with ID |${_user_id}|"
+
+done
+
+log "---------------------------------------------------"
+##  Enable Multi-Cluster Era ##
+log "Enable Era Multi-Cluster"
+log "---------------------------------------------------"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "agentVMPrefix": "EraAgent",
+  "vlanName": "${NW1_NAME}"
+}
+EOF
+)
+
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/enable-multicluster" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+
+  # Call the wait function
+  waitloop
+
+log "Era Multi-Cluster Enabled"
+
+log "--------------------------------------"
+
+log "Era Config AWS Cluster Complete"
+
+###############################################################################################################################
+log "--------------------------------------"
+
+log "Starting Era Config HPOC Cluster"
+
+log "PE Cluster IP |${PE_HOST_HPOC}|"
+log "EraServer IP |${ERA_HOST}|"
+
+##  Register Cluster  ##
+log "Register ${CLUSTER_NAME} with Era"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "clusterName": "EraCluster",
+  "clusterDescription": "Era Bootcamp Cluster",
+  "clusterIP": "${PE_HOST_HPOC}",
+  "storageContainer": "${STORAGE_ERA}",
+  "agentVMPrefix": "EraAgent",
+  "port": 9440,
+  "protocol": "https",
+  "clusterType": "NTNX",
+  "version": "v2",
+  "credentialsInfo": [
+    {
+      "name": "username",
+      "value": "admin"
+    },
+    {
+      "name": "password",
+      "value": "${PE_PASSWORD}"
+    }
+  ],
+  "agentNetworkInfo": [
+    {
+      "name": "vlanName",
+      "value": "${NW2_NAME}"
+    },
+    {
+      "name": "dns",
+      "value": "${AUTH_HOST}"
+    },
+    {
+      "name": "staticIP",
+      "value": "${ERA_AGENT_Cluster1}"
+    },
+    {
+      "name": "gateway",
+      "value": "${ERA_AGENT_GATEWAY_Cluster1}"
+    },
+    {
+      "name": "subnet",
+      "value": "${SUBNET_MASK}"
+    },
+    {
+      "name": "ntp",
+      "value": "0.us.pool.ntp.org,1.us.pool.ntp.org,2.us.pool.ntp.org,3.us.pool.ntp.org"
+    }
+  ]
+}
+EOF
+)
+
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.operationId' | tr -d \")
+
+  # Call the wait function
+  waitloop
+
+## While True loop for Checking if the Cluster is "UP""
+
+loop=180
+
+  _era_cluster_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name=="EraCluster") | .status' | tr -d \")
+
+log "Era EraCluster registration: |Started|"
+
+# Checking routine to see that the registration in Era worked
+counter=1
+while [[ $counter -le $loop ]]
+do
+  ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name=="EraCluster") | .status' | tr -d \")
+  if [[ $ops_status != "UP" ]]
+  then
+      ops_status=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET --data '{}' "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name=="EraCluster") | .status' | tr -d \")
+      log "Operation still in progress, it is $ops_status... Sleep for 60 seconds before retrying.. ($counter/$loop)"
+      counter=$((counter+1))
+      sleep 60
+      if [[ $counter -ge $loop ]]
+      then
+        log "We have tried for "$loop" minutes to register the MariaDB server and Database, but were not successful. Please look at the Era GUI to see if anything has happened... Exiting the scrip with error 23.."
+        exit 23
+      fi
+  else
+      log "EraCluster is UP in Era... Proceeding"
+      break
+  fi
+done
+
+#As we now have two era clusters, we need to grab id of the AWS-Cluster....
+_era_hpoc_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+# Get EraCluster IDs
+log "Get the two Era Cluster IDs"
+
+_era_aws_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/clusters" --data '{}' | jq -r '.[] | select (.name=="AWS-Cluster") .id' | tr -d \")
+
+# IF we don;t have the Era UUID of the AWS CLuster, exit as this is a crucial part of the script!
+
+_era_hpoc_cluster_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/clusters" | jq -r '.[] | select (.name=="EraCluster") .id' | tr -d \")
+
+if [ -z _era_hpoc_cluster_id ]
+then
+  log "We didn't succeed to register the AWS Cluster to the Era instance and ${ERA_HOST}. Exit 24..."
+  exit 24
+fi
+
+log "Era AWS-Cluster ID: |${_era_aws_cluster_id}|"
+log "Era EraCluster ID: |${_era_hpoc_cluster_id}|"
+
+##  Update EraCluster ##
+log "Updating Era Cluster ID: |${_era_hpoc_cluster_id}|"
+
+# Don't we need to change the Container to Images???
+#ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_DEFAULT}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
+ClusterJSON='{"ip_address": "'${PE_HOST}'","port": "9440","protocol": "https","default_storage_container": "'${STORAGE_ERA}'","creds_bag": {"username": "'${PRISM_ADMIN}'","password": "'${PE_PASSWORD}'"}}'
+
+echo $ClusterJSON > cluster.json
+
+  _task_id=$(curl -k -H 'Content-Type: multipart/form-data' -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/clusters/${_era_hpoc_cluster_id}/json" -F file="@"cluster.json)
+
+log "---------------------------------------"
+log " Create HPOC Static Network"
+log "---------------------------------------"
+
+##  Create the EraManaged network inside Era ##
+log "Create ${NW2_NAME} Static Network"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "name": "${NW2_NAME}",
+    "type": "Static",
+    "clusterId": "${_era_hpoc_cluster_id}",
+    "ipPools": [
+        {
+            "startIP": "${NW3_START}",
+            "endIP": "${NW3_END}"
+        }
+    ],
+    "properties": [
+        {
+            "name": "VLAN_GATEWAY",
+            "value": "${NW2_GATEWAY_Cluster1}"
+        },
+        {
+            "name": "VLAN_PRIMARY_DNS",
+            "value": "${AUTH_HOST}"
+        },
+        {
+            "name": "VLAN_SUBNET_MASK",
+            "value": "${SUBNET_MASK}"
+        },
+        {
+    		"name": "VLAN_DNS_DOMAIN",
+    		"value": "ntnxlab.local"
+    	  }
+    ]
+}
+EOF
+)
+
+  _static_network_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/resources/networks" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Created ${NW2_NAME} Network with Network ID |${_static_network_id}|"
+
+log "---------------------------------------"
+log " Create MariaDB Network Profile"
+log "---------------------------------------"
+
+##  Create the MariaDB-NETWORK Network Profile inside Era ##
+log "Create the MariaDB Network Profile"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "engineType": "mariadb_database",
+  "type": "Network",
+  "topology": "ALL",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "VLAN_NAME",
+      "value": "${NW2_NAME}",
+      "secure": false,
+      "description": "Era Managed VLAN"
+    }
+  ],
+  "name": "Era_Managed_MariaDB"
+}
+EOF
+)
+
+  _mariadb_network_profile_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq -r '.id' | tr -d \")
+
+log "Created Era_Managed_MariaDB Network Profile with ID |${_mariadb_network_profile_id}|"
+
+log "---------------------------------------------------------------------------------------------------------------------------------"
+log "Adding ${MSSQL19_SourceVM}"
+log "---------------------------------------------------------------------------------------------------------------------------------"
+
+# Get User01-MSSQLSource VM IP
+log "Getting MSSQLSource VM IP"
+
+VM_NAME="${MSSQL19_SourceVM}"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+    "kind": "vm"
+}
+EOF
+)
+
+  _mssqlsource_vm_ip=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "${HTTP_JSON_BODY}" 'https://localhost:9440/api/nutanix/v3/vms/list' | jq --arg VM "${VM_NAME}" '.entities[]|select (.spec.name==$VM)| .spec.resources.nic_list[] | .ip_endpoint_list[] | .ip' | tr -d \")
+
+log "MSSQLSource VM IP: |${_mssqlsource_vm_ip}|"
+
+log "Registering MSSQLSourceVM"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "actionArguments": [
+    {
+      "name": "same_as_admin",
+      "value": true
+    },
+    {
+      "name": "sql_login_used",
+      "value": false
+    },
+    {
+      "name": "sysadmin_username_win",
+      "value": "Administrator"
+    },
+    {
+      "name": "sysadmin_password_win",
+      "value": "Nutanix/4u"
+    },
+    {
+      "name": "instance_name",
+      "value": "MSSQLSERVER"
+    }
+  ],
+  "vmIp": "${_mssqlsource_vm_ip}",
+  "nxClusterUuid": "${_era_aws_cluster_id}",
+  "databaseType": "sqlserver_database",
+  "forcedInstall": true,
+  "workingDirectory": "c:\\\\",
+  "username": "Administrator",
+  "password": "Nutanix/4u",
+  "eraDeployBase": "c:\\\\"
+}
+EOF
+)
+
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/dbservers/register" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
+
+# Call the wait function
+waitloop
+
+# Get DB Server ID
+log "Getting DB Server ID"
+
+  _era_db_server_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X GET "https://${ERA_HOST}/era/v0.9/dbservers" --data '{}' | jq '.[] | select(.name == "MSSQL19-ProfileSource") | .id' | tr -d \")
+
+log "Era DB Server ID: |${_era_db_server_id}|"
+
+
+log "---------------------------------------------------------------------------------------------------------------------------------"
+log "Creating User Software Profile."
+log "---------------------------------------------------------------------------------------------------------------------------------"
+
+# Create MSSQL19 Software profiles
+log "Creating Software Profiles Now"
+
+for _user in "${USERS[@]}" ; do
+
+log "Creating ${_user} Software Profile Now"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "engineType": "sqlserver_database",
+  "type": "Software",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "SOURCE_DBSERVER_ID",
+      "value": "${_era_db_server_id}",
+      "secure": false,
+      "description": "ID of the database server that should be used as a reference to create the software profile"
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_NAME",
+      "value": "MSSQL_19_${_user} (1.0)",
+      "secure": false,
+      "description": "Name of the base profile version."
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_DESCRIPTION",
+      "value": "",
+      "secure": false,
+      "description": "Description of the base profile version."
+    },
+    {
+      "name": "OS_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Notes or description for the Operating System."
+    },
+    {
+      "name": "DB_SOFTWARE_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Description of the SQL Server database software."
+    }
+  ],
+  "availableClusterIds": [
+    "${_era_aws_cluster_id}"
+  ],
+  "name": "MSSQL_19_${_user}"
+}
+EOF
+)
+
+  op_id=$(curl ${CURL_HTTP_OPTS} -u ${ERA_USER}:${ERA_PASSWORD} -X POST "https://${ERA_HOST}/era/v0.9/profiles" --data "${HTTP_JSON_BODY}" | jq '.operationId' | tr -d \")
+
+# Call the wait function
+waitloop
+
+log "Ceating MSSQL_19_${_user} Now Complete"
+
+done
+
+
+log "---------------------------------------------------------------------------------------------------------------------------------"
+log "Creating Sync Software Profile."
+log "---------------------------------------------------------------------------------------------------------------------------------"
+
+
+# Create MSSQL_19_SYNCED Software profiles
+log "Creating MSSQL_19_SYNCED Software Profiles Now"
+
+HTTP_JSON_BODY=$(cat <<EOF
+{
+  "engineType": "sqlserver_database",
+  "type": "Software",
+  "dbVersion": "ALL",
+  "systemProfile": false,
+  "properties": [
+    {
+      "name": "SOURCE_DBSERVER_ID",
+      "value": "${_era_db_server_id}",
+      "secure": false,
+      "description": "ID of the database server that should be used as a reference to create the software profile"
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_NAME",
+      "value": "MSSQL_19_SYNCED (1.0)",
+      "secure": false,
+      "description": "Name of the base profile version."
+    },
+    {
+      "name": "BASE_PROFILE_VERSION_DESCRIPTION",
+      "value": "",
+      "secure": false,
+      "description": "Description of the base profile version."
+    },
+    {
+      "name": "OS_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Notes or description for the Operating System."
+    },
+    {
+      "name": "DB_SOFTWARE_NOTES",
+      "value": "",
+      "secure": false,
+      "description": "Description of the SQL Server database software."
+    }
+  ],
+  "availableClusterIds": [
+    "${_era_aws_cluster_id}",
+    "${_era_hpoc_cluster_id}"
   ],
   "name": "MSSQL_19_SYNCED"
 }

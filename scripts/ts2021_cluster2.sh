@@ -54,6 +54,8 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     IPV4_PREFIX_Cluster1=${OCTET_Cluster1[0]}.${OCTET_Cluster1[1]}.${OCTET_Cluster1[2]}
     ERA_AGENT_Cluster1=${IPV4_PREFIX_Cluster1}.$((${OCTET_Cluster1[3]} + 4))
     ERA_AGENT_GATEWAY_Cluster1="${IPV4_PREFIX_Cluster1}.1"
+    NW2_GATEWAY_Cluster1="${IPV4_PREFIX_Cluster1}.129"
+    PE_HOST_HPOC=${IPV4_PREFIX_Cluster1}.$((${OCTET_Cluster1[3]} - 2))
     export ERA_AGENT_IP="${ERA_AGENT_Cluster1}"
     export ERA_AGENT_GATEWAY="${ERA_AGENT_GATEWAY_Cluster1}"
 
@@ -69,7 +71,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     && deploy_api_mssql_2019_image \
     && deploy_api_mssql_2019 \
     && deploy_era_api \
-    && configure_era_cluster_2 \
+    && configure_era_gts2021 \
     && upload_docker_fiesta_era_blueprint
 
 
