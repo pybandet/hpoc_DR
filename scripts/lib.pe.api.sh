@@ -443,8 +443,7 @@ HTTP_JSON_BODY=$(cat <<EOF
     "clusterExternalIPAddress": "${cluster_ip}",
     "clusterExternalDataServicesIPAddress": "${DATA_SERVICE_IP}",
     "nameServers": [
-        "${AUTH_HOST}",
-        "${cluster_dns}"
+        "${AUTH_HOST}"
     ]
 }
 EOF
@@ -465,6 +464,7 @@ EOF
   # Getting Network UUID
   log "--------------------------------------"
   log "Getting Network UUID"
+  log "--------------------------------------"
 
 HTTP_JSON_BODY=$(cat <<EOF
 {
@@ -501,7 +501,7 @@ HTTP_JSON_BODY=$(cat <<EOF
                 "subnet_ip": "${NW1_subnet_correct}",
                 "dhcp_options": {
                     "domain_name_server_list": [
-                        "${AUTH_HOST}""
+                        "${AUTH_HOST}"
                     ],
                     "domain_search_list": [
                         "${AUTH_HOST}"

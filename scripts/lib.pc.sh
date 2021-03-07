@@ -551,11 +551,34 @@ function pc_dns_add() {
   local _dns_server
   local       _test
 
-  for _dns_server in $(echo "${DNS_SERVERS}" | sed -e 's/,/ /'); do
-    _test=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "[\"$_dns_server\"]" \
-      https://localhost:9440/PrismGateway/services/rest/v1/cluster/name_servers/add_list)
-    log "name_servers/add_list |${_dns_server}| _test=|${_test}|"
-  done
+  #for _dns_server in $(echo "${DNS_SERVERS}" | sed -e 's/,/ /'); do
+  #  _test=$(curl ${CURL_HTTP_OPTS} --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST --data "[\"$_dns_server\"]" \
+  #    https://localhost:9440/PrismGateway/services/rest/v1/cluster/name_servers/add_list)
+  #  log "name_servers/add_list |${_dns_server}| _test=|${_test}|"
+  #done
+  log "-----------------------"
+  log "Updating DNS Servers"
+  log "-----------------------"
+
+  log "Get current DNS Servers"
+	# Fill the array with the DNS servers that are there
+	dns_arr=($(curl -k --silent --user ${PRISM_ADMIN}:${PE_PASSWORD} https://${pc_host}:9440/PrismGateway/services/rest/v2.0/cluster/name_servers | jq '.[]' | tr -d \"))
+
+  log "Delete current DNS Servers"
+  # Delete the DNS servers spo we can add just one
+	for dns in ${dns_arr[@]}
+	do
+		curl -k --silent --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -H 'Content-Type: application/json' 'https://'${pc_host}':9440/PrismGateway/services/rest/v1/cluster/name_servers/remove_list' -d '[{"ipv4":"'$dns'"}]' | jq '.value' | tr -d \"
+	done
+
+  log "Add AutoAD as the DNS Server"
+	# Get the correct DNS is
+	curl -k --silent --user ${PRISM_ADMIN}:${PE_PASSWORD} -X POST -H 'Content-Type: application/json' 'https://'${pc_host}':9440/PrismGateway/services/rest/v1/cluster/name_servers' -d '{"value":"'${AUTH_HOST}'"}' | jq '.value' | tr -d \"
+
+  log "-----------------------"
+  log "DNS Servers Updated"
+  log "-----------------------"
+
 }
 
 ###############################################################################################################################################################################

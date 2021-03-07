@@ -72,6 +72,7 @@ args_required 'EMAIL PE_PASSWORD PC_VERSION PC_HOST AUTH_HOST'
     && deploy_api_mssql_2019 \
     && deploy_era_api \
     && configure_era_gts2021 \
+    && create_image_policy_categories \
     && upload_docker_fiesta_era_blueprint
 
 
